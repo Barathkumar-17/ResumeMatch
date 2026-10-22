@@ -148,16 +148,18 @@ public class ApplicationDAO {
      * Changes the status of an existing application.
      *
      * @param status one of Applied, Interview, Rejected, Selected
+     * @return true if the student had applied to that job and the status was changed,
+     *         false if there was no such application
      * @throws DatabaseConnectionException if the update fails (including a status the
      *         database does not accept)
      */
-    public void updateStatus(int userId, int jobId, String status) throws DatabaseConnectionException {
+    public boolean updateStatus(int userId, int jobId, String status) throws DatabaseConnectionException {
         try (Connection con = DatabaseConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(UPDATE_STATUS)) {
             ps.setString(1, status);
             ps.setInt(2, userId);
             ps.setInt(3, jobId);
-            ps.executeUpdate();
+            return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             throw wrap("updateStatus", e);
         }

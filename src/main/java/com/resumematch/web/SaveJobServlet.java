@@ -50,9 +50,13 @@ public class SaveJobServlet extends HttpServlet {
 
         try {
             Job job = findJob(request.getParameter("jobId"));
-            if ("remove".equals(request.getParameter("action"))) {
+            String action = request.getParameter("action");
+            if ("remove".equals(action)) {
                 applicationDAO.removeSavedJob(user.getId(), job.getId());
                 session.setAttribute("flash", "Removed from My jobs.");
+            } else if (!"save".equals(action)) {
+                session.setAttribute("flashError",
+                        "That action isn't available. Please use the buttons on this page.");
             } else {
                 applicationDAO.saveJob(user.getId(), job.getId());
                 session.setAttribute("flash", "Saved " + job.getTitle() + " at " + job.getCompany() + ".");
