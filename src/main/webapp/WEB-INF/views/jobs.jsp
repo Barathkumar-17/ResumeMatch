@@ -28,7 +28,7 @@
 <body>
 <div class="app">
   <jsp:include page="/WEB-INF/views/_sidebar.jsp"/>
-  <main class="main">
+  <main class="main" id="main" tabindex="-1">
     <div class="page-head">
       <div>
         <h1>Find jobs</h1>
@@ -120,6 +120,7 @@
         <div class="job-actions">
           <a class="btn btn-primary btn-sm" href="${pageContext.request.contextPath}/job?id=${m.job.id}">View details</a>
           <form class="inline" method="post" action="${pageContext.request.contextPath}/save-job">
+            <input type="hidden" name="_csrf" value="${sessionScope.csrfToken}">
             <input type="hidden" name="jobId" value="${m.job.id}">
             <input type="hidden" name="action" value="${saved ? 'remove' : 'save'}">
             <button class="btn btn-ghost btn-sm ${saved ? 'is-on' : ''}" type="submit">${saved ? 'Saved' : 'Save'}</button>

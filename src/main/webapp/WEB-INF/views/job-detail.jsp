@@ -27,7 +27,7 @@
 <body>
 <div class="app">
   <jsp:include page="/WEB-INF/views/_sidebar.jsp"/>
-  <main class="main">
+  <main class="main" id="main" tabindex="-1">
 <% if (job == null) { %>
     <div class="panel empty">
       <h3>Job not found</h3>
@@ -52,18 +52,20 @@
         </div>
 <%     if (match != null) { %>
         <div class="ring-label">
-          <div class="ring ${score >= 75 ? 'hi' : score >= 50 ? 'mid' : 'lo'}" style="--p:${score}" role="img" aria-label="${score} percent match"><span>${score}<small>%</small></span></div>
+          <div class="ring ${score >= 75 ? 'hi' : score >= 50 ? 'mid' : 'lo'}" data-p="${score}" role="img" aria-label="${score} percent match"><span>${score}<small>%</small></span></div>
           <div class="small muted">match</div>
         </div>
 <%     } %>
       </div>
       <div class="detail-actions">
         <form class="inline" method="post" action="${pageContext.request.contextPath}/save-job">
+          <input type="hidden" name="_csrf" value="${sessionScope.csrfToken}">
           <input type="hidden" name="jobId" value="${job.id}">
           <input type="hidden" name="action" value="${saved ? 'remove' : 'save'}">
           <button class="btn btn-ghost ${saved ? 'is-on' : ''}" type="submit">${saved ? 'Saved' : 'Save job'}</button>
         </form>
         <form class="inline" method="post" action="${pageContext.request.contextPath}/application">
+          <input type="hidden" name="_csrf" value="${sessionScope.csrfToken}">
           <input type="hidden" name="jobId" value="${job.id}">
           <input type="hidden" name="action" value="apply">
           <button class="btn btn-primary" type="submit" ${applied ? 'disabled' : ''}>${applied ? 'Applied' : 'Mark as applied'}</button>
@@ -124,7 +126,7 @@
         <div class="calc">matched required = <b>${matchedCount}</b><br>total required = <b>${requiredCount}</b><br>${matchedCount} &divide; ${requiredCount} &times; 100 = <b>${score}% match</b></div>
 <%     } else { %>
         <p class="muted">Analyze your resume to see which of these skills you already have.</p>
-        <a class="btn btn-primary" style="margin-top:1rem" href="${pageContext.request.contextPath}/dashboard">Upload resume</a>
+        <a class="btn btn-primary mt-btn" href="${pageContext.request.contextPath}/dashboard">Upload resume</a>
 <%     } %>
       </div>
     </div>

@@ -28,6 +28,28 @@
   }
 
   /* ------------------------------------------------------------------
+     0. Values the server prints as data-* attributes. They are applied
+        through the CSSOM so the pages need no inline style="" attributes.
+          data-p="78"  score ring  -> --p custom property
+          data-w="80"  bar fill    -> width in percent
+     ------------------------------------------------------------------ */
+  function applyData() {
+    all("[data-p]").forEach(function (el) {
+      var p = parseFloat(el.getAttribute("data-p"));
+      el.style.setProperty("--p", isNaN(p) ? "0" : String(Math.max(0, Math.min(100, p))));
+    });
+    var bars = all("[data-w]");
+    var fill = function () {
+      bars.forEach(function (el) {
+        var w = parseFloat(el.getAttribute("data-w"));
+        el.style.width = (isNaN(w) ? 0 : Math.max(0, Math.min(100, w))) + "%";
+      });
+    };
+    if (reduceMotion || !window.requestAnimationFrame) { fill(); } else { window.requestAnimationFrame(fill); }
+  }
+  applyData();
+
+  /* ------------------------------------------------------------------
      1 + 2. Auth tabs and form validation
      ------------------------------------------------------------------ */
 
@@ -35,13 +57,13 @@
   function fieldErr(id, msg) {
     var input = byId(id), err = byId(id + "-err");
     if (err) { err.textContent = msg || ""; }
-    if (input) { input.classList.toggle("err", !!msg); }
+    if (input) { input.classList.toggle("err", !!msg); input.setAttribute("aria-invalid", msg ? "true" : "false"); }
     return !msg;
   }
 
   function clearAuthMessages() {
     all(".auth-box .ferr").forEach(function (e) { e.textContent = ""; });
-    all(".auth-box .input").forEach(function (e) { e.classList.remove("err"); });
+    all(".auth-box .input").forEach(function (e) { e.classList.remove("err"); e.removeAttribute("aria-invalid"); });
     all(".auth-box .alert").forEach(function (e) { e.textContent = ""; });
   }
 
@@ -53,22 +75,52 @@
     registerTab.classList.toggle("active", tab === "register");
     loginTab.setAttribute("aria-selected", tab === "login" ? "true" : "false");
     registerTab.setAttribute("aria-selected", tab === "register" ? "true" : "false");
+    loginTab.tabIndex = tab === "login" ? 0 : -1;
+    registerTab.tabIndex = tab === "register" ? 0 : -1;
     loginForm.hidden = tab !== "login";
     registerForm.hidden = tab !== "register";
     clearAuthMessages();
   }
 
-  all("[data-auth-tab]").forEach(function (link) {
+  /**
+   * Arrow keys, Home and End move between the tabs of a tablist and activate
+   * the new one (the "automatic activation" pattern). Only the selected tab
+   * stays in the Tab order.
+   */
+  function enableTabKeys(tabs, activate) {
+    tabs.forEach(function (tab, index) {
+      tab.addEventListener("keydown", function (e) {
+        var next = -1;
+        if (e.key === "ArrowRight" || e.key === "ArrowDown") { next = (index + 1) % tabs.length; }
+        else if (e.key === "ArrowLeft" || e.key === "ArrowUp") { next = (index - 1 + tabs.length) % tabs.length; }
+        else if (e.key === "Home") { next = 0; }
+        else if (e.key === "End") { next = tabs.length - 1; }
+        if (next < 0) { return; }
+        e.preventDefault();
+        tabs[next].focus();
+        activate(tabs[next]);
+      });
+    });
+  }
+
+  function activateAuthTab(link) {
+    switchAuth(link.getAttribute("data-auth-tab"));
+    // Keep the address bar in step so a refresh opens the same tab.
+    if (window.history && window.history.replaceState && link.href) {
+      window.history.replaceState(null, "", link.href);
+    }
+  }
+
+  var authTabs = all("[data-auth-tab]");
+  authTabs.forEach(function (link) {
+    link.tabIndex = link.getAttribute("aria-selected") === "true" ? 0 : -1;
     link.addEventListener("click", function (e) {
       e.preventDefault();
-      var tab = link.getAttribute("data-auth-tab");
-      switchAuth(tab);
-      // Keep the address bar in step so a refresh opens the same tab.
-      if (window.history && window.history.replaceState && link.href) {
-        window.history.replaceState(null, "", link.href);
-      }
+      activateAuthTab(link);
     });
   });
+  enableTabKeys(authTabs, activateAuthTab);
+  all(".auth-box .input.err").forEach(function (input) { input.setAttribute("aria-invalid", "true"); });
 
   function emailMessage(email) {
     if (!email) { return "Enter your email."; }
@@ -149,6 +201,9 @@
     var idleParts = all("[data-idle]", form);
     var readyParts = all("[data-ready]", form);
     var pipeline = form.querySelector("[data-pipeline]");
+    var live = form.querySelector("[data-live]");
+    function announce(text) { if (live) { live.textContent = ""; live.textContent = text; } }
+    function focusPick() { var pick = form.querySelector("[data-pick-file]"); if (pick) { pick.focus(); } }
     var idleTitle = title ? title.textContent : "";
     var busy = false;
 
@@ -174,12 +229,15 @@
       idleParts.forEach(function (b) { b.hidden = true; });
       readyParts.forEach(function (b) { b.hidden = false; });
       if (err) { err.textContent = ""; }
+      announce("Selected " + file.name + ", " + (file.size / 1024).toFixed(1) + " KB. Ready to analyze.");
+      var go = form.querySelector("[data-ready] button[type=submit]");
+      if (go) { go.focus(); }
     }
 
     function accept(files) {
       var file = files && files[0];
       var problem = uploadProblem(file);
-      if (problem) { input.value = ""; showIdle(problem); return; }
+      if (problem) { input.value = ""; showIdle(problem); focusPick(); return; }
       showReady(file);
     }
 
@@ -187,7 +245,12 @@
       b.addEventListener("click", function (e) { e.preventDefault(); input.click(); });
     });
     all("[data-clear-file]", form).forEach(function (b) {
-      b.addEventListener("click", function (e) { e.preventDefault(); input.value = ""; showIdle(""); });
+      b.addEventListener("click", function (e) {
+        e.preventDefault(); input.value = ""; showIdle("");
+        announce("File removed.");
+        var pick = form.querySelector("[data-pick-file]");
+        if (pick) { pick.focus(); }
+      });
     });
     input.addEventListener("change", function () { accept(input.files); });
 
@@ -201,18 +264,19 @@
       if (busy || !e.dataTransfer) { return; }
       var files = e.dataTransfer.files;
       var problem = uploadProblem(files && files[0]);
-      if (problem) { input.value = ""; showIdle(problem); return; }
+      if (problem) { input.value = ""; showIdle(problem); focusPick(); return; }
       try { input.files = files; } catch (ignored) { /* very old browsers: fall back to Choose file */ }
       accept(input.files && input.files.length ? input.files : files);
     });
 
     form.addEventListener("submit", function (e) {
       var problem = uploadProblem(input.files && input.files[0]);
-      if (problem) { e.preventDefault(); showIdle(problem); return; }
+      if (problem) { e.preventDefault(); showIdle(problem); focusPick(); return; }
       if (busy) { e.preventDefault(); return; }
       busy = true;
       // The server does the real work; these steps only show that it is running.
       if (title) { title.textContent = "Analyzing " + input.files[0].name; }
+      announce("Analyzing " + input.files[0].name + ". Please wait.");
       if (chip) { chip.hidden = true; }
       readyParts.forEach(function (b) { b.hidden = true; });
       idleParts.forEach(function (b) { b.hidden = true; });
@@ -259,16 +323,25 @@
      ------------------------------------------------------------------ */
   all("[data-tabs]").forEach(function (group) {
     var buttons = all("[data-tab]", group);
+    function show(btn) {
+      var name = btn.getAttribute("data-tab");
+      buttons.forEach(function (b) {
+        b.classList.toggle("active", b === btn);
+        b.setAttribute("aria-selected", b === btn ? "true" : "false");
+        b.tabIndex = b === btn ? 0 : -1;
+      });
+      all("[data-tab-panel]").forEach(function (panel) {
+        panel.hidden = panel.getAttribute("data-tab-panel") !== name;
+      });
+    }
     buttons.forEach(function (btn) {
+      btn.tabIndex = btn.classList.contains("active") ? 0 : -1;
       btn.addEventListener("click", function (e) {
         e.preventDefault();
-        var name = btn.getAttribute("data-tab");
-        buttons.forEach(function (b) { b.classList.toggle("active", b === btn); });
-        all("[data-tab-panel]").forEach(function (panel) {
-          panel.hidden = panel.getAttribute("data-tab-panel") !== name;
-        });
+        show(btn);
       });
     });
+    enableTabKeys(buttons, show);
   });
 
   /* 6b. Ask before destructive actions: data-confirm="Remove this job?" */
@@ -287,7 +360,7 @@
 
   /* ------------------------------------------------------------------
      7. Light / dark theme toggle. The saved choice (or the system setting)
-        is applied by a small script in _head.jsp before the page paints.
+        is applied by theme-init.js (loaded in the head) before the page paints.
      ------------------------------------------------------------------ */
   (function () {
     var root = document.documentElement;
@@ -299,10 +372,12 @@
     btn.className = "theme-toggle";
     btn.innerHTML = sun + moon;
 
+    // A toggle button: the name stays "Dark theme", aria-pressed says whether it is on.
     function label() {
       var dark = root.getAttribute("data-theme") === "dark";
       btn.title = dark ? "Switch to light theme" : "Switch to dark theme";
-      btn.setAttribute("aria-label", btn.title);
+      btn.setAttribute("aria-label", "Dark theme");
+      btn.setAttribute("aria-pressed", dark ? "true" : "false");
     }
     label();
 

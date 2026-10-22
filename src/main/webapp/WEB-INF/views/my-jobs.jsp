@@ -22,7 +22,7 @@
 <body>
 <div class="app">
   <jsp:include page="/WEB-INF/views/_sidebar.jsp"/>
-  <main class="main">
+  <main class="main" id="main" tabindex="-1">
     <div class="page-head"><div><h1>My jobs</h1><p>Track every job from saved to selected. Change the status as you hear back.</p></div></div>
 
     <div class="panel empty" ${requestScope.loadFailed ? '' : 'hidden'}>
@@ -39,16 +39,16 @@
         <div><b>${requestScope.statusCounts['Selected']}</b><span class="status st-Selected">Selected</span></div>
       </div>
 
-      <div class="tabs" role="tablist" data-tabs>
-        <a href="${pageContext.request.contextPath}/my-jobs?tab=saved" role="tab" data-tab="saved"
+      <div class="tabs" role="tablist" aria-label="My jobs" data-tabs>
+        <a href="${pageContext.request.contextPath}/my-jobs?tab=saved" id="tab-saved" role="tab" aria-controls="panel-saved" aria-selected="${requestScope.tab != 'applied'}" data-tab="saved"
            class="${requestScope.tab == 'applied' ? '' : 'active'}">Saved jobs (${requestScope.savedCount})</a>
-        <a href="${pageContext.request.contextPath}/my-jobs?tab=applied" role="tab" data-tab="applied"
+        <a href="${pageContext.request.contextPath}/my-jobs?tab=applied" id="tab-applied" role="tab" aria-controls="panel-applied" aria-selected="${requestScope.tab == 'applied'}" data-tab="applied"
            class="${requestScope.tab == 'applied' ? 'active' : ''}">Applied jobs (${requestScope.appliedCount})</a>
       </div>
 
       <%-- Saved tab --%>
-      <div class="panel" data-tab-panel="saved" ${requestScope.tab == 'applied' ? 'hidden' : ''}>
-        <div class="tbl-wrap" ${requestScope.savedCount > 0 ? '' : 'hidden'}>
+      <div class="panel" id="panel-saved" role="tabpanel" aria-labelledby="tab-saved" data-tab-panel="saved" ${requestScope.tab == 'applied' ? 'hidden' : ''}>
+        <div class="tbl-wrap" role="region" aria-label="Saved jobs" tabindex="0" ${requestScope.savedCount > 0 ? '' : 'hidden'}>
           <table class="tbl">
             <thead><tr><th>Position</th><th>Company</th><th>Match</th><th>Status</th><th>Date saved</th><th></th></tr></thead>
             <tbody>
@@ -61,6 +61,7 @@
                 <td>${rm:h(row.dateText)}</td>
                 <td class="actions">
                   <form method="post" action="${pageContext.request.contextPath}/application">
+                    <input type="hidden" name="_csrf" value="${sessionScope.csrfToken}">
                     <input type="hidden" name="jobId" value="${row.job.id}">
                     <input type="hidden" name="tab" value="saved">
                     <button class="btn btn-primary btn-sm" type="submit" name="action" value="apply">Mark as applied</button>
@@ -81,8 +82,8 @@
       </div>
 
       <%-- Applied tab --%>
-      <div class="panel" data-tab-panel="applied" ${requestScope.tab == 'applied' ? '' : 'hidden'}>
-        <div class="tbl-wrap" ${requestScope.appliedCount > 0 ? '' : 'hidden'}>
+      <div class="panel" id="panel-applied" role="tabpanel" aria-labelledby="tab-applied" data-tab-panel="applied" ${requestScope.tab == 'applied' ? '' : 'hidden'}>
+        <div class="tbl-wrap" role="region" aria-label="Applied jobs" tabindex="0" ${requestScope.appliedCount > 0 ? '' : 'hidden'}>
           <table class="tbl">
             <thead><tr><th>Position</th><th>Company</th><th>Match</th><th>Status</th><th>Date updated</th><th></th></tr></thead>
             <tbody>
@@ -93,6 +94,7 @@
                 <td><span class="pct-badge inline ${row.matchClass}"><b>${row.matchText}</b></span></td>
                 <td>
                   <form method="post" action="${pageContext.request.contextPath}/application">
+                    <input type="hidden" name="_csrf" value="${sessionScope.csrfToken}">
                     <input type="hidden" name="action" value="status">
                     <input type="hidden" name="jobId" value="${row.job.id}">
                     <select name="status" data-autosubmit aria-label="Status for ${rm:h(row.job.title)}">
@@ -107,6 +109,7 @@
                 <td>${rm:h(row.dateText)}</td>
                 <td class="actions">
                   <form method="post" action="${pageContext.request.contextPath}/application">
+                    <input type="hidden" name="_csrf" value="${sessionScope.csrfToken}">
                     <input type="hidden" name="jobId" value="${row.job.id}">
                     <input type="hidden" name="tab" value="applied">
                     <button class="btn btn-ghost btn-sm" type="submit" name="action" value="remove"
