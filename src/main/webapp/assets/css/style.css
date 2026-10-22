@@ -58,7 +58,10 @@ button{cursor:pointer}
 a{color:var(--link)}
 :focus-visible{outline:3px solid var(--link);outline-offset:2px}
 [hidden]{display:none!important}
-h1,h2,h3{line-height:1.15;letter-spacing:-.01em}
+h1,h2,h3{line-height:1.15;letter-spacing:-.01em;text-wrap:balance}
+p,li{text-wrap:pretty}
+::selection{background:var(--hl);color:var(--on-hl)}
+input,textarea{caret-color:var(--link)}
 .muted{color:var(--ink-2)}
 .small{font-size:.875rem}
 
@@ -99,14 +102,14 @@ form.inline{display:inline}
 .hero .cta{display:flex;gap:.75rem;flex-wrap:wrap}
 .hero .note{margin-top:1.5rem;font-size:.9rem;color:var(--ink-3);max-width:32rem}
 .sheet-wrap{position:relative;padding:1rem 2.5rem 6.5rem 0}
-.sheet{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:2rem 2rem 2.25rem;font-family:var(--serif);font-size:.95rem;line-height:1.7;color:var(--doc-ink);box-shadow:0 1px 0 var(--line),0 24px 48px -28px rgba(24,34,61,.35);transform:rotate(-1.5deg)}
+.sheet{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:2rem 2rem 7rem;font-family:var(--serif);font-size:.95rem;line-height:1.7;color:var(--doc-ink);box-shadow:0 1px 0 var(--line),0 24px 48px -28px rgba(24,34,61,.35);transform:rotate(-1.5deg)}
 .sheet .nm{font-family:var(--sans);font-weight:800;font-size:1.3rem;color:var(--ink);letter-spacing:-.02em}
 .sheet .deg{color:var(--ink-3)}
 .sheet .sh{font-family:var(--sans);font-weight:700;font-size:.8rem;color:var(--ink-3);margin-top:1rem;border-bottom:1px solid var(--line);padding-bottom:.2rem;margin-bottom:.35rem}
-.sheet mark{background:linear-gradient(var(--hl),var(--hl)) no-repeat 0 60%/0% 75%;color:var(--on-hl);padding:0 .1em;animation:sweep .5s ease-out forwards}
+.sheet mark{background:linear-gradient(var(--hl),var(--hl)) no-repeat 0 60%/0% 75%;color:var(--doc-ink);padding:0 .1em;animation:sweep .5s ease-out forwards}
 .sheet mark:nth-of-type(1){animation-delay:.3s}.sheet mark:nth-of-type(2){animation-delay:.45s}.sheet mark:nth-of-type(3){animation-delay:.6s}.sheet mark:nth-of-type(4){animation-delay:.75s}.sheet mark:nth-of-type(5){animation-delay:.9s}
 .sheet mark:nth-of-type(6){animation-delay:1.05s}.sheet mark:nth-of-type(7){animation-delay:1.2s}.sheet mark:nth-of-type(8){animation-delay:1.4s}.sheet mark:nth-of-type(9){animation-delay:1.55s}.sheet mark:nth-of-type(10){animation-delay:1.7s}
-@keyframes sweep{to{background-size:100% 75%}}
+@keyframes sweep{to{background-size:100% 75%;color:var(--on-hl)}}
 .float-match{position:absolute;right:0;bottom:0;background:var(--strong);color:var(--on-strong);border-radius:14px;padding:1rem 1.25rem;width:250px;box-shadow:0 20px 40px -20px rgba(24,34,61,.6)}
 .float-match .t{font-weight:700}
 .float-match .s{font-size:.82rem;color:#B8C0D9}
@@ -196,14 +199,14 @@ form.inline{display:inline}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);background:var(--paper);border:1px solid var(--line);border-radius:16px;margin-bottom:1.25rem}
 .stat{padding:1.25rem 1.5rem;border-left:1px solid var(--line)}
 .stat:first-child{border-left:0}
-.stat .v{font-size:2rem;font-weight:800;letter-spacing:-.03em;line-height:1.1}
+.stat .v{font-size:2rem;font-weight:800;letter-spacing:-.03em;line-height:1.1;font-variant-numeric:tabular-nums}
 .stat .v small{font-size:1rem;color:var(--ink-3);font-weight:600}
 .stat .k{color:var(--ink-2);font-size:.9rem}
 
 /* ---------- upload ---------- */
 .drop{border:2px dashed var(--line-2);border-radius:16px;background:var(--surface-2);padding:2.5rem 1.5rem;text-align:center;transition:border-color .15s,background .15s}
 .drop.over{border-color:var(--cobalt);background:var(--cobalt-soft)}
-.drop h3{font-size:1.35rem;font-weight:800;margin:.75rem 0 .35rem}
+.drop .drop-title{font-size:1.35rem;font-weight:800;line-height:1.15;letter-spacing:-.01em;color:var(--ink);margin:.75rem 0 .35rem}
 .drop .file-chip{display:inline-flex;align-items:center;gap:.5rem;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:.5rem .8rem;margin-top:1rem;font-weight:600;font-size:.9rem}
 .drop .row{display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap;margin-top:1.25rem}
 .drop .ferr{margin-top:.75rem;font-size:.9rem;font-weight:500}
@@ -224,19 +227,17 @@ form.inline{display:inline}
 .list-row .grow{flex:1;min-width:0}
 .list-row b{display:block}
 .empty{text-align:center;padding:2rem 1rem;color:var(--ink-2)}
-.empty h3{color:var(--ink);font-size:1.1rem;margin-bottom:.35rem}
+.empty h1,.empty h2{color:var(--ink);font-size:1.1rem;margin-bottom:.35rem}
 .empty .btn,.mt-btn{margin-top:1rem}
 .empty.full{grid-column:1/-1}
 
 /* ---------- score ring ----------
    The percentage comes from data-p="78" on the element; app.js copies it into --p. */
 .ring{--p:0;--c:var(--cobalt);width:132px;height:132px;border-radius:50%;background:conic-gradient(var(--c) calc(var(--p)*1%),var(--track) 0);display:grid;place-items:center;flex:none}
-.ring::before{content:"";grid-area:1/1;width:104px;height:104px;border-radius:50%;background:var(--surface)}
-.ring span{grid-area:1/1;font-weight:800;font-size:2.1rem;letter-spacing:-.03em;position:relative}
+.ring span{width:104px;height:104px;border-radius:50%;background:var(--surface);display:block;line-height:104px;text-align:center;font-weight:800;font-size:2.1rem;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
 .ring span small{font-size:.85rem;color:var(--ink-3);font-weight:600}
 .ring.sm{width:64px;height:64px}
-.ring.sm::before{width:50px;height:50px}
-.ring.sm span{font-size:1rem}
+.ring.sm span{width:50px;height:50px;line-height:50px;font-size:1rem}
 .ring.hi{--c:var(--match)}
 .ring.mid{--c:var(--amber)}
 .ring.lo{--c:var(--miss)}
@@ -289,7 +290,7 @@ input[type=range]{width:100%;accent-color:var(--cobalt);margin-top:.5rem}
 .job{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:1.25rem;display:flex;flex-direction:column;gap:.85rem}
 .job:hover{border-color:var(--line-2)}
 .job-top{display:flex;gap:1rem;justify-content:space-between;align-items:flex-start}
-.job h3{font-size:1.1rem;font-weight:700}
+.job h2{font-size:1.1rem;font-weight:700}
 .job .co{color:var(--ink-2);font-size:.9rem}
 .meta{display:flex;flex-wrap:wrap;gap:.35rem .9rem;font-size:.85rem;color:var(--ink-2)}
 .meta span{display:inline-flex;align-items:center;gap:.3rem}
@@ -330,7 +331,7 @@ input[type=range]{width:100%;accent-color:var(--cobalt);margin-top:.5rem}
 .gap-list.ok li{background:var(--match-soft);color:var(--match)}
 .gap-list.no li{background:var(--miss-soft);color:var(--miss)}
 .gap-list.no li.none{background:var(--match-soft);color:var(--match)}
-.gap-list li small{margin-left:auto;font-weight:500;font-size:.78rem;opacity:.8}
+.gap-list li small{margin-left:auto;font-weight:600;font-size:.78rem}
 .learn-row{display:flex;align-items:center;gap:1rem;padding:.7rem 0;border-top:1px solid var(--line)}
 .learn-row:first-child{border-top:0}
 .learn-row .bar{flex:1}
@@ -388,14 +389,14 @@ table.tbl{width:100%;border-collapse:collapse;font-size:.93rem}
 .tbl-wrap{overflow-x:auto}
 .tbl{min-width:640px}
 .formula code{white-space:normal;overflow-wrap:anywhere}
-.list-row .grow b,.job h3,.detail-head h1,.tbl .job-link{overflow-wrap:anywhere}
+.list-row .grow b,.job h2,.detail-head h1,.tbl .job-link{overflow-wrap:anywhere}
 :root[data-theme="dark"] .toast.good{background:var(--match-soft);color:var(--match);border:1px solid var(--match)}
 :root[data-theme="dark"] .toast.bad{background:var(--miss-soft);color:var(--miss);border:1px solid var(--miss)}
 
 /* ---------- motion and responsive ---------- */
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition:none!important}
-  .sheet mark{background-size:100% 75%}
+  .sheet mark{background-size:100% 75%;color:var(--on-hl)}
 }
 @media (max-width:1000px){
   .hero{grid-template-columns:1fr}
@@ -434,7 +435,7 @@ table.tbl{width:100%;border-collapse:collapse;font-size:.93rem}
   .l-nav .actions .btn-ghost{display:none}
   .hero{padding:2rem 1rem}
   .sheet-wrap{padding:1rem 0 0}
-  .sheet{padding:1.25rem}
+  .sheet{padding:1.25rem 1.25rem 3rem}
   .float-match{position:relative;margin:-1.5rem 0 0 auto;max-width:100%}
   .btn{min-height:44px;justify-content:center}
   .btn-sm{min-height:40px}

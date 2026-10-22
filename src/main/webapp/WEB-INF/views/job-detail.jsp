@@ -30,7 +30,7 @@
   <main class="main" id="main" tabindex="-1">
 <% if (job == null) { %>
     <div class="panel empty">
-      <h3>Job not found</h3>
+      <h2>Job not found</h2>
       <p>${empty requestScope.error ? 'It may have been removed.' : rm:h(requestScope.error)}</p>
       <a class="btn btn-primary" href="${pageContext.request.contextPath}/jobs">Back to jobs</a>
     </div>

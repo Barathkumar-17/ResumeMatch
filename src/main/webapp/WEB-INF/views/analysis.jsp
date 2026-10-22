@@ -47,7 +47,7 @@
     <div class="alert bad mb" role="alert">${rm:h(requestScope.error)}</div>
 
     <div class="panel empty" ${empty requestScope.resume ? '' : 'hidden'}>
-      <h3>No resume analyzed yet</h3>
+      <h2>No resume analyzed yet</h2>
       <p>Upload a .txt resume on the dashboard to see extracted skills and sections.</p>
       <a class="btn btn-primary" href="${pageContext.request.contextPath}/dashboard">Upload resume</a>
     </div>

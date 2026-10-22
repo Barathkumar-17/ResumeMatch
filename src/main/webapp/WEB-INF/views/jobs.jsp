@@ -98,7 +98,7 @@
 %>
       <article class="job">
         <div class="job-top">
-          <div><h3>${rm:h(m.job.title)}</h3><div class="co">${rm:h(m.job.company)}</div></div>
+          <div><h2>${rm:h(m.job.title)}</h2><div class="co">${rm:h(m.job.company)}</div></div>
           <div class="pct-badge ${not requestScope.hasResume ? 'pct-na' : m.score >= 75 ? 'pct-hi' : m.score >= 50 ? 'pct-mid' : 'pct-lo'}"><b>${requestScope.hasResume ? m.score : '&mdash;'}${requestScope.hasResume ? '%' : ''}</b><span>match</span></div>
         </div>
         <div class="meta">
@@ -130,7 +130,7 @@
 <% } %>
 <% if (matches.isEmpty() && request.getAttribute("error") == null) { %>
       <div class="panel empty full">
-        <h3>No jobs match these filters</h3>
+        <h2>No jobs match these filters</h2>
         <p>Lower the minimum match or clear the search to see more.</p>
         <a class="btn btn-ghost" href="${pageContext.request.contextPath}/jobs">Clear filters</a>
       </div>

@@ -52,7 +52,7 @@
           <input type="hidden" name="_csrf" value="${sessionScope.csrfToken}">
           <div class="drop" data-drop role="group" aria-label="Resume upload">
             <div class="drop-icon" aria-hidden="true"></div>
-            <h3 data-drop-title>Drop your resume here</h3>
+            <p class="drop-title" data-drop-title>Drop your resume here</p>
             <p class="muted" data-idle>Plain text (.txt) files up to 200 KB. Use headings like EDUCATION, SKILLS and PROJECTS.</p>
             <div class="file-chip" data-file-chip hidden></div>
             <input type="file" name="resume" accept=".txt,text/plain" aria-label="Resume file (.txt)" hidden>

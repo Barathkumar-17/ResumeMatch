@@ -171,7 +171,7 @@
         Markup: <form data-upload enctype="multipart/form-data"> holding
           [data-drop]        the dashed drop area
           input[type=file]   the real file field (can be hidden)
-          [data-drop-title]  heading that changes with the state
+          [data-drop-title]  title line that changes with the state
           [data-file-chip]   shows the chosen file name and size
           [data-file-err]    message when the file is rejected
           [data-idle]        shown before a file is chosen
