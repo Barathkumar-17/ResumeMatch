@@ -29,6 +29,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 /**
@@ -46,13 +48,14 @@ public class TestRunner {
     private static final String SAMPLE = "sample-data/arun_kumar_resume.txt";
 
     public static void main(String[] args) {
+        // The services log expected errors (for example a missing file); keep the test output readable.
+        Logger.getLogger("com.resumematch").setLevel(Level.OFF);
         try {
             analyzerTests();
             scorerTests();
             matcherTests();
             validationTests();
             fileServiceTests();
-            // Needs the new PasswordUtil and LoginAttemptLimiter, which are not on main yet.
             SecurityTests.run();
         } catch (Exception e) {
             failed++;
@@ -347,7 +350,8 @@ public class TestRunner {
             Path saved = files.saveResume(7, "my resume.txt", data.length, new ByteArrayInputStream(data));
             check("saved file exists", Files.exists(saved));
             check("saved under user_7", saved.getParent().getFileName().toString().equals("user_7"));
-            check("saved name ends with sanitised name", saved.getFileName().toString().endsWith("_my_resume.txt"));
+            check("saved name is server-generated, not the submitted name",
+                    saved.getFileName().toString().matches("[0-9]+_[0-9a-f]{12}[.]txt"));
             checkEquals("read returns the same text", "Java and SQL resume", files.readResume(saved));
 
             Path second = files.saveResume(7, "my resume.txt", data.length, new ByteArrayInputStream(data));

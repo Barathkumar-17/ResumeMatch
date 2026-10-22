@@ -3,6 +3,11 @@ package com.resumematch;
 import com.resumematch.util.LoginAttemptLimiter;
 import com.resumematch.util.PasswordUtil;
 
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.Base64;
 
 /**
@@ -55,7 +60,8 @@ public class SecurityTests {
 
     private static void limiterTests() {
         System.out.println("== LoginAttemptLimiter ==");
-        LoginAttemptLimiter limiter = new LoginAttemptLimiter();
+        MovableClock clock = new MovableClock();
+        LoginAttemptLimiter limiter = new LoginAttemptLimiter(clock);
         String email = "limit-test@example.com";
         String ip = "10.0.0.1";
 
@@ -82,5 +88,29 @@ public class SecurityTests {
             limiter.recordFailure(email2, ip);
         }
         TestRunner.check("success resets the failure count", !limiter.isBlocked(email2, ip));
+    }
+
+    /** A clock the test can move forward, so the 15-minute window can be checked instantly. */
+    private static final class MovableClock extends Clock {
+        private Instant now = Instant.parse("2026-01-01T00:00:00Z");
+
+        void advance(Duration amount) {
+            now = now.plus(amount);
+        }
+
+        @Override
+        public ZoneId getZone() {
+            return ZoneOffset.UTC;
+        }
+
+        @Override
+        public Clock withZone(ZoneId zone) {
+            return this;
+        }
+
+        @Override
+        public Instant instant() {
+            return now;
+        }
     }
 }
