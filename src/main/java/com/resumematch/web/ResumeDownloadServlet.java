@@ -4,7 +4,6 @@ import com.resumematch.dao.ResumeDAO;
 import com.resumematch.exception.AppException;
 import com.resumematch.model.Resume;
 import com.resumematch.model.User;
-import com.resumematch.service.FileService;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -70,7 +69,7 @@ public class ResumeDownloadServlet extends HttpServlet {
         }
 
         // Only the owner's own folder, resumes/user_<id>/, is allowed.
-        Path userDir = new FileService().getBaseDir().resolve("user_" + user.getId());
+        Path userDir = ResumeUploadServlet.resumeBaseDir(getServletContext()).resolve("user_" + user.getId());
         Path file = resolveInside(userDir, resume.getFilePath());
         if (file == null || !Files.isRegularFile(file) || !Files.isReadable(file)) {
             System.err.println("[ResumeDownloadServlet] file missing or outside the resumes folder for resume "

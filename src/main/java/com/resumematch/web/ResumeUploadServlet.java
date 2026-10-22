@@ -16,6 +16,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Set;
 
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
@@ -147,11 +148,24 @@ public class ResumeUploadServlet extends HttpServlet {
     }
 
     private FileService createFileService() {
-        String dir = getServletContext().getInitParameter(RESUME_DIR_PARAM);
-        if (dir == null || dir.trim().isEmpty()) {
-            return new FileService();
+        return new FileService(resumeBaseDir(getServletContext()));
+    }
+
+    /**
+     * Folder that holds uploaded resumes. Uses the {@code resumeDir} context parameter
+     * when set, otherwise {@code <catalina.base>/resumes}, otherwise {@code resumes}
+     * next to the working directory. Shared with the download servlet.
+     */
+    static Path resumeBaseDir(ServletContext context) {
+        String dir = context.getInitParameter(RESUME_DIR_PARAM);
+        if (dir != null && !dir.trim().isEmpty()) {
+            return Paths.get(dir.trim());
         }
-        return new FileService(Paths.get(dir.trim()));
+        String catalinaBase = System.getProperty("catalina.base");
+        if (catalinaBase != null && !catalinaBase.isEmpty()) {
+            return Paths.get(catalinaBase, FileService.DEFAULT_BASE_DIR);
+        }
+        return Paths.get(FileService.DEFAULT_BASE_DIR);
     }
 
     /** Drops any folder part a browser may send ("C:\\docs\\cv.txt" becomes "cv.txt"). */
