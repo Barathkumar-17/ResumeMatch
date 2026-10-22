@@ -133,7 +133,7 @@ To use another resume folder, add this to `WEB-INF/web.xml`:
 ./build.sh test          # or: build.bat test
 ```
 `test/com/resumematch/TestRunner.java` checks the analyzer, scorer, job matcher, validation,
-password hashing, sign-in limit and file service. Among other things it asserts that the sample
+password hashing, sign-in limit, HTML escaping and file service. Among other things it asserts that the sample
 resume scores 78/100 with 7 skills, job 101 matches 80% and the skill gap for it is 67%. It exits
 with status 1 on any failure. `./build.sh test deploy` deploys only when the tests pass.
 
