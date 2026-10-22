@@ -1,0 +1,115 @@
+package com.resumematch.dao;
+
+import com.resumematch.exception.DatabaseConnectionException;
+import com.resumematch.exception.DuplicateEmailException;
+import com.resumematch.model.User;
+import com.resumematch.util.DatabaseConnection;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.SQLIntegrityConstraintViolationException;
+import java.sql.Statement;
+
+/**
+ * All SQL for the {@code users} table: creating an account and looking one up by
+ * email or id. A second registration with the same email is caught from the UNIQUE
+ * index and turned into a {@link DuplicateEmailException}.
+ *
+ * <p>Demonstrates: JDBC, {@code PreparedStatement}, generated keys, try-with-resources,
+ * catching a specific SQL error and rethrowing it as a custom exception.</p>
+ */
+public class UserDAO {
+
+    /** MySQL error code for a duplicate value in a UNIQUE or PRIMARY KEY index. */
+    private static final int MYSQL_DUPLICATE_KEY = 1062;
+
+    private static final String INSERT_USER =
+            "INSERT INTO users (name, email, password) VALUES (?, ?, ?)";
+    private static final String SELECT_BY_EMAIL =
+            "SELECT id, name, email, password FROM users WHERE email = ?";
+    private static final String SELECT_BY_ID =
+            "SELECT id, name, email, password FROM users WHERE id = ?";
+
+    /**
+     * Creates a new account.
+     *
+     * @param name         the student's full name
+     * @param email        login email, must not already be registered
+     * @param passwordHash SHA-256 hex hash of the password (never the plain text)
+     * @return the id MySQL generated for the new row
+     * @throws DuplicateEmailException     if the email already has an account
+     * @throws DatabaseConnectionException if MySQL cannot be reached or the insert fails
+     */
+    public int register(String name, String email, String passwordHash)
+            throws DuplicateEmailException, DatabaseConnectionException {
+        try (Connection con = DatabaseConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(INSERT_USER, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setString(1, name);
+            ps.setString(2, email);
+            ps.setString(3, passwordHash);
+            ps.executeUpdate();
+            try (ResultSet keys = ps.getGeneratedKeys()) {
+                if (keys.next()) {
+                    return keys.getInt(1);
+                }
+            }
+            System.err.println("[UserDAO] register: no generated id returned for the new user.");
+            throw new DatabaseConnectionException();
+        } catch (SQLException e) {
+            if (isDuplicateKey(e)) {
+                throw new DuplicateEmailException(e);
+            }
+            System.err.println("[UserDAO] register failed: " + e.getMessage());
+            e.printStackTrace();
+            throw new DatabaseConnectionException(e);
+        }
+    }
+
+    /**
+     * Looks up an account by email, used at login.
+     *
+     * @return the user, or {@code null} if no account has this email
+     * @throws DatabaseConnectionException if the query fails
+     */
+    public User findByEmail(String email) throws DatabaseConnectionException {
+        return findOne(SELECT_BY_EMAIL, email, "findByEmail");
+    }
+
+    /**
+     * Looks up an account by its id, used to reload the logged-in user.
+     *
+     * @return the user, or {@code null} if no account has this id
+     * @throws DatabaseConnectionException if the query fails
+     */
+    public User findById(int id) throws DatabaseConnectionException {
+        return findOne(SELECT_BY_ID, id, "findById");
+    }
+
+    /** Runs a single-parameter SELECT and maps the first row, if any, to a {@link User}. */
+    private User findOne(String sql, Object param, String method) throws DatabaseConnectionException {
+        try (Connection con = DatabaseConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setObject(1, param);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return new User(rs.getInt("id"), rs.getString("name"),
+                            rs.getString("email"), rs.getString("password"));
+                }
+                return null;
+            }
+        } catch (SQLException e) {
+            System.err.println("[UserDAO] " + method + " failed: " + e.getMessage());
+            e.printStackTrace();
+            throw new DatabaseConnectionException(e);
+        }
+    }
+
+    /** True when the error came from the UNIQUE index (MySQL 1062, SQLState 23000). */
+    private static boolean isDuplicateKey(SQLException e) {
+        return e instanceof SQLIntegrityConstraintViolationException
+                || e.getErrorCode() == MYSQL_DUPLICATE_KEY
+                || "23000".equals(e.getSQLState());
+    }
+}
