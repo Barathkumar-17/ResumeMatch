@@ -1,0 +1,13 @@
+# Only src/main goes into the image; keep local config and build output out of it.
+.git
+.github
+.claude
+build
+lib
+resumes
+docs
+reference
+site
+src/main/resources/db.properties
+*.war
+*.class
