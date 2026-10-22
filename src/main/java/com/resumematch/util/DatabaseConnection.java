@@ -25,7 +25,7 @@ public final class DatabaseConnection {
     private static final String CONFIG_FILE = "db.properties";
 
     private static final String DEFAULT_URL =
-            "jdbc:mysql://localhost:3306/resumematch?useSSL=false&serverTimezone=UTC"
+            "jdbc:mysql://localhost:3306/resumematch?useSSL=false"
             + "&allowPublicKeyRetrieval=true";
     private static final String DEFAULT_USER = "root";
     private static final String DEFAULT_PASSWORD = "";
