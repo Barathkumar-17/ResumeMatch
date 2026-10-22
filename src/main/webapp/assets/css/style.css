@@ -165,7 +165,6 @@ form.inline{display:inline}
 .nav a:hover,.nav button:hover{background:var(--bg);color:var(--ink)}
 .nav a.active,.nav button.active{background:var(--strong);color:var(--on-strong)}
 .nav svg{width:18px;height:18px;flex:none}
-.nav .sep{height:1px;background:var(--line);margin:.6rem .5rem}
 .nav .count{margin-left:auto;font-size:.75rem;background:var(--bg);color:var(--ink-2);border-radius:999px;padding:0 .45rem;font-weight:700}
 .nav .count:empty{display:none}
 .nav a.active .count,.nav button.active .count{background:rgba(255,255,255,.18);color:#fff}
@@ -189,7 +188,6 @@ form.inline{display:inline}
 .grid{display:grid;gap:1.25rem}
 .grid.stack{align-content:start}
 .g2{grid-template-columns:1fr 1fr}
-.g3{grid-template-columns:repeat(3,1fr)}
 .g-side{grid-template-columns:1.5fr 1fr}
 
 /* stats strip: one panel, divided, not four identical cards */
@@ -265,7 +263,6 @@ form.inline{display:inline}
 .cat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:1rem}
 .cat-label{font-size:.875rem;color:var(--ink-2);font-weight:600;margin-bottom:.35rem}
 .panel-foot{font-size:.875rem;color:var(--ink-2);margin-top:1rem}
-.inline-code{font-family:var(--mono);font-size:.85rem;background:var(--surface-2);padding:.1rem .35rem;border-radius:4px}
 
 .checklist{list-style:none}
 .checklist li{display:flex;gap:.6rem;padding:.45rem 0;font-size:.95rem}
@@ -367,7 +364,6 @@ table.tbl{width:100%;border-collapse:collapse;font-size:.93rem}
 .toast:empty{display:none}
 .toast.bad{background:var(--miss)}
 .toast.good{background:var(--match)}
-.toast small{display:block;opacity:.75;font-family:var(--mono);font-size:.75rem;margin-top:.15rem}
 @keyframes tin{from{transform:translateY(8px);opacity:0}}
 
 /* ---------- error page ---------- */
@@ -400,7 +396,7 @@ table.tbl{width:100%;border-collapse:collapse;font-size:.93rem}
 @media (max-width:1000px){
   .hero{grid-template-columns:1fr}
   .steps{grid-template-columns:1fr 1fr}
-  .g-side,.g2,.g3,.jobs,.gap-cols{grid-template-columns:1fr}
+  .g-side,.g2,.jobs,.gap-cols{grid-template-columns:1fr}
   .filters{grid-template-columns:1fr 1fr}
 }
 @media (max-width:760px){
@@ -412,7 +408,7 @@ table.tbl{width:100%;border-collapse:collapse;font-size:.93rem}
   .side .logo{order:1;min-height:44px}
   .side .me{order:2}
   .side .nav{order:3;grid-column:1/-1;flex-direction:row;overflow-x:auto;padding-bottom:2px}
-  .nav .sep,.nav .count{display:none}
+  .nav .count{display:none}
   .nav a,.nav button{white-space:nowrap;padding:.5rem .75rem;font-size:.9rem;min-height:44px}
   .nav a svg,.nav button svg{display:none}
   .me{margin:0;padding:0;border:0}

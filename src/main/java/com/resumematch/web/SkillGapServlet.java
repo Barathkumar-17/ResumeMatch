@@ -12,6 +12,7 @@ import com.resumematch.service.SkillBasedJobMatcher;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -33,8 +34,10 @@ import javax.servlet.http.HttpServletResponse;
  * for the dropdown), {@code targetJob}, {@code gapScore}, {@code haveCount},
  * {@code totalCount}, {@code matchScore}, {@code matchedRequired},
  * {@code matchedPreferred}, {@code missingRequired}, {@code missingPreferred}
- * (List&lt;String&gt;), {@code recommendations} (List&lt;Map.Entry&lt;String,Integer&gt;&gt;:
- * skill name and number of jobs that require it), {@code totalJobs}, {@code error}.</p>
+ * (List&lt;String&gt;), {@code ringClass} (hi, mid or lo), {@code nothingMatched},
+ * {@code nothingMissing} (Boolean), {@code recommendations} (List&lt;Map&lt;String,Object&gt;&gt;
+ * with the keys {@code skill}, {@code jobs} = number of jobs that require it and
+ * {@code percent} = that number as a share of all jobs), {@code totalJobs}, {@code error}.</p>
  *
  * <p>Demonstrates: {@code HttpServlet} doGet, {@code List<String>} filtering,
  * {@code Map.Entry} results from a {@code HashMap} count, choosing a default with the
@@ -92,9 +95,14 @@ public class SkillGapServlet extends HttpServlet {
 
         List<Map.Entry<String, Integer>> recommendations = matcher.recommendSkills(skills, jobs);
 
+        int gapScore = matcher.calculateSkillGapScore(skills, target);
+        int haveCount = matchedRequired.size() + matchedPreferred.size();
         request.setAttribute("targetJob", target);
-        request.setAttribute("gapScore", matcher.calculateSkillGapScore(skills, target));
-        request.setAttribute("haveCount", matchedRequired.size() + matchedPreferred.size());
+        request.setAttribute("gapScore", gapScore);
+        request.setAttribute("ringClass", JobMatch.levelFor(gapScore));
+        request.setAttribute("nothingMatched", haveCount == 0);
+        request.setAttribute("nothingMissing", missingRequired.isEmpty() && missingPreferred.isEmpty());
+        request.setAttribute("haveCount", haveCount);
         request.setAttribute("totalCount",
                 target.getRequiredSkills().size() + target.getPreferredSkills().size());
         request.setAttribute("matchScore", matcher.calculateMatchScore(skills, target));
@@ -102,8 +110,22 @@ public class SkillGapServlet extends HttpServlet {
         request.setAttribute("matchedPreferred", matchedPreferred);
         request.setAttribute("missingRequired", missingRequired);
         request.setAttribute("missingPreferred", missingPreferred);
-        request.setAttribute("recommendations", recommendations);
+        request.setAttribute("recommendations", recommendationRows(recommendations, jobs.size()));
         request.setAttribute("totalJobs", jobs.size());
+    }
+
+    /** One row per recommended skill: its name, the number of jobs needing it and that as a percentage of all jobs. */
+    private static List<Map<String, Object>> recommendationRows(
+            List<Map.Entry<String, Integer>> recommendations, int totalJobs) {
+        List<Map<String, Object>> rows = new ArrayList<>();
+        for (Map.Entry<String, Integer> entry : recommendations) {
+            Map<String, Object> row = new HashMap<>();
+            row.put("skill", entry.getKey());
+            row.put("jobs", entry.getValue());
+            row.put("percent", SkillBasedJobMatcher.percentOf(entry.getValue(), totalJobs));
+            rows.add(row);
+        }
+        return rows;
     }
 
     /**

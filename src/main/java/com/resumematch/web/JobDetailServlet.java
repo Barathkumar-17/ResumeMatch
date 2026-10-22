@@ -31,7 +31,7 @@ import javax.servlet.http.HttpSession;
  *
  * <p>Request attributes for job-detail.jsp: {@code job} (Job), {@code match} (JobMatch,
  * null without a resume), {@code hasResume}, {@code matchedCount}, {@code requiredCount},
- * {@code missingCount}, {@code score}, {@code saved}, {@code applied},
+ * {@code missingCount}, {@code score}, {@code ringClass}, {@code saved}, {@code applied},
  * {@code savedJobIds} (Set&lt;Integer&gt;), {@code error}, {@code flash},
  * {@code flashError}.</p>
  *
@@ -70,6 +70,7 @@ public class JobDetailServlet extends HttpServlet {
                 request.setAttribute("missingCount",
                         match.getMissing().size() + match.getMissingPreferred().size());
                 request.setAttribute("score", match.getScore());
+                request.setAttribute("ringClass", match.getLevel());
             }
 
             boolean saved = false;

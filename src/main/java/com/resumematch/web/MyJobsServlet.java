@@ -6,6 +6,7 @@ import com.resumematch.dao.ResumeDAO;
 import com.resumematch.exception.AppException;
 import com.resumematch.model.Application;
 import com.resumematch.model.Job;
+import com.resumematch.model.JobMatch;
 import com.resumematch.model.Resume;
 import com.resumematch.model.User;
 import com.resumematch.service.JobMatcher;
@@ -187,10 +188,7 @@ public class MyJobsServlet extends HttpServlet {
 
     /** Same colour bands as the job cards: 75+ green, 50+ amber, below that red. */
     private static String matchClass(int score) {
-        if (score >= 75) {
-            return "pct-hi";
-        }
-        return score >= 50 ? "pct-mid" : "pct-lo";
+        return "pct-" + JobMatch.levelFor(score);
     }
 
     /** Copies a one-shot message from the session to the request and forgets it. */
