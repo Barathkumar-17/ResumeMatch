@@ -1,11 +1,14 @@
 package com.resumematch.console;
 
+import com.resumematch.dao.JobDAO;
 import com.resumematch.dao.SkillDAO;
 import com.resumematch.exception.AppException;
+import com.resumematch.model.JobMatch;
 import com.resumematch.model.Resume;
 import com.resumematch.model.ScoreBreakdown;
 import com.resumematch.model.Skill;
 import com.resumematch.service.ResumeAnalyzer;
+import com.resumematch.service.SkillBasedJobMatcher;
 import com.resumematch.service.TxtResumeReader;
 
 import java.nio.file.Path;
@@ -37,6 +40,7 @@ public class ConsoleDemo {
 
             printSkills(resume);
             printScore(resume);
+            printJobMatches(resume);
         } catch (AppException e) {
             System.out.println("Could not run the demo: " + e.getUserMessage());
         }
@@ -59,5 +63,18 @@ public class ConsoleDemo {
         }
         System.out.println("  Total: " + resume.getScore() + "/100");
         System.out.println();
+    }
+
+    private static void printJobMatches(Resume resume) throws AppException {
+        SkillBasedJobMatcher matcher = new SkillBasedJobMatcher();
+        List<JobMatch> ranked = matcher.rankJobs(resume.getSkills(), new JobDAO().findAll());
+
+        System.out.println("Jobs ranked by match");
+        for (JobMatch m : ranked) {
+            System.out.printf("  %3d%%  #%d %s (%s)%n", m.getScore(), m.getJob().getId(),
+                    m.getJob().getTitle(), m.getJob().getCompany());
+            System.out.println("        matched: " + String.join(", ", m.getMatched()));
+            System.out.println("        missing: " + String.join(", ", m.getMissing()));
+        }
     }
 }
