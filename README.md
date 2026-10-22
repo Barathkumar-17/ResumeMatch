@@ -181,8 +181,9 @@ docker compose exec -T db sh -c 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" resumemat
 
 ## Putting it online
 GitHub Pages only serves static files, so it hosts the **project page** in `site/`, not the app.
-The workflow `.github/workflows/pages.yml` publishes that page on every push to `main` once Pages
-is enabled (Settings → Pages → Source: GitHub Actions).
+The workflow `.github/workflows/pages.yml` publishes that page when it is started by hand
+(Actions → Publish project page → Run workflow), once Pages is enabled
+(Settings → Pages → Source: GitHub Actions). Pushes to `main` do not deploy anything.
 
 The app itself needs a host that runs a Docker image and a MySQL 8 database:
 1. Create a MySQL 8 database with any provider and run `database/01_schema.sql` and

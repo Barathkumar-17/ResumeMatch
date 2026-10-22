@@ -2,12 +2,10 @@
 # It reuses the app's stylesheet, fonts and theme script from src/main/webapp/assets.
 # Set the repository variable LIVE_APP_URL (Settings > Secrets and variables > Actions > Variables)
 # to the address of a running instance to show the "Open the app" buttons.
+# Runs only when started by hand: Actions > Publish project page > Run workflow.
 name: Publish project page
 
 on:
-  push:
-    branches: [main]
-    paths: ["site/**", "src/main/webapp/assets/**", ".github/workflows/pages.yml"]
   workflow_dispatch:
 
 permissions:
