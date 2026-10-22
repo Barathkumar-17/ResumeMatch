@@ -38,6 +38,8 @@
 .theme-toggle{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:10px;border:1.5px solid var(--line);background:transparent;color:var(--ink);flex:none}
 .theme-toggle:hover{border-color:var(--ink-3)}
 .theme-toggle svg{width:18px;height:18px}
+.me .theme-toggle{width:30px;height:30px;border-radius:8px}
+.me .theme-toggle svg{width:16px;height:16px}
 .theme-toggle .i-sun{display:none}
 :root[data-theme="dark"] .theme-toggle .i-sun{display:block}
 :root[data-theme="dark"] .theme-toggle .i-moon{display:none}
@@ -161,7 +163,7 @@ form.inline{display:inline}
 .nav .count{margin-left:auto;font-size:.75rem;background:var(--bg);color:var(--ink-2);border-radius:999px;padding:0 .45rem;font-weight:700}
 .nav .count:empty{display:none}
 .nav a.active .count,.nav button.active .count{background:rgba(255,255,255,.18);color:#fff}
-.me{margin-top:auto;display:flex;align-items:center;gap:.6rem;padding-top:1rem;border-top:1px solid var(--line)}
+.me{margin-top:auto;display:flex;align-items:center;gap:.45rem;padding-top:1rem;border-top:1px solid var(--line)}
 .avatar{width:36px;height:36px;border-radius:50%;background:var(--hl);color:var(--on-hl);display:grid;place-items:center;font-weight:800;flex:none}
 .me .who{min-width:0;flex:1}
 .me .who b{display:block;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -222,7 +224,7 @@ form.inline{display:inline}
 
 /* ---------- score ring ----------
    Set the percentage and colour inline: style="--p:78;--c:var(--match)" */
-.ring{--p:0;--c:var(--cobalt);width:132px;height:132px;border-radius:50%;background:conic-gradient(var(--c) calc(var(--p)*1%),#E3E7EF 0);display:grid;place-items:center;flex:none}
+.ring{--p:0;--c:var(--cobalt);width:132px;height:132px;border-radius:50%;background:conic-gradient(var(--c) calc(var(--p)*1%),var(--track) 0);display:grid;place-items:center;flex:none}
 .ring::before{content:"";grid-area:1/1;width:104px;height:104px;border-radius:50%;background:var(--surface)}
 .ring span{grid-area:1/1;font-weight:800;font-size:2.1rem;letter-spacing:-.03em;position:relative}
 .ring span small{font-size:.85rem;color:var(--ink-3);font-weight:600}
