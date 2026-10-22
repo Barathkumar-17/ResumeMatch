@@ -4,6 +4,7 @@ import com.resumematch.dao.UserDAO;
 import com.resumematch.exception.AppException;
 import com.resumematch.exception.InvalidLoginException;
 import com.resumematch.model.User;
+import com.resumematch.util.LoginAttemptLimiter;
 import com.resumematch.util.PasswordUtil;
 import com.resumematch.util.ValidationUtil;
 
@@ -36,6 +37,8 @@ public class LoginServlet extends HttpServlet {
     public static final String SESSION_USER = "user";
 
     private static final String VIEW = "/WEB-INF/views/auth.jsp";
+
+    private static final LoginAttemptLimiter LIMITER = LoginAttemptLimiter.shared();
 
     private final transient UserDAO userDAO = new UserDAO();
 
@@ -81,14 +84,34 @@ public class LoginServlet extends HttpServlet {
             return;
         }
 
+        String cleanEmail = email.trim().toLowerCase();
+        String ip = request.getRemoteAddr();
+
+        // Too many recent failures: refuse before the password is even checked.
+        int minutesLeft = LIMITER.minutesLeft(cleanEmail, ip);
+        if (minutesLeft > 0) {
+            request.setAttribute("error", "Too many failed sign-in attempts. Please wait "
+                    + minutesLeft + " minutes and try again.");
+            showForm(request, response);
+            return;
+        }
+
         User user;
         try {
-            user = authenticate(email.trim().toLowerCase(), password);
+            user = authenticate(cleanEmail, password);
+        } catch (InvalidLoginException e) {
+            LIMITER.recordFailure(cleanEmail, ip);
+            request.setAttribute("error", e.getUserMessage());
+            showForm(request, response);
+            return;
         } catch (AppException e) {
             request.setAttribute("error", e.getUserMessage());
             showForm(request, response);
             return;
         }
+
+        LIMITER.recordSuccess(cleanEmail);
+        upgradeHashIfNeeded(user, password);
 
         // Session fixation: drop any session that existed before login, start a fresh one.
         HttpSession old = request.getSession(false);
@@ -111,6 +134,21 @@ public class LoginServlet extends HttpServlet {
             throw new InvalidLoginException();
         }
         return user;
+    }
+
+    /**
+     * Saves a fresh hash when the stored one is an older format. A failure here is
+     * ignored (the DAO already logged it) so it never blocks the login.
+     */
+    private void upgradeHashIfNeeded(User user, String password) {
+        if (!PasswordUtil.needsRehash(user.getPasswordHash())) {
+            return;
+        }
+        try {
+            userDAO.updatePassword(user.getId(), PasswordUtil.hash(password));
+        } catch (AppException e) {
+            // ignored on purpose: the old hash still works next time
+        }
     }
 
     /** True when the current request already has a logged-in user in its session. */

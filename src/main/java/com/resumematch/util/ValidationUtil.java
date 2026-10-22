@@ -20,6 +20,15 @@ public final class ValidationUtil {
     /** Shortest password accepted at registration. */
     public static final int MIN_PASSWORD_LENGTH = 6;
 
+    /** Longest full name accepted (matches {@code users.name VARCHAR(100)}). */
+    public static final int MAX_NAME_LENGTH = 100;
+
+    /** Longest email accepted (matches {@code users.email VARCHAR(150)}). */
+    public static final int MAX_EMAIL_LENGTH = 150;
+
+    /** Longest password accepted, so a huge input cannot be used to slow down hashing. */
+    public static final int MAX_PASSWORD_LENGTH = 128;
+
     /** something@something.tld, with a top-level part of at least two characters. */
     private static final Pattern EMAIL = Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$");
 
@@ -54,13 +63,20 @@ public final class ValidationUtil {
 
     /** Register form: full name. */
     public static String nameError(String name) {
-        return isBlank(name) ? "Enter your full name." : null;
+        if (isBlank(name)) {
+            return "Enter your full name.";
+        }
+        return name.trim().length() > MAX_NAME_LENGTH
+                ? "Use at most " + MAX_NAME_LENGTH + " characters." : null;
     }
 
     /** Register and login forms: email. */
     public static String emailError(String email) {
         if (isBlank(email)) {
             return "Enter your email.";
+        }
+        if (email.trim().length() > MAX_EMAIL_LENGTH) {
+            return "Use at most " + MAX_EMAIL_LENGTH + " characters.";
         }
         return isValidEmail(email) ? null : "Enter a valid email, like name@college.edu.";
     }
@@ -69,6 +85,9 @@ public final class ValidationUtil {
     public static String newPasswordError(String password) {
         if (password == null || password.isEmpty()) {
             return "Create a password.";
+        }
+        if (password.length() > MAX_PASSWORD_LENGTH) {
+            return "Use at most " + MAX_PASSWORD_LENGTH + " characters.";
         }
         return isValidPassword(password) ? null : "Use at least " + MIN_PASSWORD_LENGTH + " characters.";
     }
@@ -81,9 +100,13 @@ public final class ValidationUtil {
         return confirm.equals(password) ? null : "Passwords don't match.";
     }
 
-    /** Login form: password (only checked for presence). */
+    /** Login form: password (checked for presence and maximum length). */
     public static String loginPasswordError(String password) {
-        return (password == null || password.isEmpty()) ? "Enter your password." : null;
+        if (password == null || password.isEmpty()) {
+            return "Enter your password.";
+        }
+        return password.length() > MAX_PASSWORD_LENGTH
+                ? "Use at most " + MAX_PASSWORD_LENGTH + " characters." : null;
     }
 
     /**

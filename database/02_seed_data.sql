@@ -138,8 +138,8 @@ INSERT INTO job_skills (job_id, skill_id, required_level) VALUES
 
 -- ---------------------------------------------------------------------
 -- Demo account: demo@resumematch.in / demo1234
--- password column = SHA-256 hex of "demo1234"
+-- password column = PBKDF2 hash of "demo1234" (pbkdf2$iterations$salt$hash)
 -- ---------------------------------------------------------------------
 INSERT INTO users (id, name, email, password) VALUES
     (1, 'Arun Kumar', 'demo@resumematch.in',
-     '0ead2060b65992dca4769af601a1b3a35ef38cfad2c2c465bb160ea764157c5d');
+     'pbkdf2$210000$A4xz70OwsDPn0SSGyca8gw==$CMC+nktYjhPFCpi0G2ObkPnmTCaexNZ2kSRuEdzif2I=');
