@@ -28,9 +28,6 @@
   })();
 </script>
 <title>${rm:h(param.title)}${empty param.title ? 'ResumeMatch — Smart Resume Analyzer &amp; Job Recommendation System' : ' · ResumeMatch'}</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&amp;family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&amp;display=swap">
 <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
 <script src="${pageContext.request.contextPath}/assets/js/app.js" defer></script>
 </head>
