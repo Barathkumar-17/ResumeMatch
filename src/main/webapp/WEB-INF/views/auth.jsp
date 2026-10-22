@@ -35,6 +35,7 @@
       </div>
 
       <form id="form-login" method="post" action="${pageContext.request.contextPath}/login" data-validate="login" novalidate ${requestScope.mode == 'register' ? 'hidden' : ''}>
+        <input type="hidden" name="_csrf" value="${sessionScope.csrfToken}">
         <h2>Welcome back</h2>
         <p class="muted">Log in to see your resume score and matched jobs.</p>
         <div class="field">
@@ -55,6 +56,7 @@
       </form>
 
       <form id="form-register" method="post" action="${pageContext.request.contextPath}/register" data-validate="register" novalidate ${requestScope.mode == 'register' ? '' : 'hidden'}>
+        <input type="hidden" name="_csrf" value="${sessionScope.csrfToken}">
         <h2>Create your account</h2>
         <p class="muted">You'll need an account to save jobs and track applications.</p>
         <div class="field">

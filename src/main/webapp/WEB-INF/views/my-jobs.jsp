@@ -61,6 +61,7 @@
                 <td>${rm:h(row.dateText)}</td>
                 <td class="actions">
                   <form method="post" action="${pageContext.request.contextPath}/application">
+                    <input type="hidden" name="_csrf" value="${sessionScope.csrfToken}">
                     <input type="hidden" name="jobId" value="${row.job.id}">
                     <input type="hidden" name="tab" value="saved">
                     <button class="btn btn-primary btn-sm" type="submit" name="action" value="apply">Mark as applied</button>
@@ -93,6 +94,7 @@
                 <td><span class="pct-badge inline ${row.matchClass}"><b>${row.matchText}</b></span></td>
                 <td>
                   <form method="post" action="${pageContext.request.contextPath}/application">
+                    <input type="hidden" name="_csrf" value="${sessionScope.csrfToken}">
                     <input type="hidden" name="action" value="status">
                     <input type="hidden" name="jobId" value="${row.job.id}">
                     <select name="status" data-autosubmit aria-label="Status for ${rm:h(row.job.title)}">
@@ -107,6 +109,7 @@
                 <td>${rm:h(row.dateText)}</td>
                 <td class="actions">
                   <form method="post" action="${pageContext.request.contextPath}/application">
+                    <input type="hidden" name="_csrf" value="${sessionScope.csrfToken}">
                     <input type="hidden" name="jobId" value="${row.job.id}">
                     <input type="hidden" name="tab" value="applied">
                     <button class="btn btn-ghost btn-sm" type="submit" name="action" value="remove"

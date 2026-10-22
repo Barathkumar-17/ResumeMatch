@@ -59,11 +59,13 @@
       </div>
       <div class="detail-actions">
         <form class="inline" method="post" action="${pageContext.request.contextPath}/save-job">
+          <input type="hidden" name="_csrf" value="${sessionScope.csrfToken}">
           <input type="hidden" name="jobId" value="${job.id}">
           <input type="hidden" name="action" value="${saved ? 'remove' : 'save'}">
           <button class="btn btn-ghost ${saved ? 'is-on' : ''}" type="submit">${saved ? 'Saved' : 'Save job'}</button>
         </form>
         <form class="inline" method="post" action="${pageContext.request.contextPath}/application">
+          <input type="hidden" name="_csrf" value="${sessionScope.csrfToken}">
           <input type="hidden" name="jobId" value="${job.id}">
           <input type="hidden" name="action" value="apply">
           <button class="btn btn-primary" type="submit" ${applied ? 'disabled' : ''}>${applied ? 'Applied' : 'Mark as applied'}</button>

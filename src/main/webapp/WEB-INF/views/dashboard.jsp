@@ -48,7 +48,8 @@
     <div class="grid g-side">
       <div class="panel">
         <h2>${empty requestScope.resume ? 'Upload your resume' : 'Upload a new version'}</h2>
-        <form method="post" action="${pageContext.request.contextPath}/upload" enctype="multipart/form-data" data-upload novalidate>
+        <form method="post" action="${pageContext.request.contextPath}/upload?_csrf=${sessionScope.csrfToken}" enctype="multipart/form-data" data-upload novalidate>
+          <input type="hidden" name="_csrf" value="${sessionScope.csrfToken}">
           <div class="drop" data-drop>
             <div class="drop-icon"></div>
             <h3 data-drop-title>Drop your resume here</h3>
