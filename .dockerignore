@@ -1,4 +1,0 @@
-# Only the application sources go into the image; local config stays out.
-*
-!src/main/**
-src/main/resources/db.properties

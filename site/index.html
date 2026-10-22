@@ -9,7 +9,6 @@
 <script src="assets/js/theme-init.js"></script>
 <link rel="stylesheet" href="assets/css/style.css">
 <link rel="stylesheet" href="site.css">
-<script src="site.js" defer></script>
 </head>
 <body>
 <div class="landing">
@@ -17,7 +16,6 @@
     <a class="logo" href="./"><span class="logo-mark"></span><span>ResumeMatch</span></a>
     <div class="actions">
       <a class="btn btn-ghost" href="https://github.com/Barathkumar-17/ResumeMatch">Source code</a>
-      <a class="btn btn-primary" id="live-link" href="__LIVE_APP_URL__" hidden>Open the app</a>
     </div>
   </header>
 
@@ -26,8 +24,8 @@
       <h1>Find out which jobs your resume already fits.</h1>
       <p class="lead">Upload your resume as a text file. ResumeMatch picks out your skills, scores each section out of 100, and ranks internships by how many of their required skills you already have.</p>
       <div class="cta">
-        <a class="btn btn-hl" id="live-cta" href="__LIVE_APP_URL__" hidden>Try the live app</a>
-        <a class="btn btn-ghost" href="#run">Run it yourself</a>
+        <a class="btn btn-hl" href="#run">Run it yourself</a>
+        <a class="btn btn-ghost" href="https://github.com/Barathkumar-17/ResumeMatch#readme">Read the guide</a>
       </div>
       <p class="note">Rule-based analysis: skills are found by matching your resume text against a fixed skill dictionary. No AI or machine learning is involved.</p>
     </div>
@@ -70,11 +68,13 @@
   <section class="how site-run" id="run">
     <div class="how-inner">
       <h2>Run it yourself</h2>
-      <p>The app is a Java servlet application backed by MySQL, so it runs on a server rather than on this page. With Docker installed, one command starts Tomcat 9 and MySQL 8 with the demo data:</p>
+      <p>ResumeMatch is a Java servlet application backed by MySQL, so it runs on your own computer or server rather than on this page. You need JDK 17, MySQL 8 and Apache Tomcat 9.</p>
       <pre class="site-code"><code>git clone https://github.com/Barathkumar-17/ResumeMatch.git
 cd ResumeMatch
-docker compose up --build</code></pre>
-      <p>Then open <span class="inline-code">http://localhost:8080/ResumeMatch/</span> and sign in with <span class="inline-code">demo@resumematch.in</span> / <span class="inline-code">demo1234</span>. To install without Docker, see the README.</p>
+mysql -u root -p &lt; database/01_schema.sql
+mysql -u root -p &lt; database/02_seed_data.sql
+./build.sh deploy        # or build.bat deploy on Windows</code></pre>
+      <p>Then open <span class="inline-code">http://localhost:8080/ResumeMatch/</span> and sign in with <span class="inline-code">demo@resumematch.in</span> / <span class="inline-code">demo1234</span>. The README covers the jars, database settings and troubleshooting.</p>
     </div>
   </section>
   <footer class="l-foot">ResumeMatch · College project · Core Java, OOP, JDBC, MySQL, File Handling, Collections, Servlets and JSP</footer>

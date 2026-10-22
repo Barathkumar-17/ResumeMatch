@@ -30,5 +30,3 @@ reference/
 .DS_Store
 Thumbs.db
 
-# docker compose secrets
-.env

@@ -55,7 +55,6 @@ site/              static project page published to GitHub Pages
 lib/               MySQL Connector/J and servlet-api jars (not committed)
 build.sh           build, test and deploy script for Linux/macOS/Git Bash
 build.bat          the same for Windows
-Dockerfile, docker-compose.yml   container setup (Tomcat 9 + MySQL 8)
 ```
 
 ## Prerequisites
@@ -66,19 +65,8 @@ Dockerfile, docker-compose.yml   container setup (Tomcat 9 + MySQL 8)
 | Apache Tomcat | 9.x (`javax.servlet`) | running the web app |
 | MySQL Connector/J | `mysql-connector-j-<version>.jar` | the JDBC driver |
 | bash + curl, or PowerShell 5.1 | any | the smoke test (optional) |
-| Docker with Compose | any recent | the container setup (optional, replaces all of the above) |
 
-## Quick start with Docker
-```
-cp .env.example .env        # then change the passwords in .env
-docker compose up --build
-```
-Open http://localhost:8080/ResumeMatch/ and log in with `demo@resumematch.in` / `demo1234`.
-MySQL runs `database/01_schema.sql` and `02_seed_data.sql` the first time it starts. The data
-lives in the `db-data` volume and uploaded resumes in the `resumes` volume.
-`docker compose down` stops everything; `docker compose down -v` also deletes the data.
-
-## Manual setup
+## Setup
 1. **Jars.** Put `mysql-connector-j-<version>.jar` (from https://dev.mysql.com/downloads/connector/j/,
    *Platform Independent*) and Tomcat's `servlet-api.jar` (from `<tomcat>/lib/`) into `lib/`.
    Copy the MySQL jar into `<tomcat>/lib/` as well and restart Tomcat once.
@@ -137,8 +125,8 @@ To use another resume folder, add this to `WEB-INF/web.xml`:
 - **Errors:** users only see friendly messages; details go to the application log.
 - **SQL:** every query is a `PreparedStatement` in a DAO class.
 - **HTTPS** is not set up by the app itself. When it is put online, run it behind a host or proxy
-  that provides HTTPS. The Docker image trusts `X-Forwarded-For` / `X-Forwarded-Proto` only from
-  private-network proxies.
+  that provides HTTPS. The sign-in limit uses the address Tomcat sees, so behind a
+  proxy configure Tomcat's `RemoteIpValve` to read the real client address.
 
 ## Running the tests
 **Unit tests** (plain Java, no extra libraries, no database needed):
@@ -168,38 +156,21 @@ Back up the database and the resume folder together, because each resume row poi
 ```
 mysqldump -u root -p --single-transaction resumematch > resumematch-backup.sql
 ```
-and copy `<tomcat>/resumes/` (with Docker, the `resumes` volume). To restore:
+and copy `<tomcat>/resumes/`. To restore:
 ```
 mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS resumematch CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
 mysql -u root -p resumematch < resumematch-backup.sql
 ```
-then put the resume folder back in the same place. With Docker:
-```
-docker compose exec db sh -c 'mysqldump -uroot -p"$MYSQL_ROOT_PASSWORD" resumematch' > resumematch-backup.sql
-docker compose exec -T db sh -c 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" resumematch' < resumematch-backup.sql
-```
+then put the resume folder back in the same place.
 
-## Putting it online
-GitHub Pages only serves static files, so it hosts the **project page** in `site/`, not the app.
-The workflow `.github/workflows/pages.yml` publishes that page when it is started by hand
+## Project page (GitHub Pages)
+GitHub Pages only serves static files, so it hosts a static **project page** from `site/`
+(what the app does, how the analysis works and how to run it); it does not run the app.
+The workflow `.github/workflows/pages.yml` publishes that page only when it is started by hand
 (Actions → Publish project page → Run workflow), once Pages is enabled
 (Settings → Pages → Source: GitHub Actions). Pushes to `main` do not deploy anything.
 
-The app itself needs a host that runs a Docker image and a MySQL 8 database:
-1. Create a MySQL 8 database with any provider and run `database/01_schema.sql` and
-   `02_seed_data.sql` against it. If the provider does not allow `DROP DATABASE`, run the schema
-   script without its first lines (the `DROP`/`CREATE DATABASE`/`USE` statements) inside the
-   database you were given.
-2. Deploy this repository's `Dockerfile` as a web service on port 8080 with the environment
-   variables `RESUMEMATCH_DB_URL` (for example `jdbc:mysql://<host>:3306/resumematch?sslMode=REQUIRED`),
-   `RESUMEMATCH_DB_USER` and `RESUMEMATCH_DB_PASSWORD`. The app is served at `/ResumeMatch/` and
-   `/` redirects there.
-3. Give the service persistent storage at `/usr/local/tomcat/resumes`, or uploaded files are lost
-   when it restarts.
-4. Set the repository variable `LIVE_APP_URL` (Settings → Secrets and variables → Actions →
-   Variables) to the app's address and re-run the Pages workflow; the project page then shows an
-   "Open the app" button.
-5. Change the demo account's password, or delete it, before sharing the link.
+The app itself runs on Tomcat 9 with MySQL 8, as described in Setup above.
 
 ## Demo script
 Log in with `demo@resumematch.in` / `demo1234`, or register a new account.
@@ -234,7 +205,7 @@ breakdown and the ranked job list for `sample-data/arun_kumar_resume.txt`.
 | "Too many failed sign-in attempts" | Wait for the time shown, or restart Tomcat to clear the in-memory counters. |
 | Build says `servlet-api.jar is missing` | Copy `servlet-api.jar` from `<tomcat>/lib/` into `lib/`. |
 | `build.sh` fails with `$'\r': command not found` | The script was checked out with Windows line endings. Run `git add --renormalize . && git checkout -- build.sh`. |
-| Port 8080 already in use | Stop the other program, or change the connector port in `<tomcat>/conf/server.xml` (Docker: set `APP_PORT` in `.env`). |
+| Port 8080 already in use | Stop the other program, or change the connector port in `<tomcat>/conf/server.xml`. |
 | `package javax.servlet does not exist` or `jakarta` errors | This project targets Tomcat 9 (`javax.servlet`). Tomcat 10 and later use `jakarta.servlet`. |
 | Upload fails or downloads return 404 | Make sure Tomcat can write to `<tomcat>/resumes/`, or set the `resumeDir` parameter shown above. |
 | Dates are a few hours off | Remove any `serverTimezone` setting from `db.url`; the driver detects the server time zone itself. |
