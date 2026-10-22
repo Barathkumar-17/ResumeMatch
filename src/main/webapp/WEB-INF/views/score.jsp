@@ -29,7 +29,7 @@
 <% } else if (request.getAttribute("resume") == null) { %>
     <div class="page-head"><div><h1>Resume score</h1></div></div>
     <div class="panel empty">
-      <h3>No resume analyzed yet</h3>
+      <h2>No resume analyzed yet</h2>
       <p>Upload a .txt resume on the dashboard to see your score.</p>
       <a class="btn btn-primary" href="${pageContext.request.contextPath}/dashboard">Upload resume</a>
     </div>

@@ -26,7 +26,7 @@
     <div class="page-head"><div><h1>My jobs</h1><p>Track every job from saved to selected. Change the status as you hear back.</p></div></div>
 
     <div class="panel empty" ${requestScope.loadFailed ? '' : 'hidden'}>
-      <h3>Couldn't load your jobs</h3>
+      <h2>Couldn't load your jobs</h2>
       <p>${rm:h(requestScope.error)}</p>
     </div>
 
@@ -75,7 +75,7 @@
           </table>
         </div>
         <div class="empty" ${requestScope.savedCount > 0 ? 'hidden' : ''}>
-          <h3>No saved jobs</h3>
+          <h2>No saved jobs</h2>
           <p>Save jobs from the search page to compare them later.</p>
           <a class="btn btn-primary" href="${pageContext.request.contextPath}/jobs">Find jobs</a>
         </div>
@@ -122,7 +122,7 @@
           </table>
         </div>
         <div class="empty" ${requestScope.appliedCount > 0 ? 'hidden' : ''}>
-          <h3>No applications yet</h3>
+          <h2>No applications yet</h2>
           <p>Mark a saved job as applied to start tracking it.</p>
           <a class="btn btn-primary" href="${pageContext.request.contextPath}/jobs">Find jobs</a>
         </div>
