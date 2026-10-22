@@ -41,7 +41,7 @@
     <div class="grid g-side">
       <div class="panel">
         <div class="ring-head">
-          <div class="ring ${rm:h(requestScope.ringClass)}" style="--p:${requestScope.score}" role="img" aria-label="${requestScope.score} out of 100"><span>${requestScope.score}<small>/100</small></span></div>
+          <div class="ring ${rm:h(requestScope.ringClass)}" data-p="${requestScope.score}" role="img" aria-label="${requestScope.score} out of 100"><span>${requestScope.score}<small>/100</small></span></div>
           <div><h2>Resume score: ${requestScope.score}/100</h2>
             <p class="muted">${rm:h(requestScope.verdict)}</p></div>
         </div>
@@ -49,7 +49,7 @@
        pageContext.setAttribute("row", row); %>
         <div class="bar-row">
           <div class="bar-top"><b>${rm:h(row.label)}</b><span>${row.points} / ${row.maxPoints}</span></div>
-          <div class="bar"><i style="width:${row.percent}%"></i></div>
+          <div class="bar"><i data-w="${row.percent}"></i></div>
           <div class="bar-why">${rm:h(row.reason)}</div>
         </div>
 <%   } %>

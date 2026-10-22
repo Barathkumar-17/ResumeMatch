@@ -104,6 +104,8 @@ form.inline{display:inline}
 .sheet .deg{color:var(--ink-3)}
 .sheet .sh{font-family:var(--sans);font-weight:700;font-size:.8rem;color:var(--ink-3);margin-top:1rem;border-bottom:1px solid var(--line);padding-bottom:.2rem;margin-bottom:.35rem}
 .sheet mark{background:linear-gradient(var(--hl),var(--hl)) no-repeat 0 60%/0% 75%;color:var(--on-hl);padding:0 .1em;animation:sweep .5s ease-out forwards}
+.sheet mark:nth-of-type(1){animation-delay:.3s}.sheet mark:nth-of-type(2){animation-delay:.45s}.sheet mark:nth-of-type(3){animation-delay:.6s}.sheet mark:nth-of-type(4){animation-delay:.75s}.sheet mark:nth-of-type(5){animation-delay:.9s}
+.sheet mark:nth-of-type(6){animation-delay:1.05s}.sheet mark:nth-of-type(7){animation-delay:1.2s}.sheet mark:nth-of-type(8){animation-delay:1.4s}.sheet mark:nth-of-type(9){animation-delay:1.55s}.sheet mark:nth-of-type(10){animation-delay:1.7s}
 @keyframes sweep{to{background-size:100% 75%}}
 .float-match{position:absolute;right:0;bottom:0;background:var(--strong);color:var(--on-strong);border-radius:14px;padding:1rem 1.25rem;width:250px;box-shadow:0 20px 40px -20px rgba(24,34,61,.6)}
 .float-match .t{font-weight:700}
@@ -223,11 +225,11 @@ form.inline{display:inline}
 .list-row b{display:block}
 .empty{text-align:center;padding:2rem 1rem;color:var(--ink-2)}
 .empty h3{color:var(--ink);font-size:1.1rem;margin-bottom:.35rem}
-.empty .btn{margin-top:1rem}
+.empty .btn,.mt-btn{margin-top:1rem}
 .empty.full{grid-column:1/-1}
 
 /* ---------- score ring ----------
-   Set the percentage and colour inline: style="--p:78;--c:var(--match)" */
+   The percentage comes from data-p="78" on the element; app.js copies it into --p. */
 .ring{--p:0;--c:var(--cobalt);width:132px;height:132px;border-radius:50%;background:conic-gradient(var(--c) calc(var(--p)*1%),var(--track) 0);display:grid;place-items:center;flex:none}
 .ring::before{content:"";grid-area:1/1;width:104px;height:104px;border-radius:50%;background:var(--surface)}
 .ring span{grid-area:1/1;font-weight:800;font-size:2.1rem;letter-spacing:-.03em;position:relative}
@@ -250,7 +252,7 @@ form.inline{display:inline}
 .bar-top b{font-weight:600}
 .bar-top span{color:var(--ink-2);font-variant-numeric:tabular-nums}
 .bar{height:10px;background:var(--track);border-radius:99px;overflow:hidden}
-.bar i{display:block;height:100%;background:var(--cobalt);border-radius:99px;transition:width .6s ease}
+.bar i{display:block;width:0;height:100%;background:var(--cobalt);border-radius:99px;transition:width .6s ease}
 .bar i.amber{background:var(--amber)}
 .bar-why{font-size:.8rem;color:var(--ink-3);margin-top:.3rem}
 

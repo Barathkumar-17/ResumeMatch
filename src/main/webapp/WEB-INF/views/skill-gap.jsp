@@ -60,7 +60,7 @@
     <div class="grid g-side">
       <div class="panel">
         <div class="ring-head">
-          <div class="ring ${gapScore >= 75 ? 'hi' : gapScore >= 50 ? 'mid' : 'lo'}" style="--p:${gapScore}" role="img" aria-label="${gapScore} percent skill match"><span>${gapScore}<small>%</small></span></div>
+          <div class="ring ${gapScore >= 75 ? 'hi' : gapScore >= 50 ? 'mid' : 'lo'}" data-p="${gapScore}" role="img" aria-label="${gapScore} percent skill match"><span>${gapScore}<small>%</small></span></div>
           <div>
             <h2>Skill match: ${gapScore}%</h2>
             <p class="muted">You have ${haveCount} of the ${totalCount} skills listed for ${rm:h(targetJob.title)}.</p>
@@ -110,7 +110,7 @@
 %>
         <div class="learn-row">
           <b class="lname">${rm:h(recSkill)}</b>
-          <div class="bar"><i class="amber" style="width:${recJobs * 100 / totalJobs}%"></i></div>
+          <div class="bar"><i class="amber" data-w="${recJobs * 100 / totalJobs}"></i></div>
           <span class="lcount">${recJobs} job${recJobs == 1 ? '' : 's'}</span>
         </div>
 <%     } %>

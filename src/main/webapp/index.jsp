@@ -34,9 +34,9 @@
         <div class="nm">Arun Kumar</div>
         <div class="small deg">B.E. Computer Science, Anna University</div>
         <div class="sh">Skills</div>
-        <mark style="animation-delay:.3s">Java</mark>, <mark style="animation-delay:.45s">C++</mark>, <mark style="animation-delay:.6s">Python</mark>, <mark style="animation-delay:.75s">SQL</mark>, <mark style="animation-delay:.9s">JDBC</mark>, <mark style="animation-delay:1.05s">Git</mark>, <mark style="animation-delay:1.2s">DSA</mark>
+        <mark>Java</mark>, <mark>C++</mark>, <mark>Python</mark>, <mark>SQL</mark>, <mark>JDBC</mark>, <mark>Git</mark>, <mark>DSA</mark>
         <div class="sh">Projects</div>
-        Library Management System built in <mark style="animation-delay:1.4s">Java</mark> with <mark style="animation-delay:1.55s">JDBC</mark> and <mark style="animation-delay:1.7s">SQL</mark> to manage books and members.
+        Library Management System built in <mark>Java</mark> with <mark>JDBC</mark> and <mark>SQL</mark> to manage books and members.
       </div>
       <div class="float-match">
         <div class="t">Java Backend Intern</div>

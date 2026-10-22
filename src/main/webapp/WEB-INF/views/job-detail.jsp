@@ -52,7 +52,7 @@
         </div>
 <%     if (match != null) { %>
         <div class="ring-label">
-          <div class="ring ${score >= 75 ? 'hi' : score >= 50 ? 'mid' : 'lo'}" style="--p:${score}" role="img" aria-label="${score} percent match"><span>${score}<small>%</small></span></div>
+          <div class="ring ${score >= 75 ? 'hi' : score >= 50 ? 'mid' : 'lo'}" data-p="${score}" role="img" aria-label="${score} percent match"><span>${score}<small>%</small></span></div>
           <div class="small muted">match</div>
         </div>
 <%     } %>
@@ -124,7 +124,7 @@
         <div class="calc">matched required = <b>${matchedCount}</b><br>total required = <b>${requiredCount}</b><br>${matchedCount} &divide; ${requiredCount} &times; 100 = <b>${score}% match</b></div>
 <%     } else { %>
         <p class="muted">Analyze your resume to see which of these skills you already have.</p>
-        <a class="btn btn-primary" style="margin-top:1rem" href="${pageContext.request.contextPath}/dashboard">Upload resume</a>
+        <a class="btn btn-primary mt-btn" href="${pageContext.request.contextPath}/dashboard">Upload resume</a>
 <%     } %>
       </div>
     </div>

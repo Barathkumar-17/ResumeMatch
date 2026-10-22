@@ -28,6 +28,28 @@
   }
 
   /* ------------------------------------------------------------------
+     0. Values the server prints as data-* attributes. They are applied
+        through the CSSOM so the pages need no inline style="" attributes.
+          data-p="78"  score ring  -> --p custom property
+          data-w="80"  bar fill    -> width in percent
+     ------------------------------------------------------------------ */
+  function applyData() {
+    all("[data-p]").forEach(function (el) {
+      var p = parseFloat(el.getAttribute("data-p"));
+      el.style.setProperty("--p", isNaN(p) ? "0" : String(Math.max(0, Math.min(100, p))));
+    });
+    var bars = all("[data-w]");
+    var fill = function () {
+      bars.forEach(function (el) {
+        var w = parseFloat(el.getAttribute("data-w"));
+        el.style.width = (isNaN(w) ? 0 : Math.max(0, Math.min(100, w))) + "%";
+      });
+    };
+    if (reduceMotion || !window.requestAnimationFrame) { fill(); } else { window.requestAnimationFrame(fill); }
+  }
+  applyData();
+
+  /* ------------------------------------------------------------------
      1 + 2. Auth tabs and form validation
      ------------------------------------------------------------------ */
 
@@ -287,7 +309,7 @@
 
   /* ------------------------------------------------------------------
      7. Light / dark theme toggle. The saved choice (or the system setting)
-        is applied by a small script in _head.jsp before the page paints.
+        is applied by theme-init.js (loaded in the head) before the page paints.
      ------------------------------------------------------------------ */
   (function () {
     var root = document.documentElement;

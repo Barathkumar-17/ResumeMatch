@@ -79,7 +79,7 @@
           <h2>Recent analysis</h2>
           ${requestScope.recentAnalyses.stream().map(r ->
               '<div class="list-row">'
-              += '<div class="ring sm ' += r.ringClass += '" style="--p:' += r.score += '" role="img" aria-label="' += r.score += ' percent"><span>' += r.score += '%</span></div>'
+              += '<div class="ring sm ' += r.ringClass += '" data-p="' += r.score += '" role="img" aria-label="' += r.score += ' percent"><span>' += r.score += '%</span></div>'
               += '<div class="grow"><b>' += rm:h(r.fileName) += '</b><span class="small muted">' += rm:h(r.date) += ', ' += r.skillCount += ' skills</span></div>'
               += (r.latest ? '<a class="btn btn-ghost btn-sm" href="' += pageContext.request.contextPath += '/analysis">Open</a>' : '')
               += '</div>'
