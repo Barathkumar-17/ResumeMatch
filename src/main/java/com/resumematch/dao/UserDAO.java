@@ -107,8 +107,7 @@ public class UserDAO {
             ps.setInt(2, userId);
             ps.executeUpdate();
         } catch (SQLException e) {
-            System.err.println("[UserDAO] updatePassword failed: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "updatePassword failed", e);
             throw new DatabaseConnectionException(e);
         }
     }
