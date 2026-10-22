@@ -1,5 +1,7 @@
 package com.resumematch.web;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import com.resumematch.dao.ResumeDAO;
 import com.resumematch.dao.SkillDAO;
 import com.resumematch.exception.AppException;
@@ -26,6 +28,8 @@ import java.io.IOException;
  */
 @WebServlet("/score")
 public class ScoreServlet extends HttpServlet {
+
+    private static final Logger LOGGER = Logger.getLogger(ScoreServlet.class.getName());
 
     private static final long serialVersionUID = 1L;
 
@@ -66,7 +70,7 @@ public class ScoreServlet extends HttpServlet {
                 request.setAttribute("verdict", verdict(score));
             }
         } catch (AppException e) {
-            System.err.println("[ScoreServlet] could not load the score: " + e.getMessage());
+            LOGGER.log(Level.SEVERE, "could not load the score", e);
             request.setAttribute("error", e.getUserMessage());
         }
 

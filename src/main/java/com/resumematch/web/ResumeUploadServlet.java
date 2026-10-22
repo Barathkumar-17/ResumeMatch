@@ -1,5 +1,7 @@
 package com.resumematch.web;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import com.resumematch.dao.ResumeDAO;
 import com.resumematch.dao.SkillDAO;
 import com.resumematch.exception.AppException;
@@ -51,6 +53,8 @@ import javax.servlet.http.Part;
                  maxRequestSize = ResumeUploadServlet.MAX_REQUEST_BYTES)
 public class ResumeUploadServlet extends HttpServlet {
 
+    private static final Logger LOGGER = Logger.getLogger(ResumeUploadServlet.class.getName());
+
     private static final long serialVersionUID = 1L;
 
     /** Container limit for the file: 210 KB, just above the 200 KB rule FileService checks. */
@@ -95,7 +99,7 @@ public class ResumeUploadServlet extends HttpServlet {
 
             Resume resume = new Resume();
             resume.setUserId(user.getId());
-            resume.setFileName(baseName(fileName));
+            resume.setFileName(FileService.displayName(fileName));
             resume.setFilePath(saved.toString());
             resume.setResumeText(fileService.readResume(saved));
 
@@ -111,7 +115,7 @@ public class ResumeUploadServlet extends HttpServlet {
             fileService.deleteResume(saved); // does nothing when nothing was saved
             showDashboard(request, response, user, e.getUserMessage());
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "upload failed while reading the request or file", e);
             fileService.deleteResume(saved);
             showDashboard(request, response, user, FileReadException.MESSAGE);
         }
@@ -130,7 +134,7 @@ public class ResumeUploadServlet extends HttpServlet {
             throw InvalidFileException.tooLarge();
         } catch (IOException | ServletException e) {
             // Not a multipart request, or the upload was cut off.
-            e.printStackTrace();
+            LOGGER.log(Level.WARNING, "could not read the upload request", e);
             throw new FileReadException(e);
         }
     }
@@ -166,12 +170,5 @@ public class ResumeUploadServlet extends HttpServlet {
             return Paths.get(catalinaBase, FileService.DEFAULT_BASE_DIR);
         }
         return Paths.get(FileService.DEFAULT_BASE_DIR);
-    }
-
-    /** Drops any folder part a browser may send ("C:\\docs\\cv.txt" becomes "cv.txt"). */
-    private static String baseName(String fileName) {
-        String name = fileName.trim();
-        int slash = Math.max(name.lastIndexOf('/'), name.lastIndexOf('\\'));
-        return (slash >= 0) ? name.substring(slash + 1) : name;
     }
 }

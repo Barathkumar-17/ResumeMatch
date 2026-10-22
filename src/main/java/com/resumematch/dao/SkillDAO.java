@@ -1,5 +1,7 @@
 package com.resumematch.dao;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import com.resumematch.exception.DatabaseConnectionException;
 import com.resumematch.model.Skill;
 import com.resumematch.util.DatabaseConnection;
@@ -24,6 +26,8 @@ import java.util.Set;
  */
 public class SkillDAO {
 
+    private static final Logger LOGGER = Logger.getLogger(SkillDAO.class.getName());
+
     private static final String SELECT_ALL =
             "SELECT id, skill_name, category, aliases FROM skills ORDER BY id";
     private static final String SELECT_IDS_BY_NAMES_PREFIX =
@@ -46,8 +50,7 @@ public class SkillDAO {
             }
             return skills;
         } catch (SQLException e) {
-            System.err.println("[SkillDAO] findAll failed: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "findAll failed", e);
             throw new DatabaseConnectionException(e);
         }
     }
@@ -84,8 +87,7 @@ public class SkillDAO {
             }
             return ids;
         } catch (SQLException e) {
-            System.err.println("[SkillDAO] findIdsByNames failed: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "findIdsByNames failed", e);
             throw new DatabaseConnectionException(e);
         }
     }

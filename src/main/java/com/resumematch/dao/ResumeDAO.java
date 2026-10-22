@@ -1,5 +1,7 @@
 package com.resumematch.dao;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import com.resumematch.exception.DatabaseConnectionException;
 import com.resumematch.model.Resume;
 import com.resumematch.util.DatabaseConnection;
@@ -26,6 +28,8 @@ import java.util.Set;
  * exception.</p>
  */
 public class ResumeDAO {
+
+    private static final Logger LOGGER = Logger.getLogger(ResumeDAO.class.getName());
 
     private static final String INSERT_RESUME =
             "INSERT INTO resumes (user_id, file_name, file_path, resume_text, score)"
@@ -99,7 +103,7 @@ public class ResumeDAO {
                 try {
                     con.rollback();
                 } catch (SQLException rollbackError) {
-                    System.err.println("[ResumeDAO] rollback failed: " + rollbackError.getMessage());
+                    LOGGER.log(Level.WARNING, "rollback failed", rollbackError);
                 }
                 throw e;
             } finally {
@@ -110,8 +114,7 @@ public class ResumeDAO {
                 }
             }
         } catch (SQLException e) {
-            System.err.println("[ResumeDAO] saveResumeWithSkills failed, rolled back: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "saveResumeWithSkills failed, rolled back", e);
             throw new DatabaseConnectionException(e);
         }
     }
@@ -137,8 +140,7 @@ public class ResumeDAO {
             }
             return resume;
         } catch (SQLException e) {
-            System.err.println("[ResumeDAO] findLatestByUser(" + userId + ") failed: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "findLatestByUser(" + userId + ") failed", e);
             throw new DatabaseConnectionException(e);
         }
     }
@@ -163,8 +165,7 @@ public class ResumeDAO {
             }
             return resumes;
         } catch (SQLException e) {
-            System.err.println("[ResumeDAO] findAllByUser(" + userId + ") failed: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "findAllByUser(" + userId + ") failed", e);
             throw new DatabaseConnectionException(e);
         }
     }
@@ -178,8 +179,7 @@ public class ResumeDAO {
         try (Connection con = DatabaseConnection.getConnection()) {
             return readSkillNames(con, resumeId);
         } catch (SQLException e) {
-            System.err.println("[ResumeDAO] findSkillNames(" + resumeId + ") failed: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "findSkillNames(" + resumeId + ") failed", e);
             throw new DatabaseConnectionException(e);
         }
     }

@@ -1,5 +1,7 @@
 package com.resumematch.dao;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import com.resumematch.exception.DatabaseConnectionException;
 import com.resumematch.model.Application;
 import com.resumematch.util.DatabaseConnection;
@@ -24,6 +26,8 @@ import java.util.List;
  * {@code SQLException} in a custom exception.</p>
  */
 public class ApplicationDAO {
+
+    private static final Logger LOGGER = Logger.getLogger(ApplicationDAO.class.getName());
 
     /** Status shown for a job that is only saved; it is not stored in the database. */
     public static final String STATUS_SAVED = "Saved";
@@ -227,7 +231,7 @@ public class ApplicationDAO {
         try {
             con.rollback();
         } catch (SQLException rollbackError) {
-            System.err.println("[ApplicationDAO] rollback failed: " + rollbackError.getMessage());
+            LOGGER.log(Level.WARNING, "rollback failed", rollbackError);
         }
     }
 
@@ -241,8 +245,7 @@ public class ApplicationDAO {
 
     /** Logs the raw error to the server console and returns the friendly exception. */
     private DatabaseConnectionException wrap(String operation, SQLException e) {
-        System.err.println("[ApplicationDAO] " + operation + " failed: " + e.getMessage());
-        e.printStackTrace();
+        LOGGER.log(Level.SEVERE, operation + " failed", e);
         return new DatabaseConnectionException(e);
     }
 }

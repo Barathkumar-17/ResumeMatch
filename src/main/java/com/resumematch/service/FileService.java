@@ -8,24 +8,45 @@ import com.resumematch.util.ValidationUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.CodingErrorAction;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Handles the resume file on disk: checks an upload (must be a .txt, not empty, at most
- * 200 KB), creates the {@code resumes/user_<id>/} folder, saves the file as
- * {@code <timestamp>_<name>} so two uploads never overwrite each other, and reads the
- * text back through a {@link ResumeReader}.
+ * 200 KB, plain UTF-8 text without NUL bytes), creates the {@code resumes/user_<id>/}
+ * folder, saves the file under a name the server makes up ({@code <timestamp>_<random>.txt},
+ * never the name the browser sent) so two uploads never overwrite each other, and reads the
+ * text back through a {@link ResumeReader}. Every path is normalised and must stay inside
+ * the base folder before it is written, read or deleted.
  *
  * <p>Demonstrates: Java File Handling ({@code java.nio.file.Files}, {@code Path},
  * {@code InputStream}), composition (has a {@link ResumeReader}, typed by the interface),
- * custom checked exceptions, exception wrapping, constructor overloading.</p>
+ * custom checked exceptions, exception wrapping, constructor overloading, charset decoding.</p>
  */
 public class FileService {
 
+    private static final Logger LOGGER = Logger.getLogger(FileService.class.getName());
+
     /** Folder (relative to the working directory) used when no other folder is given. */
     public static final String DEFAULT_BASE_DIR = "resumes";
+
+    /** Longest file name kept for display and in the database. */
+    public static final int MAX_DISPLAY_NAME_LENGTH = 100;
+
+    private static final String EXTENSION = ".txt";
+
+    private static final String NOT_TEXT_MESSAGE =
+            "This file doesn't look like plain text. Save it again as a .txt file (UTF-8) and upload it.";
 
     private final Path baseDir;
     private final ResumeReader reader;
@@ -56,15 +77,16 @@ public class FileService {
      * the name ends in .txt, it is not empty, it is not over 200 KB.
      *
      * @param fileName    the name the browser sent
-     * @param sizeInBytes the upload size, or -1 when unknown (then only checked after saving)
+     * @param sizeInBytes the upload size, or -1 when unknown (then only checked after reading)
      */
     public void validate(String fileName, long sizeInBytes)
             throws MissingFieldException, InvalidFileException, EmptyResumeException {
         if (ValidationUtil.isBlank(fileName)) {
             throw new MissingFieldException("file", "Choose a resume file first.");
         }
-        if (!ValidationUtil.isTxtFile(fileName)) {
-            throw InvalidFileException.notTxt(baseName(fileName));
+        String name = displayName(fileName);
+        if (!ValidationUtil.isTxtFile(name)) {
+            throw InvalidFileException.notTxt(name);
         }
         if (sizeInBytes == 0) {
             throw new EmptyResumeException();
@@ -75,15 +97,15 @@ public class FileService {
     }
 
     /**
-     * Validates the upload, then saves it as {@code <baseDir>/user_<userId>/<timestamp>_<name>}.
-     * If the saved file turns out empty or too large it is deleted again, so a rejected
-     * upload never stays on disk.
+     * Validates the upload, then saves it as {@code <baseDir>/user_<userId>/<timestamp>_<random>.txt}.
+     * The bytes are read first (never more than the size limit plus one byte), so an empty,
+     * too large or non-text upload is rejected before anything is written to disk.
      *
      * @param userId      owner of the resume
-     * @param fileName    original file name from the browser
+     * @param fileName    original file name from the browser; only used for the checks
      * @param sizeInBytes upload size, or -1 when unknown
      * @param content     the uploaded bytes; the caller closes it
-     * @return the path of the saved file
+     * @return the normalised absolute path of the saved file
      */
     public Path saveResume(int userId, String fileName, long sizeInBytes, InputStream content)
             throws MissingFieldException, InvalidFileException, EmptyResumeException,
@@ -93,43 +115,51 @@ public class FileService {
             throw new FileReadException();
         }
 
+        // The declared size can be missing or wrong, so check what actually arrives.
+        byte[] data;
+        try {
+            data = content.readNBytes((int) ValidationUtil.MAX_FILE_SIZE_BYTES + 1);
+        } catch (IOException e) {
+            LOGGER.log(Level.WARNING, "could not read the uploaded bytes", e);
+            throw new FileReadException(e);
+        }
+        if (data.length == 0) {
+            throw new EmptyResumeException();
+        }
+        if (!ValidationUtil.isWithinSizeLimit(data.length)) {
+            throw InvalidFileException.tooLarge();
+        }
+        checkIsPlainText(data);
+
         Path target;
         try {
             Path userDir = baseDir.resolve("user_" + userId);
             Files.createDirectories(userDir);
-            target = newTargetFile(userDir, safeName(fileName));
-            Files.copy(content, target);
+            target = newTargetFile(userDir);
+            if (!isInsideBase(target)) {
+                LOGGER.log(Level.SEVERE, "refusing to write outside the resumes folder: " + target);
+                throw new FileReadException();
+            }
+            // CREATE_NEW fails instead of replacing an existing file.
+            Files.write(target, data, StandardOpenOption.CREATE_NEW);
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "could not save the resume file", e);
             throw new FileReadException(e);
         }
-
-        // The declared size can be missing or wrong, so check what actually landed on disk.
-        long actualSize;
-        try {
-            actualSize = Files.size(target);
-        } catch (IOException e) {
-            e.printStackTrace();
-            deleteResume(target);
-            throw new FileReadException(e);
-        }
-        if (actualSize == 0) {
-            deleteResume(target);
-            throw new EmptyResumeException();
-        }
-        if (!ValidationUtil.isWithinSizeLimit(actualSize)) {
-            deleteResume(target);
-            throw InvalidFileException.tooLarge();
-        }
-        return target;
+        return target.toAbsolutePath().normalize();
     }
 
     /**
      * Reads a stored resume back with the {@link ResumeReader}.
      *
      * @throws EmptyResumeException when the file holds no text (only blank lines counts as empty)
+     * @throws FileReadException    when the file cannot be read or lies outside the base folder
      */
     public String readResume(Path path) throws FileReadException, EmptyResumeException {
+        if (path == null || !isInsideBase(path)) {
+            LOGGER.log(Level.WARNING, "refusing to read outside the resumes folder: " + path);
+            throw new FileReadException();
+        }
         String text = reader.read(path);
         if (ValidationUtil.isBlank(text)) {
             throw new EmptyResumeException();
@@ -138,7 +168,8 @@ public class FileService {
     }
 
     /**
-     * Deletes a stored resume, for example when saving it to the database failed.
+     * Deletes a stored resume, for example when saving it to the database failed. A path
+     * outside the base folder is never deleted.
      *
      * @return true when a file was deleted
      */
@@ -146,38 +177,91 @@ public class FileService {
         if (path == null) {
             return false;
         }
+        if (!isInsideBase(path)) {
+            LOGGER.log(Level.WARNING, "refusing to delete outside the resumes folder: " + path);
+            return false;
+        }
         try {
             return Files.deleteIfExists(path);
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.log(Level.WARNING, "could not delete " + path, e);
             return false;
         }
     }
 
     /**
-     * Picks {@code <millis>_<name>} inside the folder; if that name is already taken
-     * (two uploads in the same millisecond) the next number is tried. {@code Files.copy}
-     * never replaces an existing file, so nothing is ever overwritten.
+     * Reduces the name a browser sent to a safe display name: folder parts (both '/' and
+     * '\\') are dropped, control characters are removed and the result is cut to
+     * {@value #MAX_DISPLAY_NAME_LENGTH} characters, keeping the {@code .txt} ending.
+     * ("C:\\docs\\cv.txt" becomes "cv.txt"; null becomes an empty string.)
      */
-    private static Path newTargetFile(Path userDir, String name) {
-        long stamp = System.currentTimeMillis();
-        Path candidate = userDir.resolve(stamp + "_" + name);
-        while (Files.exists(candidate)) {
-            stamp++;
-            candidate = userDir.resolve(stamp + "_" + name);
+    public static String displayName(String fileName) {
+        if (fileName == null) {
+            return "";
         }
-        return candidate;
-    }
-
-    /** Drops any folder part a browser may send ("C:\\docs\\cv.txt" becomes "cv.txt"). */
-    private static String baseName(String fileName) {
         String name = fileName.trim();
         int slash = Math.max(name.lastIndexOf('/'), name.lastIndexOf('\\'));
-        return (slash >= 0) ? name.substring(slash + 1) : name;
+        if (slash >= 0) {
+            name = name.substring(slash + 1);
+        }
+        StringBuilder clean = new StringBuilder();
+        for (int i = 0; i < name.length(); i++) {
+            char c = name.charAt(i);
+            if (!Character.isISOControl(c)) {
+                clean.append(c);
+            }
+        }
+        name = clean.toString().trim();
+        if (name.length() > MAX_DISPLAY_NAME_LENGTH) {
+            if (name.toLowerCase().endsWith(EXTENSION)) {
+                name = name.substring(0, MAX_DISPLAY_NAME_LENGTH - EXTENSION.length())
+                        + name.substring(name.length() - EXTENSION.length());
+            } else {
+                name = name.substring(0, MAX_DISPLAY_NAME_LENGTH);
+            }
+        }
+        return name;
     }
 
-    /** Keeps letters, digits, '_', '.' and '-'; everything else becomes '_'. */
-    private static String safeName(String fileName) {
-        return baseName(fileName).replaceAll("[^A-Za-z0-9_.\\-]", "_");
+    /** True when the normalised absolute path lies strictly inside the base folder. */
+    public boolean isInsideBase(Path path) {
+        try {
+            Path base = baseDir.toAbsolutePath().normalize();
+            Path file = path.toAbsolutePath().normalize();
+            return file.startsWith(base) && !file.equals(base);
+        } catch (InvalidPathException e) {
+            return false;
+        }
+    }
+
+    /** Rejects bytes that hold a NUL or are not valid UTF-8 (so binary files are refused). */
+    private static void checkIsPlainText(byte[] data) throws InvalidFileException {
+        for (byte b : data) {
+            if (b == 0) {
+                throw new InvalidFileException(NOT_TEXT_MESSAGE);
+            }
+        }
+        try {
+            StandardCharsets.UTF_8.newDecoder()
+                    .onMalformedInput(CodingErrorAction.REPORT)
+                    .onUnmappableCharacter(CodingErrorAction.REPORT)
+                    .decode(ByteBuffer.wrap(data));
+        } catch (CharacterCodingException e) {
+            throw new InvalidFileException(NOT_TEXT_MESSAGE);
+        }
+    }
+
+    /**
+     * Picks {@code <millis>_<random>.txt} inside the folder. The random part is a UUID
+     * fragment, so the name never depends on anything the browser sent; if the name is
+     * somehow taken the next one is tried.
+     */
+    private static Path newTargetFile(Path userDir) {
+        Path candidate;
+        do {
+            String random = UUID.randomUUID().toString().replace("-", "").substring(0, 12);
+            candidate = userDir.resolve(System.currentTimeMillis() + "_" + random + EXTENSION);
+        } while (Files.exists(candidate));
+        return candidate;
     }
 }
