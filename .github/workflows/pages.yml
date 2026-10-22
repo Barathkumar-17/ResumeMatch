@@ -1,0 +1,43 @@
+# Publishes the static project page in site/ to GitHub Pages.
+# It reuses the app's stylesheet, fonts and theme script from src/main/webapp/assets.
+# Set the repository variable LIVE_APP_URL (Settings > Secrets and variables > Actions > Variables)
+# to the address of a running instance to show the "Open the app" buttons.
+name: Publish project page
+
+on:
+  push:
+    branches: [main]
+    paths: ["site/**", "src/main/webapp/assets/**", ".github/workflows/pages.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Assemble the page
+        env:
+          LIVE_APP_URL: ${{ vars.LIVE_APP_URL }}
+        run: |
+          mkdir -p _site/assets
+          cp -r site/. _site/
+          cp -r src/main/webapp/assets/css src/main/webapp/assets/js _site/assets/
+          if [ -d src/main/webapp/assets/fonts ]; then cp -r src/main/webapp/assets/fonts _site/assets/; fi
+          sed -i "s|__LIVE_APP_URL__|${LIVE_APP_URL:-#}|g" _site/index.html
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4
