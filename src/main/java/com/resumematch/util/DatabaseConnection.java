@@ -17,9 +17,9 @@ import java.util.logging.Logger;
  * {@code db.password}); any missing key falls back to a localhost default so the
  * project still runs without the file. The environment variables {@code RESUMEMATCH_DB_URL},
  * {@code RESUMEMATCH_DB_USER} and {@code RESUMEMATCH_DB_PASSWORD}, when set, take priority
- * over the file (the Docker setup uses them). A connect timeout (5 s) and a socket timeout
- * (30 s) are always part of the URL, so a database that is down or stuck can never
- * hang a page forever. Callers close the connection with try-with-resources.
+ * over the file, so a server can be configured without editing it. A connect timeout (5 s)
+ * and a socket timeout (30 s) are always part of the URL, so a database that is down or
+ * stuck can never hang a page forever. Callers close the connection with try-with-resources.
  *
  * <p>Demonstrates: JDBC ({@code DriverManager}, {@code Connection}), {@code Properties},
  * {@code System.getenv}, static initialisation, class loading, {@code java.util.logging}, wrapping
@@ -59,7 +59,7 @@ public final class DatabaseConnection {
             LOGGER.log(Level.WARNING, "Could not read " + CONFIG_FILE
                     + "; using localhost defaults.", e);
         }
-        // Environment variables win over the file, so a container can be configured without a rebuild.
+        // Environment variables win over the file, so a server can be configured without a rebuild.
         url = withTimeouts(setting("RESUMEMATCH_DB_URL", props, "db.url", DEFAULT_URL).trim());
         user = setting("RESUMEMATCH_DB_USER", props, "db.user", DEFAULT_USER).trim();
         password = setting("RESUMEMATCH_DB_PASSWORD", props, "db.password", DEFAULT_PASSWORD);
