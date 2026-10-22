@@ -35,7 +35,23 @@
         <welcome-file>index.jsp</welcome-file>
     </welcome-file-list>
 
+    <session-config>
+        <session-timeout>30</session-timeout>
+        <cookie-config>
+            <http-only>true</http-only>
+        </cookie-config>
+        <tracking-mode>COOKIE</tracking-mode>
+    </session-config>
+
     <!-- Never show a raw stack trace or SQL error in the browser. -->
+    <error-page>
+        <error-code>403</error-code>
+        <location>/WEB-INF/views/error.jsp</location>
+    </error-page>
+    <error-page>
+        <error-code>413</error-code>
+        <location>/WEB-INF/views/error.jsp</location>
+    </error-page>
     <error-page>
         <error-code>404</error-code>
         <location>/WEB-INF/views/error.jsp</location>
