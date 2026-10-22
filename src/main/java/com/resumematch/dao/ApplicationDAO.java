@@ -1,7 +1,5 @@
 package com.resumematch.dao;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import com.resumematch.exception.DatabaseConnectionException;
 import com.resumematch.model.Application;
 import com.resumematch.util.DatabaseConnection;
@@ -13,6 +11,8 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Tracks the jobs a student has saved ({@code saved_jobs}) and applied to

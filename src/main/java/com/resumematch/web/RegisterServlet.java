@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -71,7 +72,7 @@ public class RegisterServlet extends HttpServlet {
         }
 
         try {
-            userDAO.register(name.trim(), email.trim().toLowerCase(), PasswordUtil.hash(password));
+            userDAO.register(name.trim(), email.trim().toLowerCase(Locale.ROOT), PasswordUtil.hash(password));
         } catch (AppException e) {
             // DuplicateEmailException or DatabaseConnectionException: both carry a safe message.
             request.setAttribute("error", e.getUserMessage());

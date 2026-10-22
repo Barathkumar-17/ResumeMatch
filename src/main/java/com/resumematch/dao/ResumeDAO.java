@@ -1,7 +1,5 @@
 package com.resumematch.dao;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import com.resumematch.exception.DatabaseConnectionException;
 import com.resumematch.model.Resume;
 import com.resumematch.util.DatabaseConnection;
@@ -16,6 +14,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Stores uploaded resumes and the skills found in them ({@code resumes} and

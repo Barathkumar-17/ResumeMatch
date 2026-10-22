@@ -12,6 +12,12 @@ import java.util.List;
  */
 public class JobMatch {
 
+    /** A score at or above this is a strong match (shown in green). */
+    public static final int HIGH_SCORE = 75;
+
+    /** A score at or above this, and below {@link #HIGH_SCORE}, is a fair match (amber). */
+    public static final int MID_SCORE = 50;
+
     private Job job;
     private int score;
     private List<String> matched = new ArrayList<>();
@@ -40,6 +46,19 @@ public class JobMatch {
 
     public int getScore() {
         return score;
+    }
+
+    /** Colour band for a 0-100 score: {@code hi} (green), {@code mid} (amber) or {@code lo} (red). */
+    public static String levelFor(int score) {
+        if (score >= HIGH_SCORE) {
+            return "hi";
+        }
+        return (score >= MID_SCORE) ? "mid" : "lo";
+    }
+
+    /** Colour band of this match's score, see {@link #levelFor(int)}. */
+    public String getLevel() {
+        return levelFor(score);
     }
 
     public void setScore(int score) {

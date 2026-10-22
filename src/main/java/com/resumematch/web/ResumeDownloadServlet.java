@@ -28,8 +28,8 @@ import java.util.logging.Logger;
  * Sends the logged-in user's stored resume file back as a download: the latest one, or
  * the one named by {@code ?id=}. A resume is only served when it belongs to the user in
  * the session and its file lies inside that user's own folder under the resumes folder,
- * so a changed id or a path
- * with "../" in it can never reach another user's file or any other file on the server.
+ * so a changed id or a path with "../" in it can never reach another user's file or any
+ * other file on the server.
  * The file is always sent as {@code text/plain} with {@code nosniff}, and the download
  * name is cleaned so it cannot add headers or break out of the quotes.
  *

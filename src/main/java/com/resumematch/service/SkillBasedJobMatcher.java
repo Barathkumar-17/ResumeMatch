@@ -39,7 +39,16 @@ public class SkillBasedJobMatcher implements JobMatcher {
             return 0;
         }
         int matched = findMatchingSkills(resumeSkills, job).size();
-        return Math.round(matched * 100f / required.size());
+        return percentOf(matched, required.size());
+    }
+
+    /**
+     * {@code part / whole x 100}, rounded half up, or 0 when {@code whole} is 0. Every
+     * percentage in the application (match score, skill gap, learning bars) uses this one
+     * rule, so the same fraction never shows two different numbers.
+     */
+    public static int percentOf(int part, int whole) {
+        return (whole <= 0) ? 0 : Math.round(part * 100f / whole);
     }
 
     @Override
@@ -97,7 +106,7 @@ public class SkillBasedJobMatcher implements JobMatcher {
             return 0;
         }
         int have = filter(all, resumeSkills, true).size();
-        return Math.round(have * 100f / all.size());
+        return percentOf(have, all.size());
     }
 
     /**

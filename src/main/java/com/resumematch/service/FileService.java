@@ -17,6 +17,7 @@ import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.Locale;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -152,7 +153,7 @@ public class FileService {
     /**
      * Reads a stored resume back with the {@link ResumeReader}.
      *
-     * @throws EmptyResumeException when the file holds no text (only blank lines counts as empty)
+     * @throws EmptyResumeException when the file holds no text (blank lines only counts as empty)
      * @throws FileReadException    when the file cannot be read or lies outside the base folder
      */
     public String readResume(Path path) throws FileReadException, EmptyResumeException {
@@ -213,7 +214,7 @@ public class FileService {
         }
         name = clean.toString().trim();
         if (name.length() > MAX_DISPLAY_NAME_LENGTH) {
-            if (name.toLowerCase().endsWith(EXTENSION)) {
+            if (name.toLowerCase(Locale.ROOT).endsWith(EXTENSION)) {
                 name = name.substring(0, MAX_DISPLAY_NAME_LENGTH - EXTENSION.length())
                         + name.substring(name.length() - EXTENSION.length());
             } else {
