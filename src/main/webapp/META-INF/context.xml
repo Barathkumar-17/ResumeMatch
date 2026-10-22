@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Tomcat context settings: session cookies are sent with SameSite=Lax. -->
+<Context>
+    <CookieProcessor className="org.apache.tomcat.util.http.Rfc6265CookieProcessor" sameSiteCookies="lax"/>
+</Context>
