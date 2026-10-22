@@ -2,7 +2,7 @@
 <!--
   ResumeMatch deployment descriptor (Servlet 4.0, javax.servlet, Tomcat 9).
   Servlets and the AuthFilter are registered with @WebServlet / @WebFilter,
-  so this file only sets the welcome page and the friendly error pages.
+  so this file only sets the welcome page and the friendly error pages (400, 404, 405, 500 and uncaught exceptions).
 -->
 <web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -18,6 +18,14 @@
     <!-- Never show a raw stack trace or SQL error in the browser. -->
     <error-page>
         <error-code>404</error-code>
+        <location>/WEB-INF/views/error.jsp</location>
+    </error-page>
+    <error-page>
+        <error-code>400</error-code>
+        <location>/WEB-INF/views/error.jsp</location>
+    </error-page>
+    <error-page>
+        <error-code>405</error-code>
         <location>/WEB-INF/views/error.jsp</location>
     </error-page>
     <error-page>
