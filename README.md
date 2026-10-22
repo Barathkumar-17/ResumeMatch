@@ -83,3 +83,46 @@ to `WEB-INF/web.xml`:
   <param-value>C:/resumematch-uploads</param-value>
 </context-param>
 ```
+
+## Demo script
+Log in with `demo@resumematch.in` / `demo1234`, or register a new account.
+
+1. **Dashboard:** upload `sample-data/arun_kumar_resume.txt`. Uploading a `.pdf`, an empty file or a
+   file over 200 KB shows a message and saves nothing.
+2. **Analysis:** 7 skills are found (Java, SQL, JDBC, Git, DSA, C++, Python) and highlighted in the text.
+3. **Score:** the resume scores **78/100**; every one of the five rules shows why it earned its points.
+4. **Jobs:** search "Java". Four jobs are listed best match first: 80%, 75%, 40%, 33%.
+5. **Job detail:** the Java Backend Intern job shows `4 of 5 required skills = 80%`, with Spring Boot missing.
+6. **Skill gap:** for the same job the skill match is 67% (Spring Boot and REST API missing) and the page
+   suggests what to learn next.
+7. **My jobs:** save a job, mark it applied, change its status and remove it.
+
+### Run the analysis without a server
+```
+javac --release 17 -cp "lib/*" -d build/classes $(find src/main/java -name '*.java')
+java -cp "build/classes:src/main/resources:lib/*" com.resumematch.console.ConsoleDemo
+```
+(On Windows use `;` instead of `:` in the classpath.) It prints the extracted skills, the score
+breakdown and the ranked job list for `sample-data/arun_kumar_resume.txt`.
+
+## Troubleshooting
+| Problem | Fix |
+|---|---|
+| `ClassNotFoundException: com.mysql.cj.jdbc.Driver` | The MySQL jar is missing from `<tomcat>/lib/`. Copy it there and restart Tomcat. |
+| "Can't reach the database right now" | MySQL is not running, or `db.user` / `db.password` in `db.properties` are wrong. Rebuild after editing. |
+| `Access denied for user 'root'` | The password in `db.properties` does not match your MySQL root password. |
+| Build says `servlet-api.jar is missing` | Copy `servlet-api.jar` from `<tomcat>/lib/` into `lib/`. |
+| Port 8080 already in use | Stop the other program, or change the connector port in `<tomcat>/conf/server.xml`. |
+| `package javax.servlet does not exist` or `jakarta` errors | This project targets Tomcat 9 (`javax.servlet`). Tomcat 10 and later use `jakarta.servlet` and need the imports changed. |
+| Upload fails or downloads return 404 | Make sure Tomcat can write to `<tomcat>/resumes/`, or set the `resumeDir` parameter shown above. |
+| Dates are a few hours off | Remove any `serverTimezone` setting from `db.url`; the driver detects the server time zone itself. |
+
+## Team
+| Member | Area |
+|---|---|
+| Barathkumar M P | Database, analysis engine, authentication, upload and analysis pages, build and packaging |
+| Gokul K | Models, exceptions, JDBC data access |
+| Hemanth Suresh | Page shell: stylesheet, scripts, landing and login pages |
+| Faseesh | Resume score page and resume download |
+| Rithik | Job search, job detail and skill gap |
+| Rishi | Saved jobs and application tracking |
