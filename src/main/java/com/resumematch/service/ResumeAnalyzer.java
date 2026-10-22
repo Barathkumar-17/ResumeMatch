@@ -3,6 +3,7 @@ package com.resumematch.service;
 import com.resumematch.exception.EmptyResumeException;
 import com.resumematch.model.Resume;
 import com.resumematch.model.ResumeInfo;
+import com.resumematch.model.ScoreBreakdown;
 import com.resumematch.model.Skill;
 import com.resumematch.util.ValidationUtil;
 
@@ -82,6 +83,9 @@ public class ResumeAnalyzer {
 
     /** For each canonical skill name, one compiled pattern per spelling (name + aliases). */
     private final Map<String, List<Pattern>> skillPatterns = new HashMap<>();
+
+    /** Turns the extracted facts into the five score rows (composition). */
+    private final ResumeScorer scorer = new ResumeScorer();
 
     /**
      * @param skills the skill dictionary, normally loaded by {@code SkillDAO.findAll()}
@@ -208,8 +212,9 @@ public class ResumeAnalyzer {
     }
 
     /**
-     * Runs the analysis on {@code resume.getResumeText()} and stores the skills found and the
-     * extracted {@link ResumeInfo} back on the same object.
+     * Runs the whole analysis on {@code resume.getResumeText()} and stores the results back on
+     * the same object: the skills found, the extracted {@link ResumeInfo}, the five score rows
+     * from {@link ResumeScorer} and the total score.
      *
      * @return the same resume, filled in
      * @throws EmptyResumeException when the text is missing or only whitespace
@@ -222,6 +227,10 @@ public class ResumeAnalyzer {
         Map<String, List<String>> sections = parseSections(text);
         resume.setSkills(extractSkills(text));
         resume.setInfo(extractInfo(sections, text));
+
+        List<ScoreBreakdown> rows = scorer.calculateScore(resume.getInfo(), resume.getSkills());
+        resume.setBreakdown(rows);
+        resume.setScore(scorer.totalScore(rows));
         return resume;
     }
 
