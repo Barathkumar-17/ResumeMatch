@@ -1,0 +1,194 @@
+# Continuous integration for ResumeMatch (plain javac, no Maven or Gradle).
+#
+#   build-and-test  compiles the code, runs the unit tests and builds the war
+#                   on Linux and Windows.
+#   smoke-test      deploys the war to a real Tomcat 9 with the MySQL 8 that is
+#                   preinstalled on the Ubuntu runner, then runs
+#                   scripts/smoke-test.sh against it.
+#
+# The two jars the project needs are downloaded from Maven Central and checked
+# against their published SHA-1 files; nothing else is installed.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CONNECTOR_VERSION: 26.10.0
+  SERVLET_API_VERSION: 4.0.1
+  TOMCAT_VERSION: 9.0.123
+
+jobs:
+  build-and-test:
+    name: build-and-test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Download the two jars into lib/
+        shell: bash
+        run: |
+          set -euo pipefail
+          M=https://repo1.maven.org/maven2
+          fetch() {  # fetch URL TARGET: download, then compare with URL.sha1
+            curl -fsSL --retry 3 -o "$2" "$1"
+            echo "$(curl -fsSL --retry 3 "$1.sha1" | cut -d' ' -f1)  $2" | sha1sum -c -
+          }
+          mkdir -p lib
+          fetch "$M/com/mysql/mysql-connector-j/$CONNECTOR_VERSION/mysql-connector-j-$CONNECTOR_VERSION.jar" \
+                "lib/mysql-connector-j-$CONNECTOR_VERSION.jar"
+          fetch "$M/javax/servlet/javax.servlet-api/$SERVLET_API_VERSION/javax.servlet-api-$SERVLET_API_VERSION.jar" \
+                lib/servlet-api.jar
+
+      - name: Unit tests (Linux)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: ./build.sh test
+
+      - name: Unit tests (Windows)
+        if: runner.os == 'Windows'
+        shell: cmd
+        run: build.bat test
+
+      - name: Build the war (Linux)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: ./build.sh
+
+      - name: Build the war (Windows)
+        if: runner.os == 'Windows'
+        shell: cmd
+        run: build.bat
+
+      - name: Upload the war
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ResumeMatch-war
+          path: build/ResumeMatch.war
+          if-no-files-found: error
+
+  smoke-test:
+    name: smoke-test
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CATALINA_HOME: ${{ github.workspace }}/tomcat
+      MYSQL_PWD: root
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Download the two jars into lib/
+        run: |
+          set -euo pipefail
+          M=https://repo1.maven.org/maven2
+          fetch() {  # fetch URL TARGET: download, then compare with URL.sha1
+            curl -fsSL --retry 3 -o "$2" "$1"
+            echo "$(curl -fsSL --retry 3 "$1.sha1" | cut -d' ' -f1)  $2" | sha1sum -c -
+          }
+          mkdir -p lib
+          fetch "$M/com/mysql/mysql-connector-j/$CONNECTOR_VERSION/mysql-connector-j-$CONNECTOR_VERSION.jar" \
+                "lib/mysql-connector-j-$CONNECTOR_VERSION.jar"
+          fetch "$M/javax/servlet/javax.servlet-api/$SERVLET_API_VERSION/javax.servlet-api-$SERVLET_API_VERSION.jar" \
+                lib/servlet-api.jar
+
+      - name: Start MySQL and load the database
+        run: |
+          sudo systemctl start mysql.service
+          for i in $(seq 1 30); do
+            mysqladmin -u root ping --silent && break
+            sleep 2
+          done
+          mysql -u root < database/01_schema.sql
+          mysql -u root < database/02_seed_data.sql
+
+      - name: Write db.properties
+        run: |
+          cat > src/main/resources/db.properties <<'PROPS'
+          db.url=jdbc:mysql://localhost:3306/resumematch?useSSL=false&allowPublicKeyRetrieval=true
+          db.user=root
+          db.password=root
+          PROPS
+
+      - name: Install Tomcat 9
+        run: |
+          set -euo pipefail
+          BASE=https://archive.apache.org/dist/tomcat/tomcat-9/v$TOMCAT_VERSION/bin
+          FILE=apache-tomcat-$TOMCAT_VERSION.tar.gz
+          curl -fsSL --retry 3 -o "$FILE" "$BASE/$FILE"
+          curl -fsSL --retry 3 -o "$FILE.sha512" "$BASE/$FILE.sha512"
+          sha512sum -c "$FILE.sha512"
+          mkdir -p "$CATALINA_HOME"
+          tar -xzf "$FILE" -C "$CATALINA_HOME" --strip-components=1
+          cp lib/mysql-connector-j-*.jar "$CATALINA_HOME/lib/"
+
+      - name: Build and deploy the war
+        run: |
+          ./build.sh
+          cp build/ResumeMatch.war "$CATALINA_HOME/webapps/ResumeMatch.war"
+
+      - name: Start Tomcat and wait for the login page
+        run: |
+          "$CATALINA_HOME/bin/catalina.sh" start
+          for i in $(seq 1 60); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/ResumeMatch/login || true)
+            echo "attempt $i: HTTP $code"
+            [ "$code" = 200 ] && exit 0
+            sleep 2
+          done
+          echo "ResumeMatch did not answer 200 within 2 minutes"
+          exit 1
+
+      - name: Run the smoke test
+        env:
+          RESUME_ROOT: ${{ github.workspace }}/tomcat
+        run: bash scripts/smoke-test.sh http://localhost:8080/ResumeMatch
+
+      - name: Print the Tomcat logs
+        if: always()
+        run: |
+          for f in "$CATALINA_HOME/logs/catalina.out" "$CATALINA_HOME/logs/resumematch.0.log"; do
+            echo "::group::$f"
+            cat "$f" || true
+            echo "::endgroup::"
+          done
+
+      - name: Stop Tomcat
+        if: always()
+        run: '"$CATALINA_HOME/bin/catalina.sh" stop || true'
+
+      - name: Upload the Tomcat logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tomcat-logs
+          path: |
+            tomcat/logs/catalina.out
+            tomcat/logs/resumematch.0.log
+          if-no-files-found: ignore
