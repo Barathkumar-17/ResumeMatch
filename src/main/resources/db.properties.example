@@ -1,5 +1,8 @@
 # Copy to src/main/resources/db.properties and edit.
 # That file is gitignored so nobody's MySQL password is committed.
+#
+# connectTimeout=5000 (5 s) and socketTimeout=30000 (30 s) are added to the URL
+# automatically when you leave them out; set them here only to override the defaults.
 db.url=jdbc:mysql://localhost:3306/resumematch?useSSL=false
 db.user=root
 db.password=
