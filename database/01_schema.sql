@@ -17,7 +17,7 @@ USE resumematch;
 -- users: one row per registered student.
 -- The UNIQUE index on email is what makes a second sign-up with the same
 -- email fail (SQLIntegrityConstraintViolationException in JDBC).
--- password holds the SHA-256 hex of the password, never plain text.
+-- password holds a salted PBKDF2 hash (pbkdf2$iterations$salt$hash), never plain text.
 -- ---------------------------------------------------------------------
 CREATE TABLE users (
     id          INT AUTO_INCREMENT PRIMARY KEY,
