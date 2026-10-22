@@ -90,6 +90,8 @@ public class LoginServlet extends HttpServlet {
             return;
         }
 
+        upgradeHashIfNeeded(user, password);
+
         // Session fixation: drop any session that existed before login, start a fresh one.
         HttpSession old = request.getSession(false);
         if (old != null) {
@@ -111,6 +113,21 @@ public class LoginServlet extends HttpServlet {
             throw new InvalidLoginException();
         }
         return user;
+    }
+
+    /**
+     * Saves a fresh hash when the stored one is an older format. A failure here is
+     * ignored (the DAO already logged it) so it never blocks the login.
+     */
+    private void upgradeHashIfNeeded(User user, String password) {
+        if (!PasswordUtil.needsRehash(user.getPasswordHash())) {
+            return;
+        }
+        try {
+            userDAO.updatePassword(user.getId(), PasswordUtil.hash(password));
+        } catch (AppException e) {
+            // ignored on purpose: the old hash still works next time
+        }
     }
 
     /** True when the current request already has a logged-in user in its session. */
