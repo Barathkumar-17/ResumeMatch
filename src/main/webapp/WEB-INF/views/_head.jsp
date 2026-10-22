@@ -1,4 +1,5 @@
 <%@ page pageEncoding="UTF-8" trimDirectiveWhitespaces="true" %>
+<%@ taglib prefix="rm" uri="http://resumematch/functions" %>
 <%--
   Shared page head: doctype, meta tags, fonts, stylesheet and script.
   Include it at the very top of every page, then open <body> yourself:
@@ -15,7 +16,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${param.title}${empty param.title ? 'ResumeMatch — Smart Resume Analyzer &amp; Job Recommendation System' : ' · ResumeMatch'}</title>
+<title>${rm:h(param.title)}${empty param.title ? 'ResumeMatch — Smart Resume Analyzer &amp; Job Recommendation System' : ' · ResumeMatch'}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&amp;family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&amp;display=swap">
