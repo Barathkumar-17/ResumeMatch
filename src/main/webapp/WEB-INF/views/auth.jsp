@@ -1,4 +1,5 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" trimDirectiveWhitespaces="true" %>
+<%@ taglib prefix="rm" uri="http://resumematch/functions" %>
 <%--
   Login and register on one page (URLs /login and /register).
   Rendered by LoginServlet and RegisterServlet. Display only, no logic.
@@ -14,7 +15,7 @@
   Passwords are never refilled.
 --%>
 <jsp:include page="/WEB-INF/views/_head.jsp">
-  <jsp:param name="title" value="${requestScope.mode == 'register' ? 'Create account' : 'Log in'}"/>
+  <jsp:param name="title" value="${rm:h(requestScope.mode == 'register' ? 'Create account' : 'Log in')}"/>
 </jsp:include>
 <body>
 <div class="auth">
@@ -39,16 +40,16 @@
         <div class="field">
           <label for="li-email">Email</label>
           <input class="input ${requestScope.mode != 'register' and not empty requestScope.errors.email ? 'err' : ''}" id="li-email" name="email" type="email" autocomplete="email"
-                 value="${requestScope.mode == 'register' ? '' : param.email}">
-          <div class="ferr" id="li-email-err">${requestScope.mode == 'register' ? '' : requestScope.errors.email}</div>
+                 value="${rm:h(requestScope.mode == 'register' ? '' : param.email)}">
+          <div class="ferr" id="li-email-err">${rm:h(requestScope.mode == 'register' ? '' : requestScope.errors.email)}</div>
         </div>
         <div class="field">
           <label for="li-pass">Password</label>
           <input class="input ${requestScope.mode != 'register' and not empty requestScope.errors.password ? 'err' : ''}" id="li-pass" name="password" type="password" autocomplete="current-password">
-          <div class="ferr" id="li-pass-err">${requestScope.mode == 'register' ? '' : requestScope.errors.password}</div>
+          <div class="ferr" id="li-pass-err">${rm:h(requestScope.mode == 'register' ? '' : requestScope.errors.password)}</div>
         </div>
-        <div class="alert bad" id="li-alert" role="alert">${requestScope.mode == 'register' ? '' : requestScope.error}</div>
-        <div class="alert good" role="status">${requestScope.mode == 'register' ? '' : requestScope.message}</div>
+        <div class="alert bad" id="li-alert" role="alert">${rm:h(requestScope.mode == 'register' ? '' : requestScope.error)}</div>
+        <div class="alert good" role="status">${rm:h(requestScope.mode == 'register' ? '' : requestScope.message)}</div>
         <button class="btn btn-primary" type="submit">Log in</button>
         <p class="small muted auth-hint">Try the demo account: demo@resumematch.in / demo1234</p>
       </form>
@@ -59,27 +60,27 @@
         <div class="field">
           <label for="rg-name">Full name</label>
           <input class="input ${requestScope.mode == 'register' and not empty requestScope.errors.name ? 'err' : ''}" id="rg-name" name="name" autocomplete="name"
-                 value="${requestScope.mode == 'register' ? param.name : ''}">
-          <div class="ferr" id="rg-name-err">${requestScope.mode == 'register' ? requestScope.errors.name : ''}</div>
+                 value="${rm:h(requestScope.mode == 'register' ? param.name : '')}">
+          <div class="ferr" id="rg-name-err">${rm:h(requestScope.mode == 'register' ? requestScope.errors.name : '')}</div>
         </div>
         <div class="field">
           <label for="rg-email">Email</label>
           <input class="input ${requestScope.mode == 'register' and not empty requestScope.errors.email ? 'err' : ''}" id="rg-email" name="email" type="email" autocomplete="email"
-                 value="${requestScope.mode == 'register' ? param.email : ''}">
-          <div class="ferr" id="rg-email-err">${requestScope.mode == 'register' ? requestScope.errors.email : ''}</div>
+                 value="${rm:h(requestScope.mode == 'register' ? param.email : '')}">
+          <div class="ferr" id="rg-email-err">${rm:h(requestScope.mode == 'register' ? requestScope.errors.email : '')}</div>
         </div>
         <div class="field">
           <label for="rg-pass">Password</label>
           <input class="input ${requestScope.mode == 'register' and not empty requestScope.errors.password ? 'err' : ''}" id="rg-pass" name="password" type="password" autocomplete="new-password">
-          <div class="ferr" id="rg-pass-err">${requestScope.mode == 'register' ? requestScope.errors.password : ''}</div>
+          <div class="ferr" id="rg-pass-err">${rm:h(requestScope.mode == 'register' ? requestScope.errors.password : '')}</div>
         </div>
         <div class="field">
           <label for="rg-conf">Confirm password</label>
           <input class="input ${requestScope.mode == 'register' and not empty requestScope.errors.confirmPassword ? 'err' : ''}" id="rg-conf" name="confirmPassword" type="password" autocomplete="new-password">
-          <div class="ferr" id="rg-conf-err">${requestScope.mode == 'register' ? requestScope.errors.confirmPassword : ''}</div>
+          <div class="ferr" id="rg-conf-err">${rm:h(requestScope.mode == 'register' ? requestScope.errors.confirmPassword : '')}</div>
         </div>
-        <div class="alert bad" id="rg-alert" role="alert">${requestScope.mode == 'register' ? requestScope.error : ''}</div>
-        <div class="alert good" role="status">${requestScope.mode == 'register' ? requestScope.message : ''}</div>
+        <div class="alert bad" id="rg-alert" role="alert">${rm:h(requestScope.mode == 'register' ? requestScope.error : '')}</div>
+        <div class="alert good" role="status">${rm:h(requestScope.mode == 'register' ? requestScope.message : '')}</div>
         <button class="btn btn-primary" type="submit">Create account</button>
       </form>
     </div>
