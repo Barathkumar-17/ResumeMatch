@@ -1,0 +1,23 @@
+ARUN KUMAR
+arun.kumar@email.com | +91 98765 43210 | Chennai
+
+EDUCATION
+- B.E. Computer Science and Engineering, Anna University, Chennai (2023 - 2027)
+- CGPA: 8.2 / 10
+
+SKILLS
+- Languages: Java, C++, Python
+- Database: SQL, JDBC
+- Tools: Git
+- Core: DSA, Object-Oriented Programming
+
+PROJECTS
+- Library Management System: Built a console application in Java using JDBC and SQL to manage books, members and issue records.
+- Pathfinding Visualizer: Implemented BFS, Dijkstra and A* in C++ to compare shortest-path algorithms on grid maps.
+
+CERTIFICATIONS
+- Java Programming Fundamentals - NPTEL
+- Python for Everybody - Coursera
+
+EXPERIENCE
+- Software Development Intern, TechNova Solutions (May 2025 - Jul 2025): Wrote Python scripts to clean test data and fixed bugs in an internal Java tool. Used Git for version control.

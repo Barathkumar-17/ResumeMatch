@@ -1,0 +1,23 @@
+PRIYA SHARMA
+priya.sharma@email.com | +91 91234 56780 | Pune
+
+EDUCATION
+- B.Tech Information Technology, Savitribai Phule Pune University, Pune (2023 - 2027)
+- CGPA: 8.7 / 10
+
+SKILLS
+- Web: HTML, CSS, JavaScript
+- Languages: Python
+- Tools: Git, Figma
+
+PROJECTS
+- Recipe Finder: Built a responsive single-page site in HTML, CSS and JavaScript that filters 200 recipes by ingredient and cooking time.
+- College Fest Website: Designed and built the event website for the annual tech fest, used by 1500 users during registration week.
+- Expense Tracker: Wrote a small Python script that reads monthly bank statements and groups spending by category.
+
+CERTIFICATIONS
+- Responsive Web Design - freeCodeCamp
+- Python for Everybody - Coursera
+
+EXPERIENCE
+- Web Design Intern, BrightLeaf Media (Jun 2025 - Jul 2025): Converted design mockups into web pages and kept the team code in Git.
