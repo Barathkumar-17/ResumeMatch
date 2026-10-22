@@ -22,7 +22,7 @@
 <body>
 <div class="app">
   <jsp:include page="/WEB-INF/views/_sidebar.jsp"/>
-  <main class="main">
+  <main class="main" id="main" tabindex="-1">
 <% if (request.getAttribute("error") != null) { %>
     <div class="page-head"><div><h1>Resume score</h1></div></div>
     <div class="alert bad" role="alert">${rm:h(requestScope.error)}</div>

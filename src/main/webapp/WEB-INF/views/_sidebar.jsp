@@ -12,6 +12,7 @@
     session attribute "user"        (User)    getName(), getEmail()
 --%>
 <aside class="side">
+  <a class="skip" href="#main">Skip to main content</a>
   <a class="logo" href="${pageContext.request.contextPath}/dashboard"><span class="logo-mark"></span><span>ResumeMatch</span></a>
   <nav class="nav" aria-label="Main">
     <a href="${pageContext.request.contextPath}/dashboard" class="${requestScope.activePage == 'dashboard' ? 'active' : ''}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>Dashboard</a>

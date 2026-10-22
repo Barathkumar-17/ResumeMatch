@@ -28,7 +28,7 @@
 <body>
 <div class="app">
   <jsp:include page="/WEB-INF/views/_sidebar.jsp"/>
-  <main class="main">
+  <main class="main" id="main" tabindex="-1">
     <div class="page-head">
       <div>
         <h1>Hi, ${rm:h(requestScope.firstName)}</h1>
@@ -50,27 +50,28 @@
         <h2>${empty requestScope.resume ? 'Upload your resume' : 'Upload a new version'}</h2>
         <form method="post" action="${pageContext.request.contextPath}/upload?_csrf=${sessionScope.csrfToken}" enctype="multipart/form-data" data-upload novalidate>
           <input type="hidden" name="_csrf" value="${sessionScope.csrfToken}">
-          <div class="drop" data-drop>
-            <div class="drop-icon"></div>
+          <div class="drop" data-drop role="group" aria-label="Resume upload">
+            <div class="drop-icon" aria-hidden="true"></div>
             <h3 data-drop-title>Drop your resume here</h3>
             <p class="muted" data-idle>Plain text (.txt) files up to 200 KB. Use headings like EDUCATION, SKILLS and PROJECTS.</p>
             <div class="file-chip" data-file-chip hidden></div>
-            <input type="file" name="resume" accept=".txt,text/plain" hidden>
+            <input type="file" name="resume" accept=".txt,text/plain" aria-label="Resume file (.txt)" hidden>
+            <div class="sr-only" role="status" aria-live="polite" data-live></div>
             <div class="row" data-idle>
-              <button class="btn btn-primary" type="button" data-pick-file>Choose file</button>
+              <button class="btn btn-primary" type="button" data-pick-file aria-describedby="file-err">Choose file</button>
             </div>
             <div class="row" data-ready hidden>
               <button class="btn btn-primary" type="submit">Analyze resume</button>
               <button class="btn btn-ghost" type="button" data-clear-file>Choose another file</button>
             </div>
-            <ul class="pipeline" data-pipeline hidden>
+            <ul class="pipeline" data-pipeline aria-label="Analysis steps" hidden>
               <li><span class="dot"></span>Saving file to the resumes folder</li>
               <li><span class="dot"></span>Reading the text</li>
               <li><span class="dot"></span>Matching against the skill dictionary</li>
               <li><span class="dot"></span>Calculating the resume score</li>
               <li><span class="dot"></span>Ranking jobs by match</li>
             </ul>
-            <div class="ferr" data-file-err role="alert">${rm:h(requestScope.error)}</div>
+            <div class="ferr" id="file-err" data-file-err role="alert">${rm:h(requestScope.error)}</div>
           </div>
         </form>
       </div>

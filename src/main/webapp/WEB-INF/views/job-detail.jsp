@@ -27,7 +27,7 @@
 <body>
 <div class="app">
   <jsp:include page="/WEB-INF/views/_sidebar.jsp"/>
-  <main class="main">
+  <main class="main" id="main" tabindex="-1">
 <% if (job == null) { %>
     <div class="panel empty">
       <h3>Job not found</h3>

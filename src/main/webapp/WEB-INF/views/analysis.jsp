@@ -32,7 +32,7 @@
 <body>
 <div class="app">
   <jsp:include page="/WEB-INF/views/_sidebar.jsp"/>
-  <main class="main">
+  <main class="main" id="main" tabindex="-1">
     <div class="page-head">
       <div>
         <h1>Resume analysis</h1>
@@ -91,7 +91,7 @@
         <div class="panel">
           <h2>Resume text</h2>
           <p class="panel-note">Highlighted words matched the skill dictionary.</p>
-          <div class="doc">${requestScope.highlightedText}</div>
+          <div class="doc" role="region" aria-label="Resume text" tabindex="0">${requestScope.highlightedText}</div>
         </div>
       </div>
     </div>

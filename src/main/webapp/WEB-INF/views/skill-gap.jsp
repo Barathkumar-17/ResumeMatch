@@ -28,7 +28,7 @@
 <body>
 <div class="app">
   <jsp:include page="/WEB-INF/views/_sidebar.jsp"/>
-  <main class="main">
+  <main class="main" id="main" tabindex="-1">
 <% if (!hasResume || targetJob == null) { %>
     <div class="page-head"><div><h1>Skill gap</h1></div></div>
     <div class="alert bad mb" role="alert">${rm:h(requestScope.error)}</div>

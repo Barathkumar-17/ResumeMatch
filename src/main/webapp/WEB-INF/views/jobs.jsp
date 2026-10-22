@@ -28,7 +28,7 @@
 <body>
 <div class="app">
   <jsp:include page="/WEB-INF/views/_sidebar.jsp"/>
-  <main class="main">
+  <main class="main" id="main" tabindex="-1">
     <div class="page-head">
       <div>
         <h1>Find jobs</h1>
