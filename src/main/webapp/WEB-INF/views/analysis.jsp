@@ -36,7 +36,7 @@
     <div class="page-head">
       <div>
         <h1>Resume analysis</h1>
-        <p ${empty requestScope.resume ? 'hidden' : ''}>${rm:h(requestScope.resume.fileName)}, analyzed ${rm:h(requestScope.uploadedDate)}. Stored at <span class="inline-code">${rm:h(requestScope.resume.filePath)}</span></p>
+        <p ${empty requestScope.resume ? 'hidden' : ''}>${rm:h(requestScope.resume.fileName)}, analyzed ${rm:h(requestScope.uploadedDate)}.</p>
       </div>
       <div class="btn-row" ${empty requestScope.resume ? 'hidden' : ''}>
         <a class="btn btn-ghost" href="${pageContext.request.contextPath}/resume-file">Download resume</a>
