@@ -1,4 +1,0 @@
-/* Extra rules for the static project page; everything else comes from the app's style.css. */
-.site-run{border-top:1px solid var(--line)}
-.site-code{font-family:var(--mono);font-size:.9rem;background:var(--surface-2);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:1rem 1.25rem;overflow-x:auto;margin:1rem 0;line-height:1.6}
-.site-run p{max-width:68ch}

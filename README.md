@@ -51,7 +51,6 @@ src/main/java/     com.resumematch.{model,exception,util,dao,service,web,console
 src/main/webapp/   JSP views, CSS, JavaScript and fonts
 test/              plain-Java unit tests (TestRunner)
 scripts/           end-to-end smoke tests (bash and PowerShell)
-site/              static project page published to GitHub Pages
 lib/               MySQL Connector/J and servlet-api jars (not committed)
 build.sh           build, test and deploy script for Linux/macOS/Git Bash
 build.bat          the same for Windows
@@ -162,15 +161,6 @@ mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS resumematch CHARACTER SET utf
 mysql -u root -p resumematch < resumematch-backup.sql
 ```
 then put the resume folder back in the same place.
-
-## Project page (GitHub Pages)
-GitHub Pages only serves static files, so it hosts a static **project page** from `site/`
-(what the app does, how the analysis works and how to run it); it does not run the app.
-The workflow `.github/workflows/pages.yml` publishes that page only when it is started by hand
-(Actions → Publish project page → Run workflow), once Pages is enabled
-(Settings → Pages → Source: GitHub Actions). Pushes to `main` do not deploy anything.
-
-The app itself runs on Tomcat 9 with MySQL 8, as described in Setup above.
 
 ## Demo script
 Log in with `demo@resumematch.in` / `demo1234`, or register a new account.
