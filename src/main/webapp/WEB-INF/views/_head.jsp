@@ -16,6 +16,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<script>
+  (function () {
+    var theme = null;
+    try { theme = localStorage.getItem("rm-theme"); } catch (e) { }
+    if (theme !== "dark" && theme !== "light") {
+      theme = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    }
+    document.documentElement.setAttribute("data-theme", theme);
+  })();
+</script>
 <title>${rm:h(param.title)}${empty param.title ? 'ResumeMatch — Smart Resume Analyzer &amp; Job Recommendation System' : ' · ResumeMatch'}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
