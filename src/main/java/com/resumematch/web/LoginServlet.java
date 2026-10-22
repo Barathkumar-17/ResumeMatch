@@ -91,7 +91,7 @@ public class LoginServlet extends HttpServlet {
         int minutesLeft = LIMITER.minutesLeft(cleanEmail, ip);
         if (minutesLeft > 0) {
             request.setAttribute("error", "Too many failed sign-in attempts. Please wait "
-                    + minutesLeft + " minutes and try again.");
+                    + minutesLeft + (minutesLeft == 1 ? " minute" : " minutes") + " and try again.");
             showForm(request, response);
             return;
         }
