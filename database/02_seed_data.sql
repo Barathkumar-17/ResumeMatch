@@ -8,18 +8,19 @@
 USE resumematch;
 SET NAMES utf8mb4;
 
--- Empty the tables (child tables first) and reset the AUTO_INCREMENT
+-- Empty the tables in foreign-key-safe order (children first) and reset the AUTO_INCREMENT
 -- counters so the skill ids below always come out as 1..18.
-SET FOREIGN_KEY_CHECKS = 0;
-TRUNCATE TABLE applications;
-TRUNCATE TABLE saved_jobs;
-TRUNCATE TABLE resume_skills;
-TRUNCATE TABLE resumes;
-TRUNCATE TABLE job_skills;
-TRUNCATE TABLE jobs;
-TRUNCATE TABLE skills;
-TRUNCATE TABLE users;
-SET FOREIGN_KEY_CHECKS = 1;
+DELETE FROM applications;
+DELETE FROM saved_jobs;
+DELETE FROM resume_skills;
+DELETE FROM resumes;
+DELETE FROM job_skills;
+DELETE FROM jobs;
+DELETE FROM skills;
+DELETE FROM users;
+ALTER TABLE skills AUTO_INCREMENT = 1;
+ALTER TABLE jobs AUTO_INCREMENT = 1;
+ALTER TABLE users AUTO_INCREMENT = 1;
 
 -- ---------------------------------------------------------------------
 -- Skill dictionary. Insert in this order so the ids stay stable.
