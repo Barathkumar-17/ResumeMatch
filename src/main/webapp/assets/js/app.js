@@ -284,4 +284,45 @@
     if (!t.textContent.trim()) { t.parentNode.removeChild(t); return; }
     setTimeout(function () { if (t.parentNode) { t.parentNode.removeChild(t); } }, 4200);
   });
+
+  /* ------------------------------------------------------------------
+     7. Light / dark theme toggle. The saved choice (or the system setting)
+        is applied by a small script in _head.jsp before the page paints.
+     ------------------------------------------------------------------ */
+  (function () {
+    var root = document.documentElement;
+    var sun = '<svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
+    var moon = '<svg class="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
+
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "theme-toggle";
+    btn.innerHTML = sun + moon;
+
+    function label() {
+      var dark = root.getAttribute("data-theme") === "dark";
+      btn.title = dark ? "Switch to light theme" : "Switch to dark theme";
+      btn.setAttribute("aria-label", btn.title);
+    }
+    label();
+
+    btn.addEventListener("click", function () {
+      var next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
+      root.setAttribute("data-theme", next);
+      try { localStorage.setItem("rm-theme", next); } catch (e) { /* storage blocked */ }
+      label();
+    });
+
+    var me = document.querySelector(".me");
+    var landing = document.querySelector(".l-nav .actions");
+    var authBox = document.querySelector(".auth-box");
+    if (me) {
+      me.insertBefore(btn, me.querySelector(".icon-btn"));
+    } else if (landing) {
+      landing.appendChild(btn);
+    } else if (authBox) {
+      btn.classList.add("float");
+      authBox.appendChild(btn);
+    }
+  })();
 })();
