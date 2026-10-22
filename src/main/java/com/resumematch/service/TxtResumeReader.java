@@ -1,5 +1,7 @@
 package com.resumematch.service;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import com.resumematch.exception.FileReadException;
 
 import java.io.BufferedReader;
@@ -19,6 +21,8 @@ import java.nio.file.Path;
  * exception wrapping, {@code StringBuilder}.</p>
  */
 public class TxtResumeReader implements ResumeReader {
+
+    private static final Logger LOGGER = Logger.getLogger(TxtResumeReader.class.getName());
 
     /** Byte order mark that some Windows editors put at the start of a UTF-8 file. */
     private static final char BOM = '﻿';
@@ -46,7 +50,7 @@ public class TxtResumeReader implements ResumeReader {
                 text.append(line);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.log(Level.WARNING, "could not read the resume file", e);
             throw new FileReadException(e);
         }
         return text.toString();

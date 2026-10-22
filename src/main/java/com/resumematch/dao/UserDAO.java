@@ -1,5 +1,7 @@
 package com.resumematch.dao;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import com.resumematch.exception.DatabaseConnectionException;
 import com.resumematch.exception.DuplicateEmailException;
 import com.resumematch.model.User;
@@ -21,6 +23,8 @@ import java.sql.Statement;
  * catching a specific SQL error and rethrowing it as a custom exception.</p>
  */
 public class UserDAO {
+
+    private static final Logger LOGGER = Logger.getLogger(UserDAO.class.getName());
 
     /** MySQL error code for a duplicate value in a UNIQUE or PRIMARY KEY index. */
     private static final int MYSQL_DUPLICATE_KEY = 1062;
@@ -55,14 +59,13 @@ public class UserDAO {
                     return keys.getInt(1);
                 }
             }
-            System.err.println("[UserDAO] register: no generated id returned for the new user.");
+            LOGGER.log(Level.SEVERE, "register: no generated id returned for the new user");
             throw new DatabaseConnectionException();
         } catch (SQLException e) {
             if (isDuplicateKey(e)) {
                 throw new DuplicateEmailException(e);
             }
-            System.err.println("[UserDAO] register failed: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "register failed", e);
             throw new DatabaseConnectionException(e);
         }
     }
@@ -100,8 +103,7 @@ public class UserDAO {
                 return null;
             }
         } catch (SQLException e) {
-            System.err.println("[UserDAO] " + method + " failed: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, method + " failed", e);
             throw new DatabaseConnectionException(e);
         }
     }

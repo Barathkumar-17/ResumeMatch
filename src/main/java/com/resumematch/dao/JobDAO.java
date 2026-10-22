@@ -1,5 +1,7 @@
 package com.resumematch.dao;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import com.resumematch.exception.DatabaseConnectionException;
 import com.resumematch.model.Job;
 import com.resumematch.util.DatabaseConnection;
@@ -23,6 +25,8 @@ import java.util.Map;
  * in a custom exception.</p>
  */
 public class JobDAO {
+
+    private static final Logger LOGGER = Logger.getLogger(JobDAO.class.getName());
 
     private static final String JOB_COLUMNS =
             "SELECT j.id, j.title, j.company, j.location, j.job_type, j.experience,"
@@ -72,8 +76,7 @@ public class JobDAO {
             loadAllSkills(con, jobs);
             return new ArrayList<>(jobs.values());
         } catch (SQLException e) {
-            System.err.println("[JobDAO] findAll failed: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "findAll failed", e);
             throw new DatabaseConnectionException(e);
         }
     }
@@ -105,8 +108,7 @@ public class JobDAO {
             }
             return job;
         } catch (SQLException e) {
-            System.err.println("[JobDAO] findById(" + id + ") failed: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "findById(" + id + ") failed", e);
             throw new DatabaseConnectionException(e);
         }
     }
@@ -169,8 +171,7 @@ public class JobDAO {
             }
             return new ArrayList<>(jobs.values());
         } catch (SQLException e) {
-            System.err.println("[JobDAO] search failed: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "search failed", e);
             throw new DatabaseConnectionException(e);
         }
     }
