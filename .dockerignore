@@ -1,13 +1,4 @@
-# Only src/main goes into the image; keep local config and build output out of it.
-.git
-.github
-.claude
-build
-lib
-resumes
-docs
-reference
-site
+# Only the application sources go into the image; local config stays out.
+*
+!src/main/**
 src/main/resources/db.properties
-*.war
-*.class
