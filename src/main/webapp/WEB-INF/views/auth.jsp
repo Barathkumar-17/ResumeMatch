@@ -15,7 +15,7 @@
   Passwords are never refilled.
 --%>
 <jsp:include page="/WEB-INF/views/_head.jsp">
-  <jsp:param name="title" value="${rm:h(requestScope.mode == 'register' ? 'Create account' : 'Log in')}"/>
+  <jsp:param name="title" value="${requestScope.mode == 'register' ? 'Create account' : 'Log in'}"/>
 </jsp:include>
 <body>
 <div class="auth">
