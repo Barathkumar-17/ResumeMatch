@@ -5,6 +5,7 @@ import com.resumematch.exception.AppException;
 import com.resumematch.model.Resume;
 import com.resumematch.model.User;
 import com.resumematch.service.FileService;
+import com.resumematch.service.ResumeFileType;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -30,7 +31,8 @@ import java.util.logging.Logger;
  * the session and its file lies inside that user's own folder under the resumes folder,
  * so a changed id or a path
  * with "../" in it can never reach another user's file or any other file on the server.
- * The file is always sent as {@code text/plain} with {@code nosniff}, and the download
+ * The original file is sent as an attachment with the Content-Type of its type
+ * ({@code text/plain}, {@code application/pdf} or the Word type) and {@code nosniff}, and the download
  * name is cleaned so it cannot add headers or break out of the quotes.
  *
  * <p>Demonstrates: Servlets (streaming a response, setting headers), Java File Handling
@@ -91,7 +93,8 @@ public class ResumeDownloadServlet extends HttpServlet {
             return;
         }
 
-        response.setContentType("text/plain; charset=UTF-8");
+        ResumeFileType type = ResumeFileType.fromPath(file);
+        response.setContentType(type == null ? "application/octet-stream" : type.getContentType());
         response.setHeader("X-Content-Type-Options", "nosniff");
         response.setHeader("Content-Disposition", contentDisposition(resume.getFileName()));
         response.setContentLengthLong(Files.size(file));
