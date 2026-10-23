@@ -3,6 +3,7 @@ package com.resumematch;
 import com.resumematch.util.HtmlUtil;
 import com.resumematch.util.LoginAttemptLimiter;
 import com.resumematch.util.PasswordUtil;
+import com.resumematch.web.SaveJobServlet;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -27,6 +28,7 @@ public class SecurityTests {
         passwordTests();
         limiterTests();
         htmlTests();
+        redirectTests();
     }
 
     private static void passwordTests() {
@@ -166,6 +168,33 @@ public class SecurityTests {
         }
         small.recordFailure("late@example.com", "198.51.100.1");
         TestRunner.check("tables stop growing at the cap", small.trackedEmails() <= LoginAttemptLimiter.MAX_TRACKED);
+    }
+
+    private static void redirectTests() {
+        System.out.println("== Redirect after save (Referer) ==");
+        String ctx = "/ResumeMatch";
+        String jobs = ctx + "/jobs";
+        TestRunner.checkEquals("same-app page is kept, with its query", ctx + "/jobs?q=java",
+                SaveJobServlet.backTarget("http://localhost:8080/ResumeMatch/jobs?q=java", "localhost", ctx));
+        TestRunner.checkEquals("missing header gives the job list", jobs, SaveJobServlet.backTarget(null, "localhost", ctx));
+        TestRunner.checkEquals("other host gives the job list", jobs,
+                SaveJobServlet.backTarget("http://evil.com/ResumeMatch/jobs", "localhost", ctx));
+        TestRunner.checkEquals("user-info trick gives the job list", jobs,
+                SaveJobServlet.backTarget("http://localhost@evil.com/ResumeMatch/jobs", "localhost", ctx));
+        TestRunner.checkEquals("protocol-relative path gives the job list", jobs,
+                SaveJobServlet.backTarget("//evil.com/x", "localhost", ctx));
+        TestRunner.checkEquals("javascript: gives the job list", jobs,
+                SaveJobServlet.backTarget("javascript:alert(1)", "localhost", ctx));
+        TestRunner.checkEquals("../ out of the app gives the job list", jobs,
+                SaveJobServlet.backTarget("http://localhost:8080/ResumeMatch/../manager/html", "localhost", ctx));
+        TestRunner.checkEquals("encoded ../ out of the app gives the job list", jobs,
+                SaveJobServlet.backTarget("http://localhost:8080/ResumeMatch/%2e%2e/manager", "localhost", ctx));
+        TestRunner.checkEquals("path ending in /.. gives the job list", jobs,
+                SaveJobServlet.backTarget("http://localhost:8080/ResumeMatch/..", "localhost", ctx));
+        TestRunner.checkEquals("another app with the same prefix gives the job list", jobs,
+                SaveJobServlet.backTarget("http://localhost:8080/ResumeMatchX/jobs", "localhost", ctx));
+        TestRunner.checkEquals("garbage header gives the job list", jobs,
+                SaveJobServlet.backTarget("http://local host/ResumeMatch/jobs", "localhost", ctx));
     }
 
     private static void htmlTests() {
