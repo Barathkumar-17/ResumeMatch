@@ -22,7 +22,7 @@
   <section class="hero">
     <div>
       <h1>Find out which jobs your resume already fits.</h1>
-      <p class="lead">Upload your resume as a text file. ResumeMatch picks out your skills, scores each section out of 100, and ranks internships by how many of their required skills you already have.</p>
+      <p class="lead">Upload your resume as a .txt, PDF or Word (.docx) file. ResumeMatch picks out your skills, scores each section out of 100, and ranks internships by how many of their required skills you already have.</p>
       <div class="cta">
         <a class="btn btn-hl" href="${pageContext.request.contextPath}/dashboard">Analyze resume</a>
         <a class="btn btn-ghost" href="${pageContext.request.contextPath}/jobs">Find jobs</a>
