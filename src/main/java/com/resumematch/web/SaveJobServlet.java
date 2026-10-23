@@ -20,7 +20,8 @@ import javax.servlet.http.HttpSession;
 /**
  * Saves a job to, or removes it from, the student's "My jobs" list. The Save button on the
  * job search and job detail pages posts here with {@code jobId} and {@code action}
- * ({@code save} or {@code remove}); afterwards the browser goes back to the page it came
+ * ({@code save} or {@code remove}; remove only drops the bookmark and never an application,
+ * which is deleted from the My jobs page instead); afterwards the browser goes back to the page it came
  * from (the Referer header) so the button can show its new state.
  *
  * <p>A one-shot message is left in the session for the next page to show: {@code flash}
@@ -52,7 +53,7 @@ public class SaveJobServlet extends HttpServlet {
             Job job = findJob(request.getParameter("jobId"));
             String action = request.getParameter("action");
             if ("remove".equals(action)) {
-                applicationDAO.removeSavedJob(user.getId(), job.getId());
+                applicationDAO.removeBookmark(user.getId(), job.getId());
                 session.setAttribute("flash", "Removed from My jobs.");
             } else if (!"save".equals(action)) {
                 session.setAttribute("flashError",

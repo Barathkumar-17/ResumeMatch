@@ -75,6 +75,20 @@ public class ApplicationDAO {
     }
 
     /**
+     * Removes only the bookmark (the Saved tab entry). An application for the same job is
+     * left alone, so the Save toggle on the job pages can never delete an application.
+     *
+     * @throws DatabaseConnectionException if the delete fails
+     */
+    public void removeBookmark(int userId, int jobId) throws DatabaseConnectionException {
+        try (Connection con = DatabaseConnection.getConnection()) {
+            runUpdate(con, DELETE_SAVED, userId, jobId);
+        } catch (SQLException e) {
+            throw wrap("removeBookmark", e);
+        }
+    }
+
+    /**
      * Removes the job from the student's list entirely: the bookmark and, if they had
      * applied, the application too. Removing a job that is not there does nothing.
      *
