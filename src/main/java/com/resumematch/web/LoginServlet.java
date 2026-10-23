@@ -86,7 +86,7 @@ public class LoginServlet extends HttpServlet {
         }
 
         String cleanEmail = email.trim().toLowerCase(Locale.ROOT);
-        String ip = request.getRemoteAddr();
+        String ip = LoginAttemptLimiter.ipKey(request.getRemoteAddr());
 
         // Too many recent failures: refuse before the password is even checked.
         int minutesLeft = LIMITER.minutesLeft(cleanEmail, ip);
@@ -131,7 +131,12 @@ public class LoginServlet extends HttpServlet {
      */
     private User authenticate(String email, String password) throws AppException {
         User user = userDAO.findByEmail(email);
-        if (user == null || !PasswordUtil.matches(password, user.getPasswordHash())) {
+        if (user == null) {
+            // Same hashing cost as a real account, so timing does not reveal unknown emails.
+            PasswordUtil.spendVerifyTime(password);
+            throw new InvalidLoginException();
+        }
+        if (!PasswordUtil.matches(password, user.getPasswordHash())) {
             throw new InvalidLoginException();
         }
         return user;

@@ -2,6 +2,8 @@ package com.resumematch.web;
 
 import com.resumematch.dao.UserDAO;
 import com.resumematch.exception.AppException;
+import com.resumematch.exception.DuplicateEmailException;
+import com.resumematch.util.LoginAttemptLimiter;
 import com.resumematch.util.PasswordUtil;
 import com.resumematch.util.ValidationUtil;
 
@@ -12,6 +14,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
+import java.time.Clock;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -35,6 +38,12 @@ public class RegisterServlet extends HttpServlet {
     static final String FLASH_MESSAGE = "flashMessage";
 
     private static final String VIEW = "/WEB-INF/views/auth.jsp";
+
+    /**
+     * Counts "email already registered" answers per client, so the form cannot be used to
+     * test a long list of emails. Five of them in 15 minutes block the client for a while.
+     */
+    private static final LoginAttemptLimiter DUPLICATE_LIMITER = new LoginAttemptLimiter(Clock.systemUTC());
 
     private final transient UserDAO userDAO = new UserDAO();
 
@@ -71,10 +80,20 @@ public class RegisterServlet extends HttpServlet {
             return;
         }
 
+        String client = LoginAttemptLimiter.ipKey(request.getRemoteAddr());
+        if (DUPLICATE_LIMITER.isBlocked(client, client)) {
+            request.setAttribute("error", "Too many attempts. Please wait a few minutes and try again.");
+            showForm(request, response);
+            return;
+        }
+
         try {
             userDAO.register(name.trim(), email.trim().toLowerCase(Locale.ROOT), PasswordUtil.hash(password));
         } catch (AppException e) {
             // DuplicateEmailException or DatabaseConnectionException: both carry a safe message.
+            if (e instanceof DuplicateEmailException) {
+                DUPLICATE_LIMITER.recordFailure(client, client);
+            }
             request.setAttribute("error", e.getUserMessage());
             showForm(request, response);
             return;
