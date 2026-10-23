@@ -220,8 +220,9 @@ java -cp "build/classes:src/main/resources:lib/*" com.resumematch.console.Consol
 ```
 On Windows (`cmd`) use a source list file and `;` in the classpath:
 ```
-dir /s /b src\main\java\*.java > sources.txt
-javac --release 17 -cp "lib\*" -d build\classes @sources.txt
+mkdir build
+dir /s /b src\main\java\*.java > build\sources.txt
+javac --release 17 -cp "lib\*" -d build\classes @build\sources.txt
 java -cp "build\classes;src\main\resources;lib\*" com.resumematch.console.ConsoleDemo
 ```
 

@@ -1,7 +1,5 @@
 # secrets and local config
 src/main/resources/db.properties
-team.sh
-team.sh.template
 
 # uploaded resumes created at runtime
 resumes/*
@@ -15,13 +13,6 @@ out/
 
 # MySQL Connector/J jar - download it yourself (see lib/README.md)
 lib/*.jar
-
-# local working files (not part of the published project)
-CLAUDE.md
-NOTES.md
-.claude/
-docs/
-reference/
 
 # editors / OS
 .idea/
