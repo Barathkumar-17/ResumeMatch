@@ -23,7 +23,6 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
 /**
  * The "Find jobs" page. Reads the keyword and filter values from the query string, lets
@@ -81,7 +80,7 @@ public class JobSearchServlet extends HttpServlet {
             }
 
             List<Job> found = jobDAO.search(q, location, type, exp);
-            Resume resume = (user == null) ? null : resumeDAO.findLatestByUser(user.getId());
+            Resume resume = (user == null) ? null : resumeDAO.findLatestSummaryByUser(user.getId());
             hasResume = resume != null;
 
             if (hasResume) {
@@ -123,7 +122,8 @@ public class JobSearchServlet extends HttpServlet {
         request.setAttribute("savedJobIds", savedJobIds);
         request.setAttribute("appliedJobIds", appliedJobIds);
         request.setAttribute("activePage", "jobs");
-        moveFlashToRequest(request);
+        PageSupport.moveFlash(request, "flashError");
+        PageSupport.loadMyJobsCount(request, user);
         request.getRequestDispatcher("/WEB-INF/views/jobs.jsp").forward(request, response);
     }
 
@@ -134,18 +134,6 @@ public class JobSearchServlet extends HttpServlet {
             ids.add(a.getJobId());
         }
         return ids;
-    }
-
-    /** Shows the one-time message left by the save form, then forgets it. */
-    private static void moveFlashToRequest(HttpServletRequest request) {
-        HttpSession session = request.getSession();
-        for (String key : new String[] {"flash", "flashError"}) {
-            Object message = session.getAttribute(key);
-            if (message != null) {
-                request.setAttribute(key, message);
-                session.removeAttribute(key);
-            }
-        }
     }
 
     private static void addIfPresent(Set<String> values, String value) {

@@ -15,7 +15,7 @@ import com.resumematch.service.SkillBasedJobMatcher;
 import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -27,7 +27,6 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
 /**
  * Shows the My jobs page: the jobs the user saved and the ones they applied to, with a
@@ -37,7 +36,6 @@ import javax.servlet.http.HttpSession;
  *
  * <p>Request attributes for {@code my-jobs.jsp}:</p>
  * <ul>
- *   <li>{@code saved}, {@code applied} - {@code List<Application>} straight from the DAO</li>
  *   <li>{@code savedRows}, {@code appliedRows} - {@code List<MyJobsServlet.Row>} ready to show</li>
  *   <li>{@code savedCount}, {@code appliedCount}, {@code myJobsCount} - Integer</li>
  *   <li>{@code statusCounts} - {@code Map<String,Integer>} for Saved, Applied, Interview,
@@ -117,8 +115,7 @@ public class MyJobsServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
-        HttpSession session = request.getSession();
-        User user = (User) session.getAttribute("user");
+        User user = (User) request.getSession().getAttribute("user");
         if (user == null) {
             response.sendRedirect(request.getContextPath() + "/login");
             return;
@@ -126,21 +123,23 @@ public class MyJobsServlet extends HttpServlet {
 
         request.setAttribute("activePage", "my-jobs");
         request.setAttribute("tab", "applied".equals(request.getParameter("tab")) ? "applied" : "saved");
-        moveFlash(session, "flash", request, "flash");
-        moveFlash(session, "flashError", request, "error");
+        PageSupport.moveFlash(request, "error");
 
-        List<Application> saved = Collections.emptyList();
-        List<Application> applied = Collections.emptyList();
         List<Row> savedRows = new ArrayList<>();
         List<Row> appliedRows = new ArrayList<>();
         boolean loadFailed = false;
         try {
-            saved = applicationDAO.findSaved(user.getId());
-            applied = applicationDAO.findApplications(user.getId());
-            Resume latest = resumeDAO.findLatestByUser(user.getId());
+            List<Application> saved = applicationDAO.findSaved(user.getId());
+            List<Application> applied = applicationDAO.findApplications(user.getId());
+            Resume latest = resumeDAO.findLatestSummaryByUser(user.getId());
             Set<String> resumeSkills = latest == null ? null : latest.getSkills();
-            savedRows = buildRows(saved, resumeSkills);
-            appliedRows = buildRows(applied, resumeSkills);
+            // One query for all jobs instead of one per list entry.
+            Map<Integer, Job> jobsById = new HashMap<>();
+            for (Job job : jobDAO.findAll()) {
+                jobsById.put(job.getId(), job);
+            }
+            savedRows = buildRows(saved, jobsById, resumeSkills);
+            appliedRows = buildRows(applied, jobsById, resumeSkills);
         } catch (AppException e) {
             loadFailed = true;
             request.setAttribute("error", e.getUserMessage());
@@ -155,8 +154,6 @@ public class MyJobsServlet extends HttpServlet {
             statusCounts.merge(row.getStatus(), 1, Integer::sum);
         }
 
-        request.setAttribute("saved", saved);
-        request.setAttribute("applied", applied);
         request.setAttribute("savedRows", savedRows);
         request.setAttribute("appliedRows", appliedRows);
         request.setAttribute("savedCount", savedRows.size());
@@ -168,10 +165,11 @@ public class MyJobsServlet extends HttpServlet {
     }
 
     /** Pairs each entry with its job; a job deleted in the meantime is skipped. */
-    private List<Row> buildRows(List<Application> entries, Set<String> resumeSkills) throws AppException {
+    private List<Row> buildRows(List<Application> entries, Map<Integer, Job> jobsById,
+                                Set<String> resumeSkills) {
         List<Row> rows = new ArrayList<>();
         for (Application entry : entries) {
-            Job job = jobDAO.findById(entry.getJobId());
+            Job job = jobsById.get(entry.getJobId());
             if (job == null) {
                 continue;
             }
@@ -189,15 +187,5 @@ public class MyJobsServlet extends HttpServlet {
     /** Same colour bands as the job cards: 75+ green, 50+ amber, below that red. */
     private static String matchClass(int score) {
         return "pct-" + JobMatch.levelFor(score);
-    }
-
-    /** Copies a one-shot message from the session to the request and forgets it. */
-    private static void moveFlash(HttpSession session, String sessionName,
-                                  HttpServletRequest request, String requestName) {
-        Object message = session.getAttribute(sessionName);
-        if (message != null) {
-            session.removeAttribute(sessionName);
-            request.setAttribute(requestName, message);
-        }
     }
 }

@@ -3,7 +3,6 @@ package com.resumematch.web;
 import com.resumematch.dao.ApplicationDAO;
 import com.resumematch.dao.JobDAO;
 import com.resumematch.exception.AppException;
-import com.resumematch.exception.InvalidJobException;
 import com.resumematch.model.Job;
 import com.resumematch.model.User;
 
@@ -62,36 +61,36 @@ public class ApplicationServlet extends HttpServlet {
         String action = request.getParameter("action");
         String tab = "applied";
         try {
-            Job job = findJob(request.getParameter("jobId"));
+            Job job = PageSupport.findJob(jobDAO, request.getParameter("jobId"));
             switch (action == null ? "" : action) {
                 case "apply":
                     applicationDAO.markApplied(user.getId(), job.getId());
-                    session.setAttribute("flash", "Marked " + job.getTitle() + " as applied.");
+                    session.setAttribute(PageSupport.FLASH, "Marked " + job.getTitle() + " as applied.");
                     break;
                 case "status":
                     String status = request.getParameter("status");
                     if (!isValidStatus(status)) {
-                        session.setAttribute("flashError", INVALID_STATUS_MESSAGE);
+                        session.setAttribute(PageSupport.FLASH_ERROR, INVALID_STATUS_MESSAGE);
                         break;
                     }
                     if (applicationDAO.updateStatus(user.getId(), job.getId(), status)) {
-                        session.setAttribute("flash", "Status changed to " + status + ".");
+                        session.setAttribute(PageSupport.FLASH, "Status changed to " + status + ".");
                     } else {
-                        session.setAttribute("flashError", NOT_APPLIED_MESSAGE);
+                        session.setAttribute(PageSupport.FLASH_ERROR, NOT_APPLIED_MESSAGE);
                     }
                     break;
                 case "remove":
                     applicationDAO.removeSavedJob(user.getId(), job.getId());
-                    session.setAttribute("flash", "Removed from My jobs.");
+                    session.setAttribute(PageSupport.FLASH, "Removed from My jobs.");
                     tab = request.getParameter("tab");
                     break;
                 default:
-                    session.setAttribute("flashError", INVALID_ACTION_MESSAGE);
+                    session.setAttribute(PageSupport.FLASH_ERROR, INVALID_ACTION_MESSAGE);
                     tab = null;
                     break;
             }
         } catch (AppException e) {
-            session.setAttribute("flashError", e.getUserMessage());
+            session.setAttribute(PageSupport.FLASH_ERROR, e.getUserMessage());
             tab = request.getParameter("tab");
         }
 
@@ -114,20 +113,5 @@ public class ApplicationServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         response.sendRedirect(request.getContextPath() + "/my-jobs");
-    }
-
-    /** Parses the job id and checks that the job still exists. */
-    private Job findJob(String jobIdParam) throws AppException {
-        int jobId;
-        try {
-            jobId = Integer.parseInt(jobIdParam == null ? "" : jobIdParam.trim());
-        } catch (NumberFormatException e) {
-            throw new InvalidJobException();
-        }
-        Job job = jobDAO.findById(jobId);
-        if (job == null) {
-            throw new InvalidJobException();
-        }
-        return job;
     }
 }

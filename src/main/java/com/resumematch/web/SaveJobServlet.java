@@ -3,7 +3,6 @@ package com.resumematch.web;
 import com.resumematch.dao.ApplicationDAO;
 import com.resumematch.dao.JobDAO;
 import com.resumematch.exception.AppException;
-import com.resumematch.exception.InvalidJobException;
 import com.resumematch.model.Job;
 import com.resumematch.model.User;
 
@@ -50,20 +49,20 @@ public class SaveJobServlet extends HttpServlet {
         }
 
         try {
-            Job job = findJob(request.getParameter("jobId"));
+            Job job = PageSupport.findJob(jobDAO, request.getParameter("jobId"));
             String action = request.getParameter("action");
             if ("remove".equals(action)) {
                 applicationDAO.removeBookmark(user.getId(), job.getId());
-                session.setAttribute("flash", "Removed from My jobs.");
+                session.setAttribute(PageSupport.FLASH, "Removed from My jobs.");
             } else if (!"save".equals(action)) {
-                session.setAttribute("flashError",
+                session.setAttribute(PageSupport.FLASH_ERROR,
                         "That action isn't available. Please use the buttons on this page.");
             } else {
                 applicationDAO.saveJob(user.getId(), job.getId());
-                session.setAttribute("flash", "Saved " + job.getTitle() + " at " + job.getCompany() + ".");
+                session.setAttribute(PageSupport.FLASH, "Saved " + job.getTitle() + " at " + job.getCompany() + ".");
             }
         } catch (AppException e) {
-            session.setAttribute("flashError", e.getUserMessage());
+            session.setAttribute(PageSupport.FLASH_ERROR, e.getUserMessage());
         }
         response.sendRedirect(backUrl(request));
     }
@@ -72,21 +71,6 @@ public class SaveJobServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         response.sendRedirect(request.getContextPath() + "/jobs");
-    }
-
-    /** Parses the job id and checks that the job still exists. */
-    private Job findJob(String jobIdParam) throws AppException {
-        int jobId;
-        try {
-            jobId = Integer.parseInt(jobIdParam == null ? "" : jobIdParam.trim());
-        } catch (NumberFormatException e) {
-            throw new InvalidJobException();
-        }
-        Job job = jobDAO.findById(jobId);
-        if (job == null) {
-            throw new InvalidJobException();
-        }
-        return job;
     }
 
     /**
