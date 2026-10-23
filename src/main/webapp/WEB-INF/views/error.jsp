@@ -18,6 +18,6 @@
       <a class="btn btn-primary" href="${pageContext.request.contextPath}/dashboard">Go to dashboard</a>
     </div>
   </div>
-</div>
+</main>
 </body>
 </html>
