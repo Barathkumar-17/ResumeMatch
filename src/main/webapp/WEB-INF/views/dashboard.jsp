@@ -53,9 +53,9 @@
           <div class="drop" data-drop role="group" aria-label="Resume upload">
             <div class="drop-icon" aria-hidden="true"></div>
             <p class="drop-title" data-drop-title>Drop your resume here</p>
-            <p class="muted" data-idle>Plain text (.txt) files up to 200 KB. Use headings like EDUCATION, SKILLS and PROJECTS.</p>
+            <p class="muted" data-idle>A .txt file up to 200 KB, or a .pdf or .docx up to 2 MB. Use headings like EDUCATION, SKILLS and PROJECTS.</p>
             <div class="file-chip" data-file-chip hidden></div>
-            <input type="file" name="resume" accept=".txt,text/plain" aria-label="Resume file (.txt)" hidden>
+            <input type="file" name="resume" accept=".txt,.pdf,.docx" aria-label="Resume file (.txt, .pdf or .docx)" hidden>
             <div class="sr-only" role="status" aria-live="polite" data-live></div>
             <div class="row" data-idle>
               <button class="btn btn-primary" type="button" data-pick-file aria-describedby="file-err">Choose file</button>

@@ -15,8 +15,11 @@ import java.util.regex.Pattern;
  */
 public final class ValidationUtil {
 
-    /** Uploads larger than this many bytes (200 KB) are rejected. */
+    /** .txt uploads larger than this many bytes (200 KB) are rejected. */
     public static final long MAX_FILE_SIZE_BYTES = 200L * 1024;
+
+    /** .pdf and .docx uploads larger than this many bytes (2 MB) are rejected. */
+    public static final long MAX_DOCUMENT_SIZE_BYTES = 2L * 1024 * 1024;
 
     /** Shortest password accepted at registration. */
     public static final int MIN_PASSWORD_LENGTH = 6;
@@ -57,7 +60,7 @@ public final class ValidationUtil {
         return !isBlank(fileName) && fileName.trim().toLowerCase(Locale.ROOT).endsWith(".txt");
     }
 
-    /** True when the size is within the 200 KB upload limit. */
+    /** True when the size is within the 200 KB limit for .txt uploads. */
     public static boolean isWithinSizeLimit(long sizeInBytes) {
         return sizeInBytes <= MAX_FILE_SIZE_BYTES;
     }

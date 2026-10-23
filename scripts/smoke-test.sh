@@ -22,6 +22,8 @@ BASE_URL="${1:-${BASE_URL:-http://localhost:8080/ResumeMatch}}"
 BASE_URL="${BASE_URL%/}"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SAMPLE="$SCRIPT_DIR/../sample-data/arun_kumar_resume.txt"
+SAMPLE_PDF="$SCRIPT_DIR/../test/fixtures/arun_kumar_resume.pdf"
+SAMPLE_DOCX="$SCRIPT_DIR/../test/fixtures/arun_kumar_resume.docx"
 
 STAMP="$(date +%s)"
 EMAIL="smoke-${STAMP}@example.com"
@@ -164,7 +166,9 @@ trap cleanup EXIT
 # ---- the walk-through ----
 
 echo "Smoke test against $BASE_URL as $EMAIL"
-if [ ! -f "$SAMPLE" ]; then echo "Sample resume not found: $SAMPLE"; exit 1; fi
+for f in "$SAMPLE" "$SAMPLE_PDF" "$SAMPLE_DOCX"; do
+  if [ ! -f "$f" ]; then echo "Sample resume not found: $f"; exit 1; fi
+done
 
 get /
 if [ "$CODE" = 000 ]; then echo "FAIL  cannot reach $BASE_URL (is Tomcat running?)"; FAIL=$((FAIL + 1)); exit 1; fi
@@ -262,15 +266,37 @@ curl -s --connect-timeout 5 --max-time 60 -o "$TMP/download.txt" -D "$HDRS" -b "
 check "download returns 200" "$([ "$(cat "$TMP/code.txt")" = 200 ] && echo 1 || echo 0)"
 check "downloaded bytes equal the uploaded file" "$(cmp -s "$TMP/download.txt" "$SAMPLE" && echo 1 || echo 0)"
 
+echo "== upload a PDF and a DOCX resume =="
+for kind in pdf docx; do
+  if [ "$kind" = pdf ]; then file="$SAMPLE_PDF"; type="application/pdf"
+  else file="$SAMPLE_DOCX"; type="application/vnd.openxmlformats-officedocument.wordprocessingml.document"; fi
+  get_token /dashboard
+  upload "$file" "arun_kumar_resume.$kind"
+  check "$kind upload redirects to /analysis" "$([ "$CODE" = 302 ] && location | grep -q '/analysis' && echo 1 || echo 0)"
+  get_token /analysis
+  check "$kind analysis shows 7 skills found" "$([ "$CODE" = 200 ] && body_has '>7<|7 skills' && echo 1 || echo 0)"
+  get_token /score
+  check "$kind score page shows 78" "$([ "$CODE" = 200 ] && body_has '(^|[^0-9])78([^0-9]|$)' && echo 1 || echo 0)"
+  curl -s --connect-timeout 5 --max-time 60 -o "$TMP/download.$kind" -D "$HDRS" -b "$JAR" -c "$JAR" "$BASE_URL/resume-file" -w '%{http_code}' > "$TMP/code.txt"
+  check "$kind download returns 200 with the right Content-Type" \
+    "$([ "$(cat "$TMP/code.txt")" = 200 ] && grep -qi "^content-type: $type" "$HDRS" && echo 1 || echo 0)"
+  check "downloaded $kind bytes equal the uploaded file" "$(cmp -s "$TMP/download.$kind" "$file" && echo 1 || echo 0)"
+done
+
 echo "== bad uploads =="
 printf 'not really a pdf' > "$TMP/resume.pdf"
+printf 'old word file' > "$TMP/resume.doc"
 : > "$TMP/empty.txt"
 head -c 307200 /dev/zero | tr '\0' 'a' > "$TMP/big.txt"
 
 get_token /dashboard
+upload "$TMP/resume.doc"
+check ".doc upload rejected with a friendly message" \
+  "$([ "$CODE" = 200 ] && body_has 'Upload a \.txt, \.pdf or \.docx file' && no_leak && echo 1 || echo 0)"
+get_token /dashboard
 upload "$TMP/resume.pdf"
-check "pdf upload rejected with a friendly message" \
-  "$([ "$CODE" = 200 ] && body_has 'txt file' && no_leak && echo 1 || echo 0)"
+check "text renamed to .pdf rejected with a friendly message" \
+  "$([ "$CODE" = 200 ] && body_has 'real PDF' && no_leak && echo 1 || echo 0)"
 get_token /dashboard
 upload "$TMP/empty.txt"
 check "empty file rejected with a friendly message" \

@@ -8,31 +8,31 @@ import com.resumematch.util.ValidationUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.ByteBuffer;
-import java.nio.charset.CharacterCodingException;
-import java.nio.charset.CodingErrorAction;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.EnumMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Handles the resume file on disk: checks an upload (must be a .txt, not empty, at most
- * 200 KB, plain UTF-8 text without NUL bytes), creates the {@code resumes/user_<id>/}
- * folder, saves the file under a name the server makes up ({@code <timestamp>_<random>.txt},
- * never the name the browser sent) so two uploads never overwrite each other, and reads the
- * text back through a {@link ResumeReader}. Every path is normalised and must stay inside
- * the base folder before it is written, read or deleted.
+ * Handles the resume file on disk: checks an upload (a .txt, .pdf or .docx that is not
+ * empty, at most 200 KB for .txt and 2 MB for .pdf and .docx, and whose bytes really are
+ * that kind of file), creates the {@code resumes/user_<id>/} folder, saves the file under
+ * a name the server makes up ({@code <timestamp>_<random>.<ext>}, never the name the
+ * browser sent) so two uploads never overwrite each other, and reads the text back through
+ * the {@link ResumeReader} that matches the file type. Every path is normalised and must
+ * stay inside the base folder before it is written, read or deleted.
  *
  * <p>Demonstrates: Java File Handling ({@code java.nio.file.Files}, {@code Path},
- * {@code InputStream}), composition (has a {@link ResumeReader}, typed by the interface),
- * custom checked exceptions, exception wrapping, constructor overloading, charset decoding.</p>
+ * {@code InputStream}), composition (has one {@link ResumeReader} per file type, typed by
+ * the interface, kept in an {@code EnumMap}), custom checked exceptions, exception
+ * wrapping, constructor overloading.</p>
  */
 public class FileService {
 
@@ -44,28 +44,20 @@ public class FileService {
     /** Longest file name kept for display and in the database. */
     public static final int MAX_DISPLAY_NAME_LENGTH = 100;
 
-    private static final String EXTENSION = ".txt";
-
-    private static final String NOT_TEXT_MESSAGE =
-            "This file doesn't look like plain text. Save it again as a .txt file (UTF-8) and upload it.";
-
     private final Path baseDir;
-    private final ResumeReader reader;
+    private final Map<ResumeFileType, ResumeReader> readers = new EnumMap<>(ResumeFileType.class);
 
-    /** Stores files under {@code ./resumes} and reads them with a {@link TxtResumeReader}. */
+    /** Stores files under {@code ./resumes}. */
     public FileService() {
         this(Paths.get(DEFAULT_BASE_DIR));
     }
 
-    /** Stores files under the given folder and reads them with a {@link TxtResumeReader}. */
+    /** Stores files under the given folder; .txt, .pdf and .docx each get their own reader. */
     public FileService(Path baseDir) {
-        this(baseDir, new TxtResumeReader());
-    }
-
-    /** Stores files under the given folder and reads them with the given reader. */
-    public FileService(Path baseDir, ResumeReader reader) {
         this.baseDir = baseDir;
-        this.reader = reader;
+        readers.put(ResumeFileType.TXT, new TxtResumeReader());
+        readers.put(ResumeFileType.PDF, new PdfResumeReader());
+        readers.put(ResumeFileType.DOCX, new DocxResumeReader());
     }
 
     /** The root folder that holds every {@code user_<id>} folder. */
@@ -75,7 +67,8 @@ public class FileService {
 
     /**
      * Checks an upload before anything is written, in this order: a file was chosen,
-     * the name ends in .txt, it is not empty, it is not over 200 KB.
+     * the name ends in .txt, .pdf or .docx, it is not empty, it is not over the limit for
+     * its type (200 KB for .txt, 2 MB for .pdf and .docx).
      *
      * @param fileName    the name the browser sent
      * @param sizeInBytes the upload size, or -1 when unknown (then only checked after reading)
@@ -86,21 +79,24 @@ public class FileService {
             throw new MissingFieldException("file", "Choose a resume file first.");
         }
         String name = displayName(fileName);
-        if (!ValidationUtil.isTxtFile(name)) {
-            throw InvalidFileException.notTxt(name);
+        ResumeFileType type = ResumeFileType.fromFileName(name);
+        if (type == null) {
+            throw InvalidFileException.unsupportedType(name);
         }
         if (sizeInBytes == 0) {
             throw new EmptyResumeException();
         }
-        if (sizeInBytes > 0 && !ValidationUtil.isWithinSizeLimit(sizeInBytes)) {
-            throw InvalidFileException.tooLarge();
+        if (sizeInBytes > 0 && !type.isWithinSizeLimit(sizeInBytes)) {
+            throw type.tooLarge();
         }
     }
 
     /**
-     * Validates the upload, then saves it as {@code <baseDir>/user_<userId>/<timestamp>_<random>.txt}.
-     * The bytes are read first (never more than the size limit plus one byte), so an empty,
-     * too large or non-text upload is rejected before anything is written to disk.
+     * Validates the upload, then saves it as
+     * {@code <baseDir>/user_<userId>/<timestamp>_<random>.<txt|pdf|docx>}.
+     * The bytes are read first (never more than the type's size limit plus one byte), so an
+     * empty, too large or fake upload (a .pdf that is really text, a .docx that is not a
+     * Word package) is rejected before anything is written to disk.
      *
      * @param userId      owner of the resume
      * @param fileName    original file name from the browser; only used for the checks
@@ -112,6 +108,7 @@ public class FileService {
             throws MissingFieldException, InvalidFileException, EmptyResumeException,
                    FileReadException {
         validate(fileName, sizeInBytes);
+        ResumeFileType type = ResumeFileType.fromFileName(displayName(fileName));
         if (content == null) {
             throw new FileReadException();
         }
@@ -119,7 +116,7 @@ public class FileService {
         // The declared size can be missing or wrong, so check what actually arrives.
         byte[] data;
         try {
-            data = content.readNBytes((int) ValidationUtil.MAX_FILE_SIZE_BYTES + 1);
+            data = content.readNBytes((int) type.getMaxBytes() + 1);
         } catch (IOException e) {
             LOGGER.log(Level.WARNING, "could not read the uploaded bytes", e);
             throw new FileReadException(e);
@@ -127,16 +124,16 @@ public class FileService {
         if (data.length == 0) {
             throw new EmptyResumeException();
         }
-        if (!ValidationUtil.isWithinSizeLimit(data.length)) {
-            throw InvalidFileException.tooLarge();
+        if (!type.isWithinSizeLimit(data.length)) {
+            throw type.tooLarge();
         }
-        checkIsPlainText(data);
+        type.checkContent(data);
 
         Path target;
         try {
             Path userDir = baseDir.resolve("user_" + userId);
             Files.createDirectories(userDir);
-            target = newTargetFile(userDir);
+            target = newTargetFile(userDir, type);
             if (!isInsideBase(target)) {
                 LOGGER.log(Level.SEVERE, "refusing to write outside the resumes folder: " + target);
                 throw new FileReadException();
@@ -151,14 +148,21 @@ public class FileService {
     }
 
     /**
-     * Reads a stored resume back with the {@link ResumeReader}.
+     * Reads a stored resume back with the {@link ResumeReader} for its file type.
      *
      * @throws EmptyResumeException when the file holds no text (blank lines only counts as empty)
      * @throws FileReadException    when the file cannot be read or lies outside the base folder
+     * @throws InvalidFileException when the text cannot be extracted (encrypted or scanned PDF,
+     *                              damaged document)
      */
-    public String readResume(Path path) throws FileReadException, EmptyResumeException {
+    public String readResume(Path path)
+            throws FileReadException, EmptyResumeException, InvalidFileException {
         if (path == null || !isInsideBase(path)) {
             LOGGER.log(Level.WARNING, "refusing to read outside the resumes folder: " + path);
+            throw new FileReadException();
+        }
+        ResumeReader reader = readers.get(ResumeFileType.fromPath(path));
+        if (reader == null) {
             throw new FileReadException();
         }
         String text = reader.read(path);
@@ -193,7 +197,7 @@ public class FileService {
     /**
      * Reduces the name a browser sent to a safe display name: folder parts (both '/' and
      * '\\') are dropped, control characters are removed and the result is cut to
-     * {@value #MAX_DISPLAY_NAME_LENGTH} characters, keeping the {@code .txt} ending.
+     * {@value #MAX_DISPLAY_NAME_LENGTH} characters, keeping a .txt, .pdf or .docx ending.
      * ("C:\\docs\\cv.txt" becomes "cv.txt"; null becomes an empty string.)
      */
     public static String displayName(String fileName) {
@@ -214,9 +218,11 @@ public class FileService {
         }
         name = clean.toString().trim();
         if (name.length() > MAX_DISPLAY_NAME_LENGTH) {
-            if (name.toLowerCase(Locale.ROOT).endsWith(EXTENSION)) {
-                name = name.substring(0, MAX_DISPLAY_NAME_LENGTH - EXTENSION.length())
-                        + name.substring(name.length() - EXTENSION.length());
+            ResumeFileType type = ResumeFileType.fromFileName(name);
+            if (type != null) {
+                int extLength = type.getExtension().length();
+                name = name.substring(0, MAX_DISPLAY_NAME_LENGTH - extLength)
+                        + name.substring(name.length() - extLength);
             } else {
                 name = name.substring(0, MAX_DISPLAY_NAME_LENGTH);
             }
@@ -235,33 +241,16 @@ public class FileService {
         }
     }
 
-    /** Rejects bytes that hold a NUL or are not valid UTF-8 (so binary files are refused). */
-    private static void checkIsPlainText(byte[] data) throws InvalidFileException {
-        for (byte b : data) {
-            if (b == 0) {
-                throw new InvalidFileException(NOT_TEXT_MESSAGE);
-            }
-        }
-        try {
-            StandardCharsets.UTF_8.newDecoder()
-                    .onMalformedInput(CodingErrorAction.REPORT)
-                    .onUnmappableCharacter(CodingErrorAction.REPORT)
-                    .decode(ByteBuffer.wrap(data));
-        } catch (CharacterCodingException e) {
-            throw new InvalidFileException(NOT_TEXT_MESSAGE);
-        }
-    }
-
     /**
-     * Picks {@code <millis>_<random>.txt} inside the folder. The random part is a UUID
+     * Picks {@code <millis>_<random>.<ext>} inside the folder. The random part is a UUID
      * fragment, so the name never depends on anything the browser sent; if the name is
      * somehow taken the next one is tried.
      */
-    private static Path newTargetFile(Path userDir) {
+    private static Path newTargetFile(Path userDir, ResumeFileType type) {
         Path candidate;
         do {
             String random = UUID.randomUUID().toString().replace("-", "").substring(0, 12);
-            candidate = userDir.resolve(System.currentTimeMillis() + "_" + random + EXTENSION);
+            candidate = userDir.resolve(System.currentTimeMillis() + "_" + random + type.getExtension());
         } while (Files.exists(candidate));
         return candidate;
     }

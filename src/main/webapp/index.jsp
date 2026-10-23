@@ -52,7 +52,7 @@
       <h2>How the analysis works</h2>
       <p>Every step is plain, explainable logic, built with Java file handling, collections and JDBC.</p>
       <div class="steps">
-        <div class="step"><h3>Upload</h3><p>Your .txt resume is saved to a resume folder and its path is recorded in the database.</p></div>
+        <div class="step"><h3>Upload</h3><p>Your .txt, .pdf or .docx resume is saved to a resume folder and its path is recorded in the database.</p></div>
         <div class="step"><h3>Extract skills</h3><p>The text is scanned for 18 known skills, such as Java, SQL, JDBC and Git, grouped by category.</p></div>
         <div class="step"><h3>Score</h3><p>Skills, projects, education, certifications and experience earn points toward a score out of 100.</p></div>
         <div class="step"><h3>Match and rank</h3><p>Each job is compared with your skill set, then sorted from best to weakest match.</p></div>

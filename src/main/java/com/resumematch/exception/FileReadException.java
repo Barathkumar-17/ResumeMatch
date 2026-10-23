@@ -10,7 +10,7 @@ public class FileReadException extends AppException {
 
     private static final long serialVersionUID = 1L;
 
-    public static final String MESSAGE = "The file couldn't be read. Try saving it again as .txt.";
+    public static final String MESSAGE = "The file couldn't be read. Try saving it again as .txt, .pdf or .docx.";
 
     public FileReadException() {
         super(MESSAGE);

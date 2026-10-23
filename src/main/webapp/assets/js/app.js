@@ -17,7 +17,8 @@
   "use strict";
 
   var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-  var MAX_UPLOAD_BYTES = 200 * 1024;
+  var MAX_TXT_BYTES = 200 * 1024;
+  var MAX_DOC_BYTES = 2 * 1024 * 1024;
   var reduceMotion = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
 
   function byId(id) { return document.getElementById(id); }
@@ -183,11 +184,13 @@
 
   function uploadProblem(file) {
     if (!file) { return "Choose a resume file first."; }
-    if (!/\.txt$/i.test(file.name)) {
-      return "\"" + file.name + "\" isn't a .txt file. This version reads plain-text resumes only; PDF support comes later.";
+    var isTxt = /\.txt$/i.test(file.name);
+    if (!isTxt && !/\.(pdf|docx)$/i.test(file.name)) {
+      return "\"" + file.name + "\" can't be used. Upload a .txt, .pdf or .docx file.";
     }
     if (file.size === 0) { return "This file is empty. Choose a resume that contains text."; }
-    if (file.size > MAX_UPLOAD_BYTES) { return "This file is larger than 200 KB. Resumes are usually under 20 KB of text."; }
+    if (isTxt && file.size > MAX_TXT_BYTES) { return "This file is larger than 200 KB. Resumes are usually under 20 KB of text."; }
+    if (!isTxt && file.size > MAX_DOC_BYTES) { return "This file is larger than 2 MB. Export a smaller PDF or DOCX, or upload a .txt file."; }
     return "";
   }
 
