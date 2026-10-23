@@ -395,7 +395,10 @@
     var landing = document.querySelector(".l-nav .actions");
     var authBox = document.querySelector(".auth-box");
     if (me) {
-      me.insertBefore(btn, me.querySelector(".icon-btn"));
+      // The log out button sits inside a small form, so walk up to the direct child of .me.
+      var logout = me.querySelector(".icon-btn");
+      while (logout && logout.parentNode !== me) { logout = logout.parentNode; }
+      me.insertBefore(btn, logout);
     } else if (landing) {
       landing.appendChild(btn);
     } else if (authBox) {
