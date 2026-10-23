@@ -255,6 +255,8 @@ try {
     Test-Check 'jobs page loads and lists job 101' (($script:Code -eq 200) -and (Test-Body 'Java Backend Intern'))
     Get-Token '/job?id=101'
     Test-Check 'job 101 shows 80%' (($script:Code -eq 200) -and (Test-Body '80 ?%'))
+    Get-Page '/jobs?q=Java'
+    Test-Check 'searching Java finds 4 jobs, 101 first' (($script:Code -eq 200) -and (Test-Body '4 jobs for') -and (Test-Body 'Java Backend Intern'))
     Get-Page '/job?id=9999'
     Test-Check 'job 9999 shows a friendly message' ((Test-Body 'no longer exists') -and -not (Test-Leak))
     Get-Token '/skill-gap?job=101'

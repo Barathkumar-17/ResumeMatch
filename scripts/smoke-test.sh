@@ -229,6 +229,8 @@ get_token /jobs
 check "jobs page loads and lists job 101" "$([ "$CODE" = 200 ] && body_has 'Java Backend Intern' && echo 1 || echo 0)"
 get_token "/job?id=101"
 check "job 101 shows 80%" "$([ "$CODE" = 200 ] && body_has '80 ?%' && echo 1 || echo 0)"
+get "/jobs?q=Java"
+check "searching Java finds 4 jobs, 101 first" "$([ "$CODE" = 200 ] && body_has '4 jobs for' && body_has 'Java Backend Intern' && echo 1 || echo 0)"
 get "/job?id=9999"
 check "job 9999 shows a friendly message" "$(body_has 'no longer exists' && no_leak && echo 1 || echo 0)"
 get_token "/skill-gap?job=101"
