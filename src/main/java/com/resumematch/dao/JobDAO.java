@@ -49,12 +49,12 @@ public class JobDAO {
 
     /*
      * Search filters. Each fragment is fixed text; only the values go in as parameters.
-     * The keyword matches title, company, location or description as a substring, or
+     * The keyword matches title, company or location as a substring, or
      * any of the job's skills by exact name (so "Java" does not pull in "JavaScript").
      */
     private static final String KEYWORD_FILTER =
             " AND (LOWER(j.title) LIKE ? OR LOWER(j.company) LIKE ?"
-            + " OR LOWER(j.location) LIKE ? OR LOWER(j.description) LIKE ?"
+            + " OR LOWER(j.location) LIKE ?"
             + " OR EXISTS (SELECT 1 FROM job_skills js JOIN skills s ON s.id = js.skill_id"
             + " WHERE js.job_id = j.id AND LOWER(s.skill_name) = ?))";
     private static final String LOCATION_FILTER = " AND j.location = ?";
@@ -118,7 +118,7 @@ public class JobDAO {
      * Finds jobs matching all the given filters. A null or blank filter is ignored, so
      * passing all nulls returns every job.
      *
-     * @param keyword    substring of title, company, location or description, or an exact
+     * @param keyword    substring of title, company or location, or an exact
      *                   skill name; case-insensitive
      * @param location   exact location, e.g. "Chennai"
      * @param jobType    exact job type: Internship, Full-time or Part-time
@@ -135,7 +135,6 @@ public class JobDAO {
             String k = keyword.trim().toLowerCase(Locale.ROOT);
             String like = "%" + escapeLike(k) + "%";
             sql.append(KEYWORD_FILTER);
-            params.add(like);
             params.add(like);
             params.add(like);
             params.add(like);
