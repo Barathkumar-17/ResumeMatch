@@ -69,7 +69,7 @@ INSERT INTO jobs (id, title, company, location, job_type, experience, descriptio
      'Maintain payment reconciliation services written in Java. You''ll build REST endpoints, write MySQL queries and deploy with Docker.',
      '₹4.5 LPA', NOW() - INTERVAL 4 DAY),
     (107, 'Full Stack Intern', 'Stackline Technologies', 'Remote', 'Internship', 'Fresher',
-     'Work on a student-facing web app across frontend and backend. Java on the server, plain JavaScript in the browser.',
+     'Work on a user-facing web app across frontend and backend. Java on the server, plain JavaScript in the browser.',
      '₹12,000 / month', NOW() - INTERVAL 8 DAY),
     (108, 'Systems Programming Intern', 'Corelogic Embedded', 'Bangalore', 'Internship', 'Fresher',
      'Write and profile C++ modules that run on Linux-based network devices. Expect to reason about memory, performance and algorithms.',
