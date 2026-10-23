@@ -35,7 +35,7 @@ Upload a resume, see which skills it shows, get a score out of 100 and find the 
 - [License](#license)
 
 ## What it does
-A user uploads a resume (`.txt`, `.pdf` or `.docx`; older binary `.doc` files are not supported) <!-- upload-limit -->.
+A user uploads a resume (`.txt`, `.pdf` or `.docx`; older binary `.doc` files are not supported) (`.txt` up to 200 KB; `.pdf` and `.docx` up to 2 MB).
 ResumeMatch extracts the skills it contains, scores the resume out of 100, shows the skills missing for a
 target job, and ranks job openings by how many of their required skills the user already has.
 
@@ -45,7 +45,7 @@ explained by a rule shown next to it.
 
 ## Features
 - Register and log in (salted PBKDF2 password hashes, session-based access control, sign-in attempt limit)
-- Upload a resume as `.txt`, `.pdf` or `.docx` <!-- upload-limit --> with type, size, encoding and empty-file validation
+- Upload a resume as `.txt`, `.pdf` or `.docx` (`.txt` up to 200 KB; `.pdf` and `.docx` up to 2 MB) with type, size, encoding and empty-file validation
 - Skill extraction, grouped by category, with the skills highlighted in the resume text
 - Five-part resume score (skills, projects, education, certifications, experience) with the reason for every rule
 - Job search with keyword, location, type and experience filters and a minimum-match slider
@@ -235,8 +235,8 @@ To use another resume folder, add this to `WEB-INF/web.xml`:
 - **Response headers:** `Content-Security-Policy` (scripts, styles and fonts from the app only),
   `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: same-origin`.
   Private pages are sent with `Cache-Control: no-store`.
-- **Request limits:** request bodies over 1 MB are refused (413). Resumes must be `.txt`, `.pdf` or
-  `.docx` <!-- upload-limit --> and not empty; text files must be valid UTF-8 without NUL bytes. Name,
+- **Request limits:** request bodies over 1 MB are refused (413), except the resume upload, which allows 3 MB. Resumes must be `.txt`, `.pdf` or
+  `.docx` (`.txt` up to 200 KB; `.pdf` and `.docx` up to 2 MB) and not empty; text files must be valid UTF-8 without NUL bytes. Name,
   email and password lengths are limited.
 - **Uploads** are saved under a generated file name inside the user's own folder; the submitted name
   is only displayed. Paths are checked to stay inside the resume folder, and users can only download
