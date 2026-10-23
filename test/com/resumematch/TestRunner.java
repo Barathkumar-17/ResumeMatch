@@ -15,6 +15,7 @@ import com.resumematch.service.ResumeAnalyzer;
 import com.resumematch.service.ResumeScorer;
 import com.resumematch.service.SkillBasedJobMatcher;
 import com.resumematch.util.ValidationUtil;
+import com.resumematch.web.ApplicationServlet;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -314,6 +315,10 @@ public class TestRunner {
         checkThrows("requireField throws on blank", MissingFieldException.class,
                 () -> ValidationUtil.requireField(" ", "email", "Enter your email."));
         checkEquals("requireField trims", "x", ValidationUtil.requireField(" x ", "f", "m"));
+        check("status Interview is valid", ApplicationServlet.isValidStatus("Interview"));
+        check("missing (null) status is rejected, not an error", !ApplicationServlet.isValidStatus(null));
+        check("status is case-sensitive", !ApplicationServlet.isValidStatus("interview"));
+        check("unknown status rejected", !ApplicationServlet.isValidStatus("Hired"));
     }
 
     // ---- FileService ----

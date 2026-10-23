@@ -37,7 +37,7 @@ CREATE TABLE resumes (
     user_id      INT          NOT NULL,
     file_name    VARCHAR(255) NOT NULL,
     file_path    VARCHAR(500) NOT NULL,
-    resume_text  TEXT         NOT NULL,
+    resume_text  MEDIUMTEXT   NOT NULL,
     score        INT          NOT NULL DEFAULT 0,
     uploaded_at  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_resumes_user

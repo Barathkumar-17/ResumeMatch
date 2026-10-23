@@ -41,6 +41,8 @@ public class ApplicationServlet extends HttpServlet {
 
     private static final String INVALID_STATUS_MESSAGE =
             "Choose a status: Applied, Interview, Rejected or Selected.";
+    private static final String NOT_APPLIED_MESSAGE =
+            "You haven't marked that job as applied yet, so its status can't be changed.";
     private static final String INVALID_ACTION_MESSAGE =
             "That action isn't available. Please use the buttons on this page.";
 
@@ -68,12 +70,15 @@ public class ApplicationServlet extends HttpServlet {
                     break;
                 case "status":
                     String status = request.getParameter("status");
-                    if (!VALID_STATUSES.contains(status)) {
+                    if (!isValidStatus(status)) {
                         session.setAttribute("flashError", INVALID_STATUS_MESSAGE);
                         break;
                     }
-                    applicationDAO.updateStatus(user.getId(), job.getId(), status);
-                    session.setAttribute("flash", "Status changed to " + status + ".");
+                    if (applicationDAO.updateStatus(user.getId(), job.getId(), status)) {
+                        session.setAttribute("flash", "Status changed to " + status + ".");
+                    } else {
+                        session.setAttribute("flashError", NOT_APPLIED_MESSAGE);
+                    }
                     break;
                 case "remove":
                     applicationDAO.removeSavedJob(user.getId(), job.getId());
@@ -95,6 +100,14 @@ public class ApplicationServlet extends HttpServlet {
             target += "?tab=applied";
         }
         response.sendRedirect(target);
+    }
+
+    /**
+     * True when the value is exactly one of the four statuses. A missing parameter is
+     * null, and {@code List.of(...).contains(null)} throws, so null is checked first.
+     */
+    public static boolean isValidStatus(String status) {
+        return status != null && VALID_STATUSES.contains(status);
     }
 
     /** Opening /application directly just shows the My jobs page. */
