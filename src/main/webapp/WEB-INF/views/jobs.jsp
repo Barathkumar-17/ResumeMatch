@@ -11,6 +11,7 @@
     resultCount      (Integer)         matches.size()
     hasResume        (Boolean)         false: no scores, show the upload banner
     savedJobIds      (Set<Integer>)    jobs already on the student's list
+    appliedJobIds    (Set<Integer>)    jobs the student has marked as applied
     q, location, type, exp (String)    the filters as submitted ("" when not set)
     minMatch         (Integer)         slider value 0-100
     locations, jobTypes, experienceLevels (Set<String>)  dropdown options
@@ -20,6 +21,7 @@
 <%
     Collection<?> matches = (Collection<?>) request.getAttribute("matches");
     Set<?> savedJobIds = (Set<?>) request.getAttribute("savedJobIds");
+    Set<?> appliedJobIds = (Set<?>) request.getAttribute("appliedJobIds");
     boolean hasResume = Boolean.TRUE.equals(request.getAttribute("hasResume"));
 %>
 <jsp:include page="/WEB-INF/views/_head.jsp">
@@ -93,6 +95,7 @@
        JobMatch m = (JobMatch) item;
        pageContext.setAttribute("m", m);
        pageContext.setAttribute("saved", savedJobIds.contains(m.getJob().getId()));
+       pageContext.setAttribute("applied", appliedJobIds.contains(m.getJob().getId()));
        pageContext.setAttribute("missingText", String.join(", ", m.getMissing()));
        pageContext.setAttribute("missingPreferredText", String.join(", ", m.getMissingPreferred()));
 %>
@@ -119,7 +122,8 @@
 <%     } %>
         <div class="job-actions">
           <a class="btn btn-primary btn-sm" href="${pageContext.request.contextPath}/job?id=${m.job.id}">View details</a>
-          <form class="inline" method="post" action="${pageContext.request.contextPath}/save-job">
+          <span class="btn btn-ghost btn-sm is-on" ${applied ? '' : 'hidden'}>Applied</span>
+          <form class="inline" method="post" action="${pageContext.request.contextPath}/save-job" ${applied ? 'hidden' : ''}>
             <input type="hidden" name="_csrf" value="${sessionScope.csrfToken}">
             <input type="hidden" name="jobId" value="${m.job.id}">
             <input type="hidden" name="action" value="${saved ? 'remove' : 'save'}">

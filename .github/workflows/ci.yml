@@ -38,9 +38,9 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
@@ -82,7 +82,7 @@ jobs:
 
       - name: Upload the war
         if: runner.os == 'Linux'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ResumeMatch-war
           path: build/ResumeMatch.war
@@ -97,9 +97,9 @@ jobs:
       CATALINA_HOME: ${{ github.workspace }}/tomcat
       MYSQL_PWD: root
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
@@ -185,7 +185,7 @@ jobs:
 
       - name: Upload the Tomcat logs
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: tomcat-logs
           path: |

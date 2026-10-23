@@ -64,7 +64,7 @@
       </div>
     </div>
   </section>
-  <footer class="l-foot">ResumeMatch · College project · Core Java, OOP, JDBC, MySQL, File Handling, Collections</footer>
+  <footer class="l-foot">ResumeMatch · Built by the ResumeMatch team · Java, JDBC, MySQL, Servlets and JSP</footer>
 </div>
 </body>
 </html>

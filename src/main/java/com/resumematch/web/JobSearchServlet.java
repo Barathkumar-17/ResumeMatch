@@ -33,7 +33,8 @@ import javax.servlet.http.HttpSession;
  * unranked and the page asks the student to upload one.
  *
  * <p>Request attributes for jobs.jsp: {@code matches} (List&lt;JobMatch&gt;),
- * {@code resultCount}, {@code hasResume}, {@code savedJobIds} (Set&lt;Integer&gt;),
+ * {@code resultCount}, {@code hasResume}, {@code savedJobIds} (Set&lt;Integer&gt;, saved or applied),
+ * {@code appliedJobIds} (Set&lt;Integer&gt;),
  * the echoed filters {@code q}, {@code location}, {@code type}, {@code exp},
  * {@code minMatch}, the dropdown options {@code locations}, {@code jobTypes},
  * {@code experienceLevels}, and {@code error}, {@code flash}, {@code flashError}.</p>
@@ -69,6 +70,7 @@ public class JobSearchServlet extends HttpServlet {
         Set<String> jobTypes = new TreeSet<>();
         Set<String> experienceLevels = new TreeSet<>();
         Set<Integer> savedJobIds = new HashSet<>();
+        Set<Integer> appliedJobIds = new HashSet<>();
         boolean hasResume = false;
 
         try {
@@ -97,7 +99,11 @@ public class JobSearchServlet extends HttpServlet {
             }
 
             if (user != null) {
+                for (Application a : applicationDAO.findApplications(user.getId())) {
+                    appliedJobIds.add(a.getJobId());
+                }
                 savedJobIds = findSavedJobIds(user.getId());
+                savedJobIds.addAll(appliedJobIds);
             }
         } catch (AppException e) {
             request.setAttribute("error", e.getUserMessage());
@@ -115,18 +121,16 @@ public class JobSearchServlet extends HttpServlet {
         request.setAttribute("resultCount", matches.size());
         request.setAttribute("hasResume", hasResume);
         request.setAttribute("savedJobIds", savedJobIds);
+        request.setAttribute("appliedJobIds", appliedJobIds);
         request.setAttribute("activePage", "jobs");
         moveFlashToRequest(request);
         request.getRequestDispatcher("/WEB-INF/views/jobs.jsp").forward(request, response);
     }
 
-    /** Ids of every job on the student's list, saved or applied (same rule as isSaved). */
+    /** Ids of the jobs the student has bookmarked (the Saved tab). */
     private Set<Integer> findSavedJobIds(int userId) throws AppException {
         Set<Integer> ids = new HashSet<>();
         for (Application a : applicationDAO.findSaved(userId)) {
-            ids.add(a.getJobId());
-        }
-        for (Application a : applicationDAO.findApplications(userId)) {
             ids.add(a.getJobId());
         }
         return ids;

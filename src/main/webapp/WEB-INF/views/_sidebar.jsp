@@ -25,6 +25,6 @@
   <div class="me">
     <div class="avatar" aria-hidden="true">${empty sessionScope.user.name ? '?' : sessionScope.user.name.substring(0, 1).toUpperCase()}</div>
     <div class="who"><b>${rm:h(sessionScope.user.name)}</b><span>${rm:h(sessionScope.user.email)}</span></div>
-    <a class="icon-btn" href="${pageContext.request.contextPath}/logout" title="Log out" aria-label="Log out"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg></a>
+    <form class="inline" method="post" action="${pageContext.request.contextPath}/logout"><input type="hidden" name="_csrf" value="${sessionScope.csrfToken}"><button class="icon-btn" type="submit" title="Log out" aria-label="Log out"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg></button></form>
   </div>
 </aside>
