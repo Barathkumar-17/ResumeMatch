@@ -21,7 +21,6 @@ import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -118,7 +117,7 @@ public class ResumeDownloadServlet extends HttpServlet {
     private static Resume findOwnedResume(int userId, String idParam) throws AppException {
         ResumeDAO dao = new ResumeDAO();
         if (idParam == null || idParam.trim().isEmpty()) {
-            return dao.findLatestByUser(userId);
+            return dao.findLatestSummaryByUser(userId);
         }
         int id;
         try {
@@ -126,13 +125,7 @@ public class ResumeDownloadServlet extends HttpServlet {
         } catch (NumberFormatException e) {
             return null;
         }
-        List<Resume> resumes = dao.findAllByUser(userId);
-        for (Resume r : resumes) {
-            if (r.getId() == id) {
-                return r;
-            }
-        }
-        return null;
+        return dao.findByIdForUser(userId, id);
     }
 
     /**

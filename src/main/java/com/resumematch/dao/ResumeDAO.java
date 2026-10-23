@@ -41,11 +41,17 @@ public class ResumeDAO {
     private static final String RESUME_COLUMNS =
             "SELECT id, user_id, file_name, file_path, resume_text, score, uploaded_at FROM resumes";
 
-    private static final String SELECT_LATEST_BY_USER =
-            RESUME_COLUMNS + " WHERE user_id = ? ORDER BY uploaded_at DESC, id DESC LIMIT 1";
+    private static final String SUMMARY_COLUMNS =
+            "SELECT id, user_id, file_name, file_path, '' AS resume_text, score, uploaded_at FROM resumes";
 
-    private static final String SELECT_ALL_BY_USER =
-            RESUME_COLUMNS + " WHERE user_id = ? ORDER BY uploaded_at DESC, id DESC";
+    private static final String NEWEST_FIRST = " WHERE user_id = ? ORDER BY uploaded_at DESC, id DESC LIMIT ?";
+
+    private static final String SELECT_LATEST_BY_USER = RESUME_COLUMNS + NEWEST_FIRST;
+
+    private static final String SELECT_NEWEST_SUMMARIES = SUMMARY_COLUMNS + NEWEST_FIRST;
+
+    private static final String SELECT_SUMMARY_BY_ID_AND_USER =
+            SUMMARY_COLUMNS + " WHERE id = ? AND user_id = ?";
 
     private static final String SELECT_SKILL_NAMES =
             "SELECT s.skill_name FROM resume_skills rs JOIN skills s ON s.id = rs.skill_id"
@@ -121,14 +127,51 @@ public class ResumeDAO {
 
     /**
      * @param userId the user id
-     * @return the user's most recent resume with its skill names, or {@code null} if they
-     *         have not uploaded one
+     * @return the user's most recent resume with its skill names and full text, or
+     *         {@code null} if they have not uploaded one
      * @throws DatabaseConnectionException if the query fails
      */
     public Resume findLatestByUser(int userId) throws DatabaseConnectionException {
+        List<Resume> latest = findRecent(SELECT_LATEST_BY_USER, userId, 1);
+        return latest.isEmpty() ? null : latest.get(0);
+    }
+
+    /**
+     * Like {@link #findLatestByUser} but without the resume text (it is an empty string), for
+     * pages that only need the skills, the score or the stored file, so a large text is not
+     * read from the database on every page view.
+     *
+     * @return the user's most recent resume, or {@code null} if they have not uploaded one
+     * @throws DatabaseConnectionException if the query fails
+     */
+    public Resume findLatestSummaryByUser(int userId) throws DatabaseConnectionException {
+        List<Resume> latest = findRecent(SELECT_NEWEST_SUMMARIES, userId, 1);
+        return latest.isEmpty() ? null : latest.get(0);
+    }
+
+    /**
+     * @param userId the user id
+     * @param limit  how many resumes at most
+     * @return the user's newest resumes, newest first, each with its skill names but without
+     *         the text (an empty string); empty if none
+     * @throws DatabaseConnectionException if the query fails
+     */
+    public List<Resume> findRecentByUser(int userId, int limit) throws DatabaseConnectionException {
+        return findRecent(SELECT_NEWEST_SUMMARIES, userId, limit);
+    }
+
+    /**
+     * Finds one resume by id, but only when it belongs to the given user, so another user's
+     * id finds nothing. The text is not loaded.
+     *
+     * @return the resume with its skill names, or {@code null} when the user has no such resume
+     * @throws DatabaseConnectionException if the query fails
+     */
+    public Resume findByIdForUser(int userId, int resumeId) throws DatabaseConnectionException {
         try (Connection con = DatabaseConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(SELECT_LATEST_BY_USER)) {
-            ps.setInt(1, userId);
+             PreparedStatement ps = con.prepareStatement(SELECT_SUMMARY_BY_ID_AND_USER)) {
+            ps.setInt(1, resumeId);
+            ps.setInt(2, userId);
             Resume resume = null;
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -140,20 +183,17 @@ public class ResumeDAO {
             }
             return resume;
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "findLatestByUser(" + userId + ") failed", e);
+            LOGGER.log(Level.SEVERE, "findByIdForUser(" + userId + ", " + resumeId + ") failed", e);
             throw new DatabaseConnectionException(e);
         }
     }
 
-    /**
-     * @param userId the user id
-     * @return all of the user's resumes, newest first, each with its skill names; empty if none
-     * @throws DatabaseConnectionException if the query fails
-     */
-    public List<Resume> findAllByUser(int userId) throws DatabaseConnectionException {
+    /** Runs one of the "newest first" queries (user id, row limit) and fills in each skill set. */
+    private List<Resume> findRecent(String sql, int userId, int limit) throws DatabaseConnectionException {
         try (Connection con = DatabaseConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(SELECT_ALL_BY_USER)) {
+             PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, userId);
+            ps.setInt(2, limit);
             List<Resume> resumes = new ArrayList<>();
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -165,21 +205,7 @@ public class ResumeDAO {
             }
             return resumes;
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "findAllByUser(" + userId + ") failed", e);
-            throw new DatabaseConnectionException(e);
-        }
-    }
-
-    /**
-     * @param resumeId the resume id
-     * @return names of the skills found in that resume, in dictionary order; empty if none
-     * @throws DatabaseConnectionException if the query fails
-     */
-    public List<String> findSkillNames(int resumeId) throws DatabaseConnectionException {
-        try (Connection con = DatabaseConnection.getConnection()) {
-            return readSkillNames(con, resumeId);
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "findSkillNames(" + resumeId + ") failed", e);
+            LOGGER.log(Level.SEVERE, "loading the resumes of user " + userId + " failed", e);
             throw new DatabaseConnectionException(e);
         }
     }
