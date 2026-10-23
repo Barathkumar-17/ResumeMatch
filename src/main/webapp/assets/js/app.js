@@ -16,7 +16,7 @@
 (function () {
   "use strict";
 
-  var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+  var EMAIL_RE = /^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@([A-Za-z0-9-]+\.)+[A-Za-z]{2,}$/;
   var MAX_TXT_BYTES = 200 * 1024;
   var MAX_DOC_BYTES = 2 * 1024 * 1024;
   var reduceMotion = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
@@ -141,7 +141,7 @@
     var pass = byId("rg-pass").value, conf = byId("rg-conf").value;
     var ok = fieldErr("rg-name", !name ? "Enter your full name." : "");
     ok = fieldErr("rg-email", emailMessage(email)) && ok;
-    ok = fieldErr("rg-pass", !pass ? "Create a password." : pass.length < 6 ? "Use at least 6 characters." : "") && ok;
+    ok = fieldErr("rg-pass", !pass ? "Create a password." : pass.length < 8 ? "Use at least 8 characters." : "") && ok;
     ok = fieldErr("rg-conf", !conf ? "Re-enter your password." : conf !== pass ? "Passwords don't match." : "") && ok;
     return ok;
   }

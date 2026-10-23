@@ -3,6 +3,7 @@ package com.resumematch.util;
 import com.resumematch.exception.MissingFieldException;
 
 import java.util.Locale;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
@@ -22,7 +23,7 @@ public final class ValidationUtil {
     public static final long MAX_DOCUMENT_SIZE_BYTES = 2L * 1024 * 1024;
 
     /** Shortest password accepted at registration. */
-    public static final int MIN_PASSWORD_LENGTH = 6;
+    public static final int MIN_PASSWORD_LENGTH = 8;
 
     /** Longest full name accepted (matches {@code users.name VARCHAR(100)}). */
     public static final int MAX_NAME_LENGTH = 100;
@@ -33,8 +34,18 @@ public final class ValidationUtil {
     /** Longest password accepted, so a huge input cannot be used to slow down hashing. */
     public static final int MAX_PASSWORD_LENGTH = 128;
 
-    /** something@something.tld, with a top-level part of at least two characters. */
-    private static final Pattern EMAIL = Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$");
+    /**
+     * something@something.tld in plain ASCII. Accented letters, look-alike letters and
+     * invisible characters are refused: MySQL treats "e" and "é" (or a zero-width space) as
+     * equal in a lookup, so they would let one account be reached under many spellings.
+     */
+    private static final Pattern EMAIL = Pattern.compile(
+            "^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@([A-Za-z0-9-]+\\.)+[A-Za-z]{2,}$");
+
+    /** Passwords far too common to accept, compared in lower case. */
+    private static final Set<String> COMMON_PASSWORDS = Set.of("password", "password1", "password123",
+            "12345678", "123456789", "1234567890", "qwertyui", "qwerty123", "iloveyou", "abc12345",
+            "11111111", "00000000", "letmein1", "welcome1", "admin123");
 
     private ValidationUtil() {
         // utility class, no instances
@@ -93,7 +104,11 @@ public final class ValidationUtil {
         if (password.length() > MAX_PASSWORD_LENGTH) {
             return "Use at most " + MAX_PASSWORD_LENGTH + " characters.";
         }
-        return isValidPassword(password) ? null : "Use at least " + MIN_PASSWORD_LENGTH + " characters.";
+        if (!isValidPassword(password)) {
+            return "Use at least " + MIN_PASSWORD_LENGTH + " characters.";
+        }
+        return COMMON_PASSWORDS.contains(password.toLowerCase(Locale.ROOT))
+                ? "That password is too common. Choose another one." : null;
     }
 
     /** Register form: confirm password. */
