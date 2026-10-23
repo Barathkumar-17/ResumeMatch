@@ -37,7 +37,7 @@
 <%     if (!hasResume && request.getAttribute("error") == null) { %>
     <div class="panel empty">
       <h2>No resume analyzed yet</h2>
-      <p>Upload a .txt resume on the dashboard to see which skills you're missing.</p>
+      <p>Upload a resume on the dashboard to see which skills you're missing.</p>
       <a class="btn btn-primary" href="${pageContext.request.contextPath}/dashboard">Upload resume</a>
     </div>
 <%     } %>

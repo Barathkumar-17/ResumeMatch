@@ -48,7 +48,7 @@
 
     <div class="panel empty" ${empty requestScope.resume ? '' : 'hidden'}>
       <h2>No resume analyzed yet</h2>
-      <p>Upload a .txt resume on the dashboard to see extracted skills and sections.</p>
+      <p>Upload a resume on the dashboard to see extracted skills and sections.</p>
       <a class="btn btn-primary" href="${pageContext.request.contextPath}/dashboard">Upload resume</a>
     </div>
 
