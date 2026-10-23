@@ -1,7 +1,5 @@
 package com.resumematch.dao;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import com.resumematch.exception.DatabaseConnectionException;
 import com.resumematch.model.Skill;
 import com.resumematch.util.DatabaseConnection;
@@ -14,6 +12,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * All SQL for the {@code skills} table, which is the skill dictionary used for

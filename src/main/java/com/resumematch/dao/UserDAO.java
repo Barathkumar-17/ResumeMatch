@@ -1,7 +1,5 @@
 package com.resumematch.dao;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import com.resumematch.exception.DatabaseConnectionException;
 import com.resumematch.exception.DuplicateEmailException;
 import com.resumematch.model.User;
@@ -11,13 +9,14 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.SQLIntegrityConstraintViolationException;
 import java.sql.Statement;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * All SQL for the {@code users} table: creating an account, looking one up by
- * email or id, and updating its password hash. A second registration with the same email is caught from the UNIQUE
- * index and turned into a {@link DuplicateEmailException}.
+ * email or id, and updating its password hash. A second registration with the same email
+ * is caught from the UNIQUE index and turned into a {@link DuplicateEmailException}.
  *
  * <p>Demonstrates: JDBC, {@code PreparedStatement}, generated keys, try-with-resources,
  * catching a specific SQL error and rethrowing it as a custom exception.</p>
@@ -130,10 +129,8 @@ public class UserDAO {
         }
     }
 
-    /** True when the error came from the UNIQUE index (MySQL 1062, SQLState 23000). */
+    /** True only for MySQL error 1062, a duplicate value in the UNIQUE index (not any other constraint error). */
     private static boolean isDuplicateKey(SQLException e) {
-        return e instanceof SQLIntegrityConstraintViolationException
-                || e.getErrorCode() == MYSQL_DUPLICATE_KEY
-                || "23000".equals(e.getSQLState());
+        return e.getErrorCode() == MYSQL_DUPLICATE_KEY;
     }
 }

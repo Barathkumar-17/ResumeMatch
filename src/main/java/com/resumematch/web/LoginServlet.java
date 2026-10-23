@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -84,7 +85,7 @@ public class LoginServlet extends HttpServlet {
             return;
         }
 
-        String cleanEmail = email.trim().toLowerCase();
+        String cleanEmail = email.trim().toLowerCase(Locale.ROOT);
         String ip = request.getRemoteAddr();
 
         // Too many recent failures: refuse before the password is even checked.

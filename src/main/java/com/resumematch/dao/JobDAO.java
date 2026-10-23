@@ -1,7 +1,5 @@
 package com.resumematch.dao;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import com.resumematch.exception.DatabaseConnectionException;
 import com.resumematch.model.Job;
 import com.resumematch.util.DatabaseConnection;
@@ -13,7 +11,10 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Reads job listings from the {@code jobs} table. Every returned {@link Job} also carries
@@ -131,7 +132,7 @@ public class JobDAO {
         List<String> params = new ArrayList<>();
 
         if (!isBlank(keyword)) {
-            String k = keyword.trim().toLowerCase();
+            String k = keyword.trim().toLowerCase(Locale.ROOT);
             String like = "%" + escapeLike(k) + "%";
             sql.append(KEYWORD_FILTER);
             params.add(like);

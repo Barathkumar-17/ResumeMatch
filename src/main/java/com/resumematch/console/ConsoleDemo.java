@@ -20,8 +20,8 @@ import java.util.List;
 /**
  * Runs the whole analysis pipeline from the command line, with no web server.
  *
- * Demonstrates: command-line arguments, file handling, JDBC through a DAO,
- * Collections, custom exception handling in main.
+ * <p>Demonstrates: command-line arguments, file handling, JDBC through a DAO,
+ * Collections, custom exception handling in main.</p>
  */
 public class ConsoleDemo {
 

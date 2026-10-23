@@ -5,7 +5,7 @@ package com.resumematch.util;
  * name or an error message can never inject markup. Exposed to the JSP pages
  * as the EL function {@code rm:h(...)} through WEB-INF/rm.tld.
  *
- * Demonstrates: static utility class, StringBuilder, switch on char.
+ * <p>Demonstrates: static utility class, StringBuilder, switch on char.</p>
  */
 public final class HtmlUtil {
 

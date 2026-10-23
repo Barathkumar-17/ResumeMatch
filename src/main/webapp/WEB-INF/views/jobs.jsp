@@ -99,7 +99,7 @@
       <article class="job">
         <div class="job-top">
           <div><h2>${rm:h(m.job.title)}</h2><div class="co">${rm:h(m.job.company)}</div></div>
-          <div class="pct-badge ${not requestScope.hasResume ? 'pct-na' : m.score >= 75 ? 'pct-hi' : m.score >= 50 ? 'pct-mid' : 'pct-lo'}"><b>${requestScope.hasResume ? m.score : '&mdash;'}${requestScope.hasResume ? '%' : ''}</b><span>match</span></div>
+          <div class="pct-badge ${not requestScope.hasResume ? 'pct-na' : ('pct-' += m.level)}"><b>${requestScope.hasResume ? m.score : '&mdash;'}${requestScope.hasResume ? '%' : ''}</b><span>match</span></div>
         </div>
         <div class="meta">
           <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>${rm:h(m.job.location)}</span>

@@ -1,5 +1,5 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" trimDirectiveWhitespaces="true"
-         import="java.util.Collection, java.util.Map, com.resumematch.model.Job" %>
+         import="java.util.Collection, com.resumematch.model.Job" %>
 <%@ taglib prefix="rm" uri="http://resumematch/functions" %>
 <%--
   Skill gap (URL /skill-gap?job=101). Rendered by SkillGapServlet. Display only: the
@@ -14,7 +14,9 @@
     haveCount, totalCount (Integer)  e.g. 4 of 6
     matchScore       (Integer)       the job match score (required skills only)
     matchedRequired, matchedPreferred, missingRequired, missingPreferred (List<String>)
-    recommendations  (List<Map.Entry<String,Integer>>)  skill -> number of jobs needing it
+    ringClass        (String)        hi | mid | lo - colour of the ring
+    nothingMatched, nothingMissing (Boolean)  choose the "None yet" / "Nothing missing" rows
+    recommendations  (List<Map>)     keys skill, jobs (jobs needing it), percent (share of all jobs)
     totalJobs        (Integer)       number of jobs the recommendations were counted over
     error            (String)        message for the red alert strip
 --%>
@@ -60,7 +62,7 @@
     <div class="grid g-side">
       <div class="panel">
         <div class="ring-head">
-          <div class="ring ${gapScore >= 75 ? 'hi' : gapScore >= 50 ? 'mid' : 'lo'}" data-p="${gapScore}" role="img" aria-label="${gapScore} percent skill match"><span>${gapScore}<small>%</small></span></div>
+          <div class="ring ${requestScope.ringClass}" data-p="${gapScore}" role="img" aria-label="${gapScore} percent skill match"><span>${gapScore}<small>%</small></span></div>
           <div>
             <h2>Skill match: ${gapScore}%</h2>
             <p class="muted">You have ${haveCount} of the ${totalCount} skills listed for ${rm:h(targetJob.title)}.</p>
@@ -77,7 +79,7 @@
 <%     for (Object skill : (Collection<?>) request.getAttribute("matchedPreferred")) { pageContext.setAttribute("skill", skill); %>
               <li>&#10003; ${rm:h(skill)}<small>Preferred</small></li>
 <%     } %>
-<%     if (Integer.valueOf(0).equals(request.getAttribute("haveCount"))) { %>
+<%     if (Boolean.TRUE.equals(request.getAttribute("nothingMatched"))) { %>
               <li>None yet</li>
 <%     } %>
             </ul>
@@ -91,7 +93,7 @@
 <%     for (Object skill : (Collection<?>) request.getAttribute("missingPreferred")) { pageContext.setAttribute("skill", skill); %>
               <li>&#10007; ${rm:h(skill)}<small>Preferred</small></li>
 <%     } %>
-<%     if (request.getAttribute("haveCount").equals(request.getAttribute("totalCount"))) { %>
+<%     if (Boolean.TRUE.equals(request.getAttribute("nothingMissing"))) { %>
               <li class="none">Nothing missing</li>
 <%     } %>
             </ul>
@@ -104,14 +106,12 @@
         <p class="panel-note">Required skills you're missing across all ${totalJobs} jobs. Skills needed by jobs you nearly match come first.</p>
 <%     Collection<?> recommendations = (Collection<?>) request.getAttribute("recommendations");
        for (Object item : recommendations) {
-           Map.Entry<?, ?> rec = (Map.Entry<?, ?>) item;
-           pageContext.setAttribute("recSkill", rec.getKey());
-           pageContext.setAttribute("recJobs", rec.getValue());
+           pageContext.setAttribute("rec", item);
 %>
         <div class="learn-row">
-          <b class="lname">${rm:h(recSkill)}</b>
-          <div class="bar"><i class="amber" data-w="${recJobs * 100 / totalJobs}"></i></div>
-          <span class="lcount">${recJobs} job${recJobs == 1 ? '' : 's'}</span>
+          <b class="lname">${rm:h(rec.skill)}</b>
+          <div class="bar"><i class="amber" data-w="${rec.percent}"></i></div>
+          <span class="lcount">${rec.jobs} job${rec.jobs == 1 ? '' : 's'}</span>
         </div>
 <%     } %>
 <%     if (recommendations.isEmpty()) { %>

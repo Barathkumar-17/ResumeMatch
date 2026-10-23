@@ -10,7 +10,7 @@
     job            (Job)            null when the id was missing or unknown
     match          (JobMatch)       null when the student has no resume yet
     hasResume      (Boolean)
-    matchedCount, requiredCount, missingCount, score (Integer)  set when match is set
+    matchedCount, requiredCount, missingCount, score (Integer), ringClass (hi|mid|lo)  set when match is set
     saved          (Boolean)        job is on the student's list (saved or applied)
     applied        (Boolean)        job has been marked as applied
     savedJobIds    (Set<Integer>)
@@ -52,7 +52,7 @@
         </div>
 <%     if (match != null) { %>
         <div class="ring-label">
-          <div class="ring ${score >= 75 ? 'hi' : score >= 50 ? 'mid' : 'lo'}" data-p="${score}" role="img" aria-label="${score} percent match"><span>${score}<small>%</small></span></div>
+          <div class="ring ${requestScope.ringClass}" data-p="${score}" role="img" aria-label="${score} percent match"><span>${score}<small>%</small></span></div>
           <div class="small muted">match</div>
         </div>
 <%     } %>
