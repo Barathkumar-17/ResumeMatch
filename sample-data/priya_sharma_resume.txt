@@ -12,7 +12,7 @@ SKILLS
 
 PROJECTS
 - Recipe Finder: Built a responsive single-page site in HTML, CSS and JavaScript that filters 200 recipes by ingredient and cooking time.
-- College Fest Website: Designed and built the event website for the annual tech fest, used by 1500 users during registration week.
+- Tech Fest Website: Designed and built the event website for the annual tech fest, used by 1500 users during registration week.
 - Expense Tracker: Wrote a small Python script that reads monthly bank statements and groups spending by category.
 
 CERTIFICATIONS
