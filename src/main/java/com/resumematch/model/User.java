@@ -1,5 +1,7 @@
 package com.resumematch.model;
 
+import java.util.Locale;
+
 /**
  * A registered user account. Maps to one row of the {@code users} table.
  * The password is never held in plain text, only its salted hash (see {@code PasswordUtil}).
@@ -37,6 +39,16 @@ public class User {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    /** The first letter of the name in capitals, shown in the sidebar avatar; "?" when there is no name. */
+    public String getInitial() {
+        String trimmed = (name == null) ? "" : name.trim();
+        if (trimmed.isEmpty()) {
+            return "?";
+        }
+        int end = trimmed.offsetByCodePoints(0, 1);
+        return trimmed.substring(0, end).toUpperCase(Locale.ROOT);
     }
 
     public String getEmail() {
