@@ -58,7 +58,7 @@
 <%     } %>
       </div>
       <div class="detail-actions">
-        <form class="inline" method="post" action="${pageContext.request.contextPath}/save-job">
+        <form class="inline" method="post" action="${pageContext.request.contextPath}/save-job" ${applied ? 'hidden' : ''}>
           <input type="hidden" name="_csrf" value="${sessionScope.csrfToken}">
           <input type="hidden" name="jobId" value="${job.id}">
           <input type="hidden" name="action" value="${saved ? 'remove' : 'save'}">
