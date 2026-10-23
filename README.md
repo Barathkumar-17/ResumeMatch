@@ -18,6 +18,7 @@ Upload a resume, see which skills it shows, get a score out of 100 and find the 
 
 ## Contents
 - [What it does](#what-it-does)
+- [Demo run](#demo-run)
 - [Features](#features)
 - [Screenshots](#screenshots)
 - [Quick start](#quick-start)
@@ -43,6 +44,19 @@ target job, and ranks job openings by how many of their required skills the user
 Analysis is **rule-based**: skills are found by matching the resume text against a fixed skill
 dictionary stored in the database. There is no AI or machine learning, so every number on screen can be
 explained by a rule shown next to it.
+
+## Demo run
+New here? [DEMO.md](DEMO.md) is a guided tour with a screenshot and the exact numbers for every step:
+create an account, upload a resume (78/100), read the skill gap (67%), search jobs (80, 75, 40, 33),
+save and apply, then try dark mode and the phone layout.
+
+One command sets everything up (it never starts or stops Tomcat or MySQL; `--reset-db` / `-ResetDb`
+reloads the database and **deletes all data**, so it asks for confirmation):
+```
+scripts/demo-setup.sh --reset-db          # Linux, macOS, Git Bash
+.\scripts\demo-setup.ps1 -ResetDb         # Windows PowerShell
+```
+Run it without the flag to just rebuild and redeploy. Then log in with `demo@resumematch.in` / `demo1234`.
 
 ## Features
 - Register and log in (salted PBKDF2 password hashes, session-based access control, sign-in attempt limit)
