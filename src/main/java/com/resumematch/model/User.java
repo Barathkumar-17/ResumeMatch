@@ -1,7 +1,7 @@
 package com.resumematch.model;
 
 /**
- * A registered student account. Maps to one row of the {@code users} table.
+ * A registered user account. Maps to one row of the {@code users} table.
  * The password is never held in plain text, only its salted hash (see {@code PasswordUtil}).
  *
  * <p>Demonstrates: encapsulation (private fields with getters and setters), POJO design.</p>

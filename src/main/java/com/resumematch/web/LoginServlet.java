@@ -20,7 +20,7 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * Shows the login form (GET) and signs the student in (POST). A wrong email and a
+ * Shows the login form (GET) and signs the user in (POST). A wrong email and a
  * wrong password give the same message so the page never reveals which emails are
  * registered. After a good login the old session is thrown away and a new one is
  * started (so a session id known before login is useless afterwards), and the user is

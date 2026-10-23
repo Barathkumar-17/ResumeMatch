@@ -24,7 +24,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * The skill gap page (URL /skill-gap?job=101). Compares the student's latest resume with
+ * The skill gap page (URL /skill-gap?job=101). Compares the user's latest resume with
  * everything one target job lists, required AND preferred, so the percentage here (4 of 6
  * = 67% for job 101) is intentionally different from the job match score (required only,
  * 4 of 5 = 80%). Without a {@code job} parameter the best-matching job is chosen. The

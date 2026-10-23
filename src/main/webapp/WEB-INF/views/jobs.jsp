@@ -10,8 +10,8 @@
     matches          (List<JobMatch>)  jobs to show, best match first when hasResume
     resultCount      (Integer)         matches.size()
     hasResume        (Boolean)         false: no scores, show the upload banner
-    savedJobIds      (Set<Integer>)    jobs already on the student's list
-    appliedJobIds    (Set<Integer>)    jobs the student has marked as applied
+    savedJobIds      (Set<Integer>)    jobs already on the user's list
+    appliedJobIds    (Set<Integer>)    jobs the user has marked as applied
     q, location, type, exp (String)    the filters as submitted ("" when not set)
     minMatch         (Integer)         slider value 0-100
     locations, jobTypes, experienceLevels (Set<String>)  dropdown options

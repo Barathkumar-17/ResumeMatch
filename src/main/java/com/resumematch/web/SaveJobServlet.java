@@ -18,7 +18,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 /**
- * Saves a job to, or removes it from, the student's "My jobs" list. The Save button on the
+ * Saves a job to, or removes it from, the user's "My jobs" list. The Save button on the
  * job search and job detail pages posts here with {@code jobId} and {@code action}
  * ({@code save} or {@code remove}; remove only drops the bookmark and never an application,
  * which is deleted from the My jobs page instead); afterwards the browser goes back to the page it came

@@ -28,9 +28,9 @@ import javax.servlet.http.HttpSession;
 /**
  * The "Find jobs" page. Reads the keyword and filter values from the query string, lets
  * {@link JobDAO#search} apply the keyword, location, job type and experience filters in
- * SQL, then scores every job against the student's latest resume, sorts best match first
+ * SQL, then scores every job against the user's latest resume, sorts best match first
  * and drops jobs below the minimum-match slider. Without a resume the jobs are listed
- * unranked and the page asks the student to upload one.
+ * unranked and the page asks the user to upload one.
  *
  * <p>Request attributes for jobs.jsp: {@code matches} (List&lt;JobMatch&gt;),
  * {@code resultCount}, {@code hasResume}, {@code savedJobIds} (Set&lt;Integer&gt;, saved or applied),
@@ -127,7 +127,7 @@ public class JobSearchServlet extends HttpServlet {
         request.getRequestDispatcher("/WEB-INF/views/jobs.jsp").forward(request, response);
     }
 
-    /** Ids of the jobs the student has bookmarked (the Saved tab). */
+    /** Ids of the jobs the user has bookmarked (the Saved tab). */
     private Set<Integer> findSavedJobIds(int userId) throws AppException {
         Set<Integer> ids = new HashSet<>();
         for (Application a : applicationDAO.findSaved(userId)) {

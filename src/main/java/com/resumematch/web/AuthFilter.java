@@ -11,7 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * Guards every page that needs a logged-in student. With no {@code "user"} in the
+ * Guards every page that needs a logged-in user. With no {@code "user"} in the
  * session the browser is sent to {@code /login}. Protected responses are marked
  * {@code Cache-Control: no-store}, so after logout the Back button cannot show a
  * cached private page.

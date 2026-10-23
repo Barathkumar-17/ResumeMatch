@@ -8,10 +8,10 @@
 
   Request attributes:
     job            (Job)            null when the id was missing or unknown
-    match          (JobMatch)       null when the student has no resume yet
+    match          (JobMatch)       null when the user has no resume yet
     hasResume      (Boolean)
     matchedCount, requiredCount, missingCount, score (Integer), ringClass (hi|mid|lo)  set when match is set
-    saved          (Boolean)        job is on the student's list (saved or applied)
+    saved          (Boolean)        job is on the user's list (saved or applied)
     applied        (Boolean)        job has been marked as applied
     savedJobIds    (Set<Integer>)
     error          (String)         e.g. "This job no longer exists."

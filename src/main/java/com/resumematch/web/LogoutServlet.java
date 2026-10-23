@@ -9,9 +9,9 @@ import javax.servlet.http.HttpSession;
 import java.io.IOException;
 
 /**
- * Logs the student out: the whole session is invalidated, then a new, empty session
+ * Logs the user out: the whole session is invalidated, then a new, empty session
  * carries a one-time "You have been logged out." message to the login page. Logout is a
- * POST from the sidebar form (with the CSRF token), so another site cannot log a student
+ * POST from the sidebar form (with the CSRF token), so another site cannot log a user
  * out with a link or an image; a plain GET gets the friendly 405 page.
  *
  * <p>Demonstrates: {@code HttpSession.invalidate()}, {@code doPost}, redirects, {@code @WebServlet}.</p>

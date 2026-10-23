@@ -14,7 +14,7 @@ CREATE DATABASE resumematch
 USE resumematch;
 
 -- ---------------------------------------------------------------------
--- users: one row per registered student.
+-- users: one row per registered user.
 -- The UNIQUE index on email is what makes a second sign-up with the same
 -- email fail (SQLIntegrityConstraintViolationException in JDBC).
 -- password holds a salted PBKDF2 hash (pbkdf2$iterations$salt$hash), never plain text.
@@ -103,7 +103,7 @@ CREATE TABLE job_skills (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
--- saved_jobs: jobs a student bookmarked but has not applied to yet.
+-- saved_jobs: jobs a user bookmarked but has not applied to yet.
 -- ---------------------------------------------------------------------
 CREATE TABLE saved_jobs (
     user_id   INT NOT NULL,
@@ -117,7 +117,7 @@ CREATE TABLE saved_jobs (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
--- applications: jobs a student marked as applied, with a status.
+-- applications: jobs a user marked as applied, with a status.
 -- One application per user per job.
 -- ---------------------------------------------------------------------
 CREATE TABLE applications (
