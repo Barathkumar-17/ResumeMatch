@@ -35,7 +35,8 @@ Upload a resume, see which skills it shows, get a score out of 100 and find the 
 - [License](#license)
 
 ## What it does
-A user uploads a resume (`.txt`, `.pdf` or `.docx`; older binary `.doc` files are not supported) (`.txt` up to 200 KB; `.pdf` and `.docx` up to 2 MB).
+A user uploads a resume as `.txt` (up to 200 KB), `.pdf` or `.docx` (up to 2 MB each). Older binary `.doc`
+files are not supported, and a password-protected or scanned PDF gets a friendly message instead of a result.
 ResumeMatch extracts the skills it contains, scores the resume out of 100, shows the skills missing for a
 target job, and ranks job openings by how many of their required skills the user already has.
 
@@ -45,13 +46,13 @@ explained by a rule shown next to it.
 
 ## Features
 - Register and log in (salted PBKDF2 password hashes, session-based access control, sign-in attempt limit)
-- Upload a resume as `.txt`, `.pdf` or `.docx` (`.txt` up to 200 KB; `.pdf` and `.docx` up to 2 MB) with type, size, encoding and empty-file validation
+- Upload a resume as `.txt`, `.pdf` or `.docx` (`.txt` up to 200 KB; `.pdf` and `.docx` up to 2 MB) with type, size, encoding and empty-file validation (old `.doc`, encrypted and scanned PDFs are refused with a clear message)
 - Skill extraction, grouped by category, with the skills highlighted in the resume text
 - Five-part resume score (skills, projects, education, certifications, experience) with the reason for every rule
 - Job search with keyword, location, type and experience filters and a minimum-match slider
 - Job detail page that shows the match calculation, e.g. 4 of 5 required skills = 80%
 - Skill gap analysis against a chosen job, with the skills most worth learning next
-- Save jobs, mark them as applied and track status (Applied, Interview, Rejected, Selected)
+- Save jobs, mark them as applied (the job then shows "Applied") and track status (Applied, Interview, Rejected, Selected)
 - Light and dark theme, phone-width layout, keyboard accessible
 
 Built with Java 17 · OOP · JDBC · MySQL 8 · Java file handling · Collections · exception handling ·
@@ -118,8 +119,8 @@ Details for every step are in [Setup](#setup).
 ## Usage walkthrough
 Log in with `demo@resumematch.in` / `demo1234`, or register a new account, then follow this script.
 
-1. **Dashboard:** upload `sample-data/arun_kumar_resume.txt`. Uploading an unsupported type, an empty
-   file or a file over the size limit shows a message and saves nothing.
+1. **Dashboard:** upload `sample-data/arun_kumar_resume.txt`. Uploading an unsupported type (such as an old
+   `.doc`), an empty file or a file over the size limit shows a message and saves nothing.
 2. **Analysis:** 7 skills are found (Java, SQL, JDBC, Git, DSA, C++, Python) and highlighted in the text.
 3. **Score:** the resume scores **78/100**; every one of the five rules shows why it earned its points.
 4. **Jobs:** search "Java". Four jobs are listed best match first: 80%, 75%, 40%, 33%.
@@ -127,7 +128,7 @@ Log in with `demo@resumematch.in` / `demo1234`, or register a new account, then 
 6. **Skill gap:** for the same job the skill match is 67% (Spring Boot and REST API missing) and the
    page suggests what to learn next.
 7. **My jobs:** save a job, mark it applied, change its status and remove it.
-8. **Security:** sign out, then enter a wrong password five times for one email; the sixth try is
+8. **Security:** use the log out button in the sidebar, then enter a wrong password five times for one email; the sixth try is
    refused with a "please wait" message.
 
 ### Run the analysis without a server
@@ -229,7 +230,8 @@ To use another resume folder, add this to `WEB-INF/web.xml`:
   15 minutes, sign-in is refused until the window ends. The counters are kept in memory and reset
   when Tomcat restarts.
 - **CSRF:** every form carries a random per-session token (`_csrf`) that is checked on every POST.
-  A missing or wrong token gets a friendly 403 page.
+  A missing or wrong token gets a friendly 403 page. Log out is a POST button too, so a link on another
+  site cannot sign a user out.
 - **Session cookie** is `HttpOnly` and `SameSite=Lax`, sessions end after 30 idle minutes, and a new
   session is started at login.
 - **Response headers:** `Content-Security-Policy` (scripts, styles and fonts from the app only),
@@ -252,8 +254,9 @@ To use another resume folder, add this to `WEB-INF/web.xml`:
 ```
 ./build.sh test          # or: build.bat test
 ```
-`test/com/resumematch/TestRunner.java` checks the analyzer, scorer, job matcher, validation,
-password hashing, sign-in limit, HTML escaping and file service. Among other things it asserts that the sample
+`test/com/resumematch/TestRunner.java` (with `DocumentReaderTests` and `SecurityTests`) checks the analyzer,
+scorer, job matcher, validation, PDF and DOCX reading, password hashing, sign-in limit, HTML escaping and
+file service. Among other things it asserts that the sample
 resume scores 78/100 with 7 skills, job 101 matches 80% and the skill gap for it is 67%. It exits
 with status 1 on any failure. `./build.sh test deploy` deploys only when the tests pass.
 
@@ -270,8 +273,9 @@ security headers, CSRF and the friendly error pages, and then deletes that user'
 database rows, even when a check fails. The clean-up uses the `mysql` client; `MYSQL` (client path),
 `MYSQL_USER` and `MYSQL_DB` can be set as well.
 
-**Continuous integration.** The workflow `.github/workflows/ci.yml` (the CI badge at the top) runs
-the build and checks on GitHub for every push.
+**Continuous integration.** The workflow `.github/workflows/ci.yml` (the CI badge at the top) runs on GitHub
+for pushes to `main` and for pull requests. It downloads the two jars, runs the unit tests and builds the war on
+Linux and Windows, then deploys the war to a real Tomcat 9 with MySQL 8 and runs the smoke test.
 
 ## Backup and restore
 Back up the database and the resume folder together, because each resume row points to a file:
@@ -297,6 +301,7 @@ then put the resume folder back in the same place.
 | `build.sh` fails with `$'\r': command not found` | The script was checked out with Windows line endings. Run `git add --renormalize . && git checkout -- build.sh`. |
 | Port 8080 already in use | Stop the other program, or change the connector port in `<tomcat>/conf/server.xml`. |
 | `package javax.servlet does not exist` or `jakarta` errors | This project targets Tomcat 9 (`javax.servlet`). Tomcat 10 and later use `jakarta.servlet`. |
+| "password-protected" or "scanned image" message for a PDF | Text cannot be read from encrypted PDFs or scans. Export a text-based PDF, or upload a `.txt` or `.docx` copy. Old `.doc` files must be saved as `.docx` first. |
 | Upload fails or downloads return 404 | Make sure Tomcat can write to `<tomcat>/resumes/`, or set the `resumeDir` parameter shown above. |
 | Dates are a few hours off | Remove any `serverTimezone` setting from `db.url`; the driver detects the server time zone itself. |
 | Smoke test cannot clean up | Put the `mysql` client on the PATH (or set `MYSQL`) and set `MYSQL_PWD`. |
