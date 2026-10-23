@@ -82,7 +82,7 @@ public final class ValidationUtil {
         if (email.trim().length() > MAX_EMAIL_LENGTH) {
             return "Use at most " + MAX_EMAIL_LENGTH + " characters.";
         }
-        return isValidEmail(email) ? null : "Enter a valid email, like name@college.edu.";
+        return isValidEmail(email) ? null : "Enter a valid email, like name@example.com.";
     }
 
     /** Register form: new password. */
