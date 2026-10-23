@@ -12,7 +12,7 @@ Upload a resume, see which skills it shows, get a score out of 100 and find the 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 [![CI](https://github.com/Barathkumar-17/ResumeMatch/actions/workflows/ci.yml/badge.svg)](https://github.com/Barathkumar-17/ResumeMatch/actions/workflows/ci.yml)
 
-<img src="screenshots/02-dashboard.png" alt="ResumeMatch dashboard showing a resume score of 78 out of 100, 7 skills and the best matching jobs" width="880">
+<img src="screenshots/02-dashboard-dark.png" alt="ResumeMatch dashboard in the dark theme showing a resume score of 78 out of 100, 7 skills and the best matching jobs" width="880">
 
 </div>
 
