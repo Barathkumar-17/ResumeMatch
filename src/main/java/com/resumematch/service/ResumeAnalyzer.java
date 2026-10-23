@@ -67,8 +67,15 @@ public class ResumeAnalyzer {
     /** A trailing colon and/or spaces after a heading, e.g. "SKILLS:". */
     private static final Pattern TRAILING_COLON = Pattern.compile("[:\\s]+$");
 
+    private static final Pattern WHITESPACE = Pattern.compile("\\s+");
+
+    /**
+     * A degree abbreviation. The two-letter forms "BE" and "ME" must be written in capitals
+     * ({@code (?-i:...)}), otherwise the ordinary words "be" and "me" in an education line
+     * would count as a degree; the longer forms ("b.tech", "bsc", "mca") may be in any case.
+     */
     private static final Pattern DEGREE = Pattern.compile(
-            "\\b(B\\.?\\s?E|B\\.?\\s?Tech|M\\.?\\s?E|M\\.?\\s?Tech|B\\.?\\s?Sc|M\\.?\\s?Sc|BCA|MCA)\\b",
+            "\\b((?-i:B\\.?\\s?E)|B\\.?\\s?Tech|(?-i:M\\.?\\s?E)|M\\.?\\s?Tech|B\\.?\\s?Sc|M\\.?\\s?Sc|BCA|MCA)\\b",
             Pattern.CASE_INSENSITIVE);
 
     private static final Pattern CGPA = Pattern.compile(
@@ -119,7 +126,17 @@ public class ResumeAnalyzer {
      * "JavaScript". {@code Pattern.quote} makes '.', '+' and other symbols literal.
      */
     public static Pattern skillPattern(String alias) {
-        return Pattern.compile("(?<![A-Za-z0-9+#])" + Pattern.quote(alias) + "(?![A-Za-z0-9+#])",
+        // A multi-word spelling ("Spring Boot") also matches across a line break or a double
+        // space, which PDF and Word text often has where the original wrapped a line.
+        String[] words = alias.trim().split("\\s+");
+        StringBuilder body = new StringBuilder();
+        for (String word : words) {
+            if (body.length() > 0) {
+                body.append("\\s+");
+            }
+            body.append(Pattern.quote(word));
+        }
+        return Pattern.compile("(?<![A-Za-z0-9+#])" + body + "(?![A-Za-z0-9+#])",
                 Pattern.CASE_INSENSITIVE);
     }
 
@@ -142,12 +159,15 @@ public class ResumeAnalyzer {
             return sections;
         }
         String current = HEADER;
-        for (String raw : text.split("\\r?\\n")) {
-            String line = raw.trim();
+        for (String raw : text.split("\\r\\n|\\r|\\n")) {
+            // a non-breaking space or byte order mark is not removed by trim()
+            String line = raw.replace(' ', ' ').replace("﻿", "").trim();
             if (line.isEmpty()) {
                 continue;
             }
-            String key = TRAILING_COLON.matcher(line).replaceAll("").toUpperCase(Locale.ROOT);
+            // "TECHNICAL   SKILLS :" is the same heading as "TECHNICAL SKILLS"
+            String key = WHITESPACE.matcher(TRAILING_COLON.matcher(line).replaceAll(""))
+                    .replaceAll(" ").toUpperCase(Locale.ROOT);
             String section = SECTION_HEADINGS.get(key);
             if (section != null && line.equals(line.toUpperCase(Locale.ROOT))) {
                 current = section;
@@ -210,6 +230,14 @@ public class ResumeAnalyzer {
                 bullets(sections, EDUCATION), bullets(sections, PROJECTS),
                 bullets(sections, CERTIFICATIONS), bullets(sections, EXPERIENCE),
                 hasMetrics);
+    }
+
+    /**
+     * The facts of a resume text: its sections parsed and {@link #extractInfo} applied.
+     * Used by pages that show the section details of an already stored resume.
+     */
+    public ResumeInfo readInfo(String text) {
+        return extractInfo(parseSections(text), text);
     }
 
     /**
