@@ -467,4 +467,5 @@ table.tbl{width:100%;border-collapse:collapse;font-size:.93rem}
 @media (max-width:380px){
   .stats{grid-template-columns:1fr}
   .stat:nth-child(n+2){border-left:0;border-top:1px solid var(--line)}
+  .me .avatar{display:none}
 }
