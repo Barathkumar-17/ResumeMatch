@@ -57,6 +57,7 @@ public class TestRunner {
             matcherTests();
             validationTests();
             fileServiceTests();
+            DocumentReaderTests.run();
             SecurityTests.run();
         } catch (Exception e) {
             failed++;
@@ -107,7 +108,7 @@ public class TestRunner {
 
     // ---- fixtures built from database/02_seed_data.sql ----
 
-    private static List<Skill> dictionary() {
+    static List<Skill> dictionary() {
         List<Skill> list = new ArrayList<>();
         add(list, 1, "Java", "Language");
         add(list, 2, "C++", "Language", "CPP");
@@ -313,7 +314,7 @@ public class TestRunner {
         check("null password rejected", !ValidationUtil.isValidPassword(null));
         check(".txt accepted", ValidationUtil.isTxtFile("resume.txt"));
         check(".TXT accepted", ValidationUtil.isTxtFile("RESUME.TXT"));
-        check(".pdf rejected", !ValidationUtil.isTxtFile("resume.pdf"));
+        check(".pdf is not a .txt", !ValidationUtil.isTxtFile("resume.pdf"));
         check("txt without dot rejected", !ValidationUtil.isTxtFile("resumetxt"));
         check("200 KB is within limit", ValidationUtil.isWithinSizeLimit(200L * 1024));
         check("200 KB + 1 is over limit", !ValidationUtil.isWithinSizeLimit(200L * 1024 + 1));
@@ -343,7 +344,7 @@ public class TestRunner {
 
             files.validate("resume.txt", 100);
             check("good name and size validate", true);
-            checkThrows("pdf name rejected", InvalidFileException.class, () -> files.validate("resume.pdf", 100));
+            checkThrows(".doc name rejected", InvalidFileException.class, () -> files.validate("resume.doc", 100));
             checkThrows("zero bytes rejected", EmptyResumeException.class, () -> files.validate("resume.txt", 0));
             checkThrows("over 200 KB rejected", InvalidFileException.class,
                     () -> files.validate("resume.txt", 200L * 1024 + 1));
@@ -352,10 +353,10 @@ public class TestRunner {
             checkThrows("blank name rejected", MissingFieldException.class, () -> files.validate("  ", 10));
 
             try {
-                files.validate("resume.pdf", 10);
+                files.validate("resume.doc", 10);
             } catch (AppException e) {
-                check("not-txt message names the file", e.getUserMessage().contains("resume.pdf")
-                        && e.getUserMessage().contains("isn't a .txt file"));
+                check("unsupported-type message names the file", e.getUserMessage().contains("resume.doc")
+                        && e.getUserMessage().contains("Upload a .txt, .pdf or .docx file."));
             }
             try {
                 files.validate("resume.txt", 300L * 1024);
@@ -393,7 +394,7 @@ public class TestRunner {
 
             checkThrows("saving an empty stream throws EmptyResumeException", EmptyResumeException.class,
                     () -> files.saveResume(9, "e.txt", -1, new ByteArrayInputStream(new byte[0])));
-            checkThrows("saving with a bad extension throws", InvalidFileException.class,
+            checkThrows("saving text named .pdf throws", InvalidFileException.class,
                     () -> files.saveResume(9, "e.pdf", 5, new ByteArrayInputStream(data)));
             check("rejected uploads leave no file",
                     !Files.exists(temp.resolve("user_9")) || listCount(temp.resolve("user_9")) == 0);

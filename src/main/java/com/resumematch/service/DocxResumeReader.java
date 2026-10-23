@@ -22,7 +22,8 @@ import java.util.zip.ZipFile;
  * Reads the text of a Word (.docx) resume. A .docx is a ZIP package; the text lives in
  * {@code word/document.xml}, where every {@code <w:t>} holds a piece of text, {@code <w:tab/>}
  * is a tab, {@code <w:br/>} and {@code <w:cr/>} are line breaks and each {@code <w:p>}
- * paragraph (table cells included) ends a line. Word often splits one word over several
+ * paragraph (table cells included) ends a line. A list paragraph gets a bullet character
+ * in front, because Word draws the bullet and the XML does not contain it. Word often splits one word over several
  * runs when the formatting changes; joining the runs puts it back together.
  *
  * <p>The package is untrusted input: only that one entry is read, never more than 10 MB of
@@ -109,6 +110,8 @@ public class DocxResumeReader implements ResumeReader {
             int runDepth = 0;       // inside <w:r>; a <w:tab/> in paragraph properties is not a tab
             int fallbackDepth = 0;  // <mc:Fallback> repeats the text of <mc:Choice>, so skip it
             boolean inText = false;
+            int paragraphStart = 0;    // where the current paragraph starts in the text
+            boolean listItem = false;  // the paragraph has <w:numPr>: Word draws its bullet, the XML has none
             while (reader.hasNext() && text.length() < MAX_UNCOMPRESSED_BYTES) {
                 int event = reader.next();
                 if (event == XMLStreamConstants.START_ELEMENT) {
@@ -120,6 +123,8 @@ public class DocxResumeReader implements ResumeReader {
                         continue;
                     }
                     switch (name) {
+                        case "p": paragraphStart = text.length(); listItem = false; break;
+                        case "numPr": listItem = true; break;
                         case "r": runDepth++; break;
                         case "t": inText = runDepth > 0; break;
                         case "tab": if (runDepth > 0) { text.append('\t'); } break;
@@ -138,7 +143,13 @@ public class DocxResumeReader implements ResumeReader {
                     switch (name) {
                         case "r": runDepth = Math.max(0, runDepth - 1); break;
                         case "t": inText = false; break;
-                        case "p": text.append('\n'); break;
+                        case "p":
+                            if (listItem) {
+                                text.insert(paragraphStart, "• ");
+                                listItem = false;
+                            }
+                            text.append('\n');
+                            break;
                         default: break;
                     }
                 } else if ((event == XMLStreamConstants.CHARACTERS || event == XMLStreamConstants.CDATA)
