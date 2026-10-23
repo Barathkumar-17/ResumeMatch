@@ -3,7 +3,7 @@ package com.resumematch.model;
 import java.time.LocalDate;
 
 /**
- * A job the student has applied to (the {@code applications} table), with its current
+ * A job the user has applied to (the {@code applications} table), with its current
  * status: Applied, Interview, Rejected or Selected.
  *
  * <p>Demonstrates: encapsulation, {@code java.time.LocalDate}.</p>
@@ -59,7 +59,7 @@ public class Application {
         this.status = status;
     }
 
-    /** The day the student applied ({@code applied_at}). */
+    /** The day the user applied ({@code applied_at}). */
     public LocalDate getDate() {
         return date;
     }

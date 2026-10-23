@@ -25,7 +25,7 @@ import javax.servlet.http.HttpSession;
 
 /**
  * One job in full (URL /job?id=101): its details, the required and preferred skills, and
- * how the student's latest resume compares. The numbers for the worked calculation
+ * how the user's latest resume compares. The numbers for the worked calculation
  * ("4 ÷ 5 × 100 = 80%") are prepared here so the page only prints them. A missing,
  * non-numeric or unknown id shows "This job no longer exists." instead of an error page.
  *
@@ -116,7 +116,7 @@ public class JobDetailServlet extends HttpServlet {
         return job;
     }
 
-    /** True if the student has marked this job as applied (any status after that). */
+    /** True if the user has marked this job as applied (any status after that). */
     private boolean hasApplied(int userId, int jobId) throws AppException {
         for (Application a : applicationDAO.findApplications(userId)) {
             if (a.getJobId() == jobId) {

@@ -26,7 +26,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * The student's home page ({@code GET /dashboard}): the stat strip (latest resume score,
+ * The user's home page ({@code GET /dashboard}): the stat strip (latest resume score,
  * skills extracted, jobs at 50%+ match, saved or applied jobs), the upload area, the
  * recent analyses and the three best job matches. All numbers are worked out here and
  * handed to {@code dashboard.jsp} as request attributes; the page only displays them.

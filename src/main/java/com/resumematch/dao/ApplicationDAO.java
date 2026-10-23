@@ -15,9 +15,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Tracks the jobs a student has saved ({@code saved_jobs}) and applied to
+ * Tracks the jobs a user has saved ({@code saved_jobs}) and applied to
  * ({@code applications}). A bookmarked job lives in {@code saved_jobs}; marking it as
- * applied moves it into {@code applications} with status "Applied", which the student can
+ * applied moves it into {@code applications} with status "Applied", which the user can
  * later change to Interview, Rejected or Selected.
  *
  * <p>Demonstrates: JDBC with {@code PreparedStatement}, try-with-resources, a small
@@ -89,7 +89,7 @@ public class ApplicationDAO {
     }
 
     /**
-     * Removes the job from the student's list entirely: the bookmark and, if they had
+     * Removes the job from the user's list entirely: the bookmark and, if they had
      * applied, the application too. Removing a job that is not there does nothing.
      *
      * @throws DatabaseConnectionException if the delete fails
@@ -114,7 +114,7 @@ public class ApplicationDAO {
     }
 
     /**
-     * @return true if the job is on the student's list, either saved or applied
+     * @return true if the job is on the user's list, either saved or applied
      * @throws DatabaseConnectionException if the query fails
      */
     public boolean isSaved(int userId, int jobId) throws DatabaseConnectionException {
@@ -162,7 +162,7 @@ public class ApplicationDAO {
      * Changes the status of an existing application.
      *
      * @param status one of Applied, Interview, Rejected, Selected
-     * @return true if the student had applied to that job and the status was changed,
+     * @return true if the user had applied to that job and the status was changed,
      *         false if there was no such application
      * @throws DatabaseConnectionException if the update fails (including a status the
      *         database does not accept)
@@ -180,7 +180,7 @@ public class ApplicationDAO {
     }
 
     /**
-     * @return the jobs the student saved but has not applied to, newest first. Each entry
+     * @return the jobs the user saved but has not applied to, newest first. Each entry
      *         has id 0, status "Saved" and the date it was saved.
      * @throws DatabaseConnectionException if the query fails
      */
@@ -203,7 +203,7 @@ public class ApplicationDAO {
     }
 
     /**
-     * @return the student's applications with their current status, newest first
+     * @return the user's applications with their current status, newest first
      * @throws DatabaseConnectionException if the query fails
      */
     public List<Application> findApplications(int userId) throws DatabaseConnectionException {

@@ -41,7 +41,7 @@ public class UserDAO {
     /**
      * Creates a new account.
      *
-     * @param name         the student's full name
+     * @param name         the user's full name
      * @param email        login email, must not already be registered
      * @param passwordHash hash of the password (never the plain text)
      * @return the id MySQL generated for the new row

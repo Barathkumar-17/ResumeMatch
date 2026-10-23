@@ -30,7 +30,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 /**
- * Shows the My jobs page: the jobs the student saved and the ones they applied to, with a
+ * Shows the My jobs page: the jobs the user saved and the ones they applied to, with a
  * count for every status. Each table row pairs the {@link Job} with its
  * {@link Application} and the match score against the latest resume, all worked out here
  * so the JSP only displays it.
@@ -64,7 +64,7 @@ public class MyJobsServlet extends HttpServlet {
     private final transient JobMatcher matcher = new SkillBasedJobMatcher();
 
     /**
-     * One line of the My jobs table: the job, the student's saved/applied entry for it and
+     * One line of the My jobs table: the job, the user's saved/applied entry for it and
      * the match score text and colour class.
      *
      * <p>Demonstrates: static nested class, immutable object with getters for EL.</p>

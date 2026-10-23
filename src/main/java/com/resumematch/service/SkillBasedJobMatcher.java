@@ -113,7 +113,7 @@ public class SkillBasedJobMatcher implements JobMatcher {
      * Skills to learn next. For every job, each missing REQUIRED skill is counted once in a
      * {@code HashMap<String, Integer>}, and that job's match score is added to the skill's
      * weight. Skills are sorted by total weight (high first), then by how many jobs need
-     * them, then by name, so skills for jobs the student almost fits come first.
+     * them, then by name, so skills for jobs the user almost fits come first.
      *
      * @return at most 5 entries: key = skill name, value = number of jobs that require it
      */
