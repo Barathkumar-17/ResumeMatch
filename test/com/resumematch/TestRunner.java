@@ -305,10 +305,10 @@ public class TestRunner {
         check("null is blank", ValidationUtil.isBlank(null));
         check("spaces are blank", ValidationUtil.isBlank("   "));
         check("text is not blank", !ValidationUtil.isBlank(" a "));
-        check("valid email", ValidationUtil.isValidEmail("name@college.edu"));
-        check("email without @ rejected", !ValidationUtil.isValidEmail("name.college.edu"));
-        check("email without domain dot rejected", !ValidationUtil.isValidEmail("name@college"));
-        check("email with space rejected", !ValidationUtil.isValidEmail("na me@college.edu"));
+        check("valid email", ValidationUtil.isValidEmail("name@example.com"));
+        check("email without @ rejected", !ValidationUtil.isValidEmail("name.example.com"));
+        check("email without domain dot rejected", !ValidationUtil.isValidEmail("name@example"));
+        check("email with space rejected", !ValidationUtil.isValidEmail("na me@example.com"));
         check("6-char password ok", ValidationUtil.isValidPassword("abcdef"));
         check("5-char password rejected", !ValidationUtil.isValidPassword("abcde"));
         check("null password rejected", !ValidationUtil.isValidPassword(null));

@@ -125,7 +125,7 @@
 
   function emailMessage(email) {
     if (!email) { return "Enter your email."; }
-    if (!EMAIL_RE.test(email)) { return "Enter a valid email, like name@college.edu."; }
+    if (!EMAIL_RE.test(email)) { return "Enter a valid email, like name@example.com."; }
     return "";
   }
 
