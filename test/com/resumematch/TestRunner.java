@@ -59,6 +59,7 @@ public class TestRunner {
             fileServiceTests();
             DocumentReaderTests.run();
             SecurityTests.run();
+            LogicTests.run();
         } catch (Exception e) {
             failed++;
             System.out.println("FAIL  unexpected exception: " + e);
@@ -312,12 +313,6 @@ public class TestRunner {
         check("6-char password ok", ValidationUtil.isValidPassword("abcdef"));
         check("5-char password rejected", !ValidationUtil.isValidPassword("abcde"));
         check("null password rejected", !ValidationUtil.isValidPassword(null));
-        check(".txt accepted", ValidationUtil.isTxtFile("resume.txt"));
-        check(".TXT accepted", ValidationUtil.isTxtFile("RESUME.TXT"));
-        check(".pdf is not a .txt", !ValidationUtil.isTxtFile("resume.pdf"));
-        check("txt without dot rejected", !ValidationUtil.isTxtFile("resumetxt"));
-        check("200 KB is within limit", ValidationUtil.isWithinSizeLimit(200L * 1024));
-        check("200 KB + 1 is over limit", !ValidationUtil.isWithinSizeLimit(200L * 1024 + 1));
         checkEquals("blank name error", "Enter your full name.", ValidationUtil.nameError(""));
         check("valid name has no error", ValidationUtil.nameError("Arun") == null);
         checkEquals("blank email error", "Enter your email.", ValidationUtil.emailError(" "));
