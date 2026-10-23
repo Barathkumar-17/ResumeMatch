@@ -26,7 +26,7 @@ RESET=0
 for arg in "$@"; do
   case "$arg" in
     --reset-db) RESET=1 ;;
-    -h|--help) sed -n '2,15p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -h|--help) sed -n '2,16p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     *) echo "Unknown argument: $arg (use --reset-db or --help)"; exit 1 ;;
   esac
 done

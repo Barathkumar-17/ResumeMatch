@@ -103,14 +103,6 @@ header_has() { grep -Eqi -- "^$1:" "$HDRS"; }
 location() { grep -i '^location:' "$HDRS" | tail -1 | tr -d '\r' | sed 's/^[Ll]ocation: *//'; }
 no_leak() { ! grep -Eq -- "$LEAK" "$BODY"; }
 
-follow() {
-  # follow the redirect from the last response
-  local loc; loc="$(location)"
-  loc="${loc#"$BASE_URL"}"
-  loc="${loc#http://localhost:8080/ResumeMatch}"
-  get "$loc"
-}
-
 # ---- cleanup (runs on every exit) ----
 
 find_mysql() {
