@@ -480,6 +480,7 @@ public class PdfResumeReader implements ResumeReader {
         private void scanObjects() throws PdfFormatException {
             int i = 0;
             int n = buf.length;
+            long budget = 4L * n + 1_000_000; // bytes the object parser may read in total
             while (i + 3 <= n) {
                 int idx = indexOf("obj", i);
                 if (idx < 0) {
@@ -515,6 +516,11 @@ public class PdfResumeReader implements ResumeReader {
 
                 Lexer lexer = new Lexer(buf, idx + 3);
                 Object value = lexer.next(true, 0);
+                // An object that never ends would be parsed again from every later "obj".
+                budget -= lexer.pos - (idx + 3);
+                if (budget < 0) {
+                    throw new PdfFormatException("too much object data");
+                }
                 if (value == EOF || value instanceof Keyword) {
                     continue;
                 }
