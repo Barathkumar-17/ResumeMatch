@@ -191,7 +191,7 @@ public class TestRunner {
         checkEquals("header section holds the lines before the first heading", 2,
                 sections.get(ResumeAnalyzer.HEADER).size());
         checkEquals("EDUCATION: with colon is a heading", 1, sections.get(ResumeAnalyzer.EDUCATION).size());
-        check("mixed-case 'Projects' is not a heading", sections.get(ResumeAnalyzer.PROJECTS) == null);
+        checkEquals("mixed-case 'Projects' is a heading", 1, sections.get(ResumeAnalyzer.PROJECTS).size());
 
         checkThrows("empty resume text throws EmptyResumeException", EmptyResumeException.class, () -> {
             Resume empty = new Resume();

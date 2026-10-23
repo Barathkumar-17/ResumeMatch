@@ -144,9 +144,9 @@ License) are bundled, so pages work offline.
 ## How it works
 Everything is deterministic and rule-based: the same resume always gives the same result.
 
-**Sections.** The resume is read line by line. A line in capitals such as `EDUCATION`, `SKILLS`,
+**Sections.** The resume is read line by line. A line that holds only a heading such as `EDUCATION` (any letter case, optional colon), `SKILLS`,
 `PROJECTS`, `CERTIFICATIONS` or `EXPERIENCE` (a few alternatives such as `INTERNSHIPS` are accepted)
-starts a section. Lines starting with `-`, `•` or `*` are counted as bullet items.
+starts a section. Lines starting with `-`, `•` or `*` are the items; a section without any such line uses its non-empty lines.
 
 **Skill detection.** Every skill in the dictionary (name plus aliases) is searched for in the whole
 text, ignoring case. A match must not sit inside a longer word, and `+` and `#` count as word

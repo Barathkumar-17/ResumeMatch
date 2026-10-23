@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
 
 /**
  * Reads a resume's text with fixed, rule-based steps: splits it into sections by their
- * uppercase headings, finds skills by literal text matching against the skill dictionary,
+ * headings, finds skills by literal text matching against the skill dictionary,
  * and pulls out the name, contact line, degree, CGPA and the bullet items of each section.
  *
  * <p>Skill matching is case-insensitive and only matches whole words: the characters
@@ -147,7 +147,7 @@ public class ResumeAnalyzer {
 
     /**
      * Splits the text into sections. A line is a heading when, after trimming and dropping a
-     * trailing colon, it is one of the known headings and is written in uppercase. Lines
+     * trailing colon, it is one of the known headings in any letter case (so "Education" and "EDUCATION" both work). Lines
      * before the first heading go to {@value #HEADER}. Blank lines are skipped.
      *
      * @return section key mapped to its lines, in file order; always contains {@value #HEADER}
@@ -169,7 +169,7 @@ public class ResumeAnalyzer {
             String key = WHITESPACE.matcher(TRAILING_COLON.matcher(line).replaceAll(""))
                     .replaceAll(" ").toUpperCase(Locale.ROOT);
             String section = SECTION_HEADINGS.get(key);
-            if (section != null && line.equals(line.toUpperCase(Locale.ROOT))) {
+            if (section != null) {
                 current = section;
                 sections.computeIfAbsent(current, k -> new ArrayList<>());
                 continue;
@@ -263,7 +263,10 @@ public class ResumeAnalyzer {
         return resume;
     }
 
-    /** The bullet items of a section with the bullet character removed. */
+    /**
+     * The items of a section: its bullet lines with the bullet character removed. A section
+     * with no bullet line at all uses its non-empty lines instead.
+     */
     private static List<String> bullets(Map<String, List<String>> sections, String key) {
         List<String> items = new ArrayList<>();
         for (String line : linesOf(sections, key)) {
@@ -271,6 +274,9 @@ public class ResumeAnalyzer {
             if (m.find()) {
                 items.add(line.substring(m.end()));
             }
+        }
+        if (items.isEmpty()) {
+            items.addAll(linesOf(sections, key));
         }
         return items;
     }

@@ -86,10 +86,23 @@ final class LogicTests {
         checkEquals("header keeps only the lines before the first heading", 2,
                 s.get(ResumeAnalyzer.HEADER).size());
 
-        Map<String, List<String>> lower = a.parseSections("NAME\neducation\n- B.E.\nSKILLS\n- Java");
-        check("a lowercase heading is not a heading (the rule needs capitals)",
-                lower.get(ResumeAnalyzer.EDUCATION) == null);
-        checkEquals("so its lines stay in the section above it", 3, lower.get(ResumeAnalyzer.HEADER).size());
+        Map<String, List<String>> lower = a.parseSections(
+                "NAME\neducation\n- B.E.\nSkills:\n- Java\nI have Education and Skills in sentences");
+        checkEquals("a lowercase heading is a heading", 1, lower.get(ResumeAnalyzer.EDUCATION).size());
+        checkEquals("a title-case heading with a colon is a heading (bullet plus sentence)", 2,
+                lower.get(ResumeAnalyzer.SKILLS).size());
+        check("a sentence that only contains heading words stays an item",
+                lower.get(ResumeAnalyzer.SKILLS).contains("I have Education and Skills in sentences"));
+        checkEquals("lines before the first heading stay in the header", 1, lower.get(ResumeAnalyzer.HEADER).size());
+
+        ResumeInfo plain = a.readInfo("N\nEducation\nB.E. CSE, Anna University\nCGPA 8.2\nProjects\nLibrary System\nChat App\n"
+                + "Certifications\n- NPTEL\nplain line\nExperience\nIntern at X");
+        checkEquals("a section without bullets uses its non-empty lines", 2, plain.getEducation().size());
+        checkEquals("projects without bullets are counted from lines", 2, plain.getProjects().size());
+        checkEquals("a section with bullets keeps only the bullet lines", 1, plain.getCertifications().size());
+        checkEquals("experience without bullets counts its line", 1, plain.getExperience().size());
+        checkEquals("console text uses x and >= instead of the web signs", "2 x 8 and >= 8.5",
+                com.resumematch.console.ConsoleDemo.plain("2 × 8 and ≥ 8.5"));
 
         Map<String, List<String>> alias = a.parseSections("X\nACADEMICS\n- a\nINTERNSHIPS\n- b\nCERTIFICATES\n- c\nACADEMIC PROJECTS\n- d");
         check("ACADEMICS, INTERNSHIPS, CERTIFICATES and ACADEMIC PROJECTS are headings",
