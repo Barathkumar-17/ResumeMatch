@@ -31,6 +31,9 @@ public class CsrfFilter implements Filter {
     static final String SESSION_ATTRIBUTE = "csrfToken";
     static final String PARAMETER = "_csrf";
 
+    /** Idle time after which a session that was created by a page view alone expires (20 minutes). */
+    private static final int ANONYMOUS_TIMEOUT_SECONDS = 20 * 60;
+
     private static final SecureRandom RANDOM = new SecureRandom();
 
     @Override
@@ -46,7 +49,12 @@ public class CsrfFilter implements Filter {
 
         String method = request.getMethod();
         if ("GET".equalsIgnoreCase(method) || "HEAD".equalsIgnoreCase(method)) {
-            ensureToken(request.getSession(true));
+            HttpSession session = request.getSession(true);
+            if (session.isNew()) {
+                // Visitors who never log in should not keep a session for the full 30 minutes.
+                session.setMaxInactiveInterval(ANONYMOUS_TIMEOUT_SECONDS);
+            }
+            ensureToken(session);
         } else if ("POST".equalsIgnoreCase(method) && !tokenMatches(request)) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;

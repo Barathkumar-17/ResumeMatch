@@ -10,7 +10,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * Adds browser security headers to every response and refuses oversized requests
+ * Adds browser security headers to every response (and {@code Cache-Control: no-store} to every
+ * page, so the Back button never shows a cached private page), and refuses oversized requests
  * (more than 1 MB announced in {@code Content-Length}, or 3 MB for the resume upload
  * at {@code /upload}) with a 413 error before any servlet reads the body. The upload
  * servlet and {@code FileService} keep their own per-type file-size limits.
@@ -42,6 +43,15 @@ public class SecurityHeadersFilter implements Filter {
         response.setHeader("X-Frame-Options", "DENY");
         response.setHeader("Referrer-Policy", "same-origin");
         response.setHeader("Content-Security-Policy", CONTENT_SECURITY_POLICY);
+        response.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=()");
+        response.setHeader("Cross-Origin-Opener-Policy", "same-origin");
+        if (request.isSecure()) {
+            response.setHeader("Strict-Transport-Security", "max-age=31536000");
+        }
+        // Pages carry the CSRF token and personal data; only the fixed files under /assets/ may be cached.
+        if (!request.getRequestURI().startsWith(request.getContextPath() + "/assets/")) {
+            response.setHeader("Cache-Control", "no-store");
+        }
 
         long limit = "/upload".equals(request.getServletPath()) ? MAX_UPLOAD_REQUEST_BYTES : MAX_REQUEST_BYTES;
         if (request.getContentLengthLong() > limit) {
