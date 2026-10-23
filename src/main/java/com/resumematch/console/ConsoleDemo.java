@@ -114,11 +114,16 @@ public class ConsoleDemo {
         System.out.println();
     }
 
+    /** Console text is plain ASCII: the multiplication and greater-or-equal signs of the web page become x and >=. */
+    public static String plain(String text) {
+        return text.replace('×', 'x').replace("≥", ">=");
+    }
+
     private static void printScore(Resume resume) {
         System.out.println("Score breakdown");
         for (ScoreBreakdown row : resume.getBreakdown()) {
             System.out.printf("  %-15s %2d / %-2d  %s%n",
-                    row.getLabel(), row.getPoints(), row.getMaxPoints(), row.getReason());
+                    row.getLabel(), row.getPoints(), row.getMaxPoints(), plain(row.getReason()));
         }
         System.out.println("  Total: " + resume.getScore() + "/100");
         System.out.println();
