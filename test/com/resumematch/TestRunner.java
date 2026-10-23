@@ -15,6 +15,7 @@ import com.resumematch.service.ResumeAnalyzer;
 import com.resumematch.service.ResumeScorer;
 import com.resumematch.service.SkillBasedJobMatcher;
 import com.resumematch.util.ValidationUtil;
+import com.resumematch.web.ApplicationServlet;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -282,6 +283,18 @@ public class TestRunner {
                 new ArrayList<>(), new ArrayList<>());
         checkEquals("job with no required skills scores 0", 0, matcher.calculateMatchScore(skills, noRequired));
         checkEquals("null resume skills match nothing", 0, matcher.calculateMatchScore(null, job101));
+
+        checkEquals("1 of 8 rounds half up to 13", 13, SkillBasedJobMatcher.percentOf(1, 8));
+        checkEquals("1 of 3 rounds down to 33", 33, SkillBasedJobMatcher.percentOf(1, 3));
+        checkEquals("2 of 3 rounds up to 67", 67, SkillBasedJobMatcher.percentOf(2, 3));
+        checkEquals("0 of 0 is 0, not a division error", 0, SkillBasedJobMatcher.percentOf(0, 0));
+        checkEquals("3 of 8 jobs is 38%", 38, SkillBasedJobMatcher.percentOf(3, 8));
+        checkEquals("score 75 is hi", "hi", JobMatch.levelFor(75));
+        checkEquals("score 74 is mid", "mid", JobMatch.levelFor(74));
+        checkEquals("score 50 is mid", "mid", JobMatch.levelFor(50));
+        checkEquals("score 49 is lo", "lo", JobMatch.levelFor(49));
+        checkEquals("a JobMatch reports the level of its score", "hi",
+                matcher.match(skills, job101).getLevel());
     }
 
     // ---- ValidationUtil ----
@@ -314,6 +327,10 @@ public class TestRunner {
         checkThrows("requireField throws on blank", MissingFieldException.class,
                 () -> ValidationUtil.requireField(" ", "email", "Enter your email."));
         checkEquals("requireField trims", "x", ValidationUtil.requireField(" x ", "f", "m"));
+        check("status Interview is valid", ApplicationServlet.isValidStatus("Interview"));
+        check("missing (null) status is rejected, not an error", !ApplicationServlet.isValidStatus(null));
+        check("status is case-sensitive", !ApplicationServlet.isValidStatus("interview"));
+        check("unknown status rejected", !ApplicationServlet.isValidStatus("Hired"));
     }
 
     // ---- FileService ----

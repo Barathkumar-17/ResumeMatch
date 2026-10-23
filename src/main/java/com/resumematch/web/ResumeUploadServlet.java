@@ -1,7 +1,5 @@
 package com.resumematch.web;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import com.resumematch.dao.ResumeDAO;
 import com.resumematch.dao.SkillDAO;
 import com.resumematch.exception.AppException;
@@ -17,6 +15,8 @@ import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;

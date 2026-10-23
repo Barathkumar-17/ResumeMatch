@@ -14,6 +14,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.EnumMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -149,7 +150,7 @@ public class FileService {
     /**
      * Reads a stored resume back with the {@link ResumeReader} for its file type.
      *
-     * @throws EmptyResumeException when the file holds no text (only blank lines counts as empty)
+     * @throws EmptyResumeException when the file holds no text (blank lines only counts as empty)
      * @throws FileReadException    when the file cannot be read or lies outside the base folder
      * @throws InvalidFileException when the text cannot be extracted (encrypted or scanned PDF,
      *                              damaged document)

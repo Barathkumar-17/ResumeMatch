@@ -14,6 +14,7 @@
 #   MYSQL_PWD    database password (read by the mysql client itself)
 #   MYSQL_DB     database name, default resumematch
 #   RESUME_ROOT  folder that holds the uploaded files when file_path is a relative path
+#   DEBUG        set to 1 to print the last response when a check fails
 #
 # Exit status: 0 when no check failed (WARN lines do not count), 1 otherwise.
 

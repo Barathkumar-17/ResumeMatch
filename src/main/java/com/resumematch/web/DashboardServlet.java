@@ -46,7 +46,7 @@ public class DashboardServlet extends HttpServlet {
     static final String VIEW = "/WEB-INF/views/dashboard.jsp";
 
     /** A job counts as a good fit from this match score upwards. */
-    static final int GOOD_MATCH = 50;
+    static final int GOOD_MATCH = JobMatch.MID_SCORE;
 
     /** How many earlier analyses and best matches are listed. */
     private static final int RECENT_LIMIT = 4;
@@ -143,9 +143,6 @@ public class DashboardServlet extends HttpServlet {
 
     /** Ring colour class: green from 75, amber from 50, red below. */
     static String ringClass(int score) {
-        if (score >= 75) {
-            return "hi";
-        }
-        return (score >= GOOD_MATCH) ? "mid" : "lo";
+        return JobMatch.levelFor(score);
     }
 }

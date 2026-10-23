@@ -26,7 +26,7 @@ CREATE TABLE users (
     password    VARCHAR(255) NOT NULL,
     created_at  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT uq_users_email UNIQUE (email)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
 -- resumes: every uploaded .txt resume. file_path is where the file was
@@ -37,12 +37,14 @@ CREATE TABLE resumes (
     user_id      INT          NOT NULL,
     file_name    VARCHAR(255) NOT NULL,
     file_path    VARCHAR(500) NOT NULL,
-    resume_text  TEXT         NOT NULL,
+    resume_text  MEDIUMTEXT   NOT NULL,
     score        INT          NOT NULL DEFAULT 0,
     uploaded_at  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_resumes_user
-        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    -- "latest resume of a user" is ORDER BY uploaded_at DESC for one user_id
+    INDEX idx_resumes_user_uploaded (user_id, uploaded_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
 -- skills: the skill dictionary used for text matching.
@@ -54,7 +56,7 @@ CREATE TABLE skills (
     category    VARCHAR(30)  NOT NULL,
     aliases     VARCHAR(200) NULL,
     CONSTRAINT uq_skills_name UNIQUE (skill_name)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
 -- resume_skills: which skills were found in which resume (many-to-many).
@@ -67,7 +69,7 @@ CREATE TABLE resume_skills (
         FOREIGN KEY (resume_id) REFERENCES resumes(id) ON DELETE CASCADE,
     CONSTRAINT fk_resume_skills_skill
         FOREIGN KEY (skill_id) REFERENCES skills(id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
 -- jobs: job and internship listings shown on the search page.
@@ -82,7 +84,7 @@ CREATE TABLE jobs (
     description  TEXT,
     salary       VARCHAR(50),
     posted_at    TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
 -- job_skills: skills each job asks for.
@@ -98,7 +100,7 @@ CREATE TABLE job_skills (
         FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE,
     CONSTRAINT fk_job_skills_skill
         FOREIGN KEY (skill_id) REFERENCES skills(id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
 -- saved_jobs: jobs a student bookmarked but has not applied to yet.
@@ -112,7 +114,7 @@ CREATE TABLE saved_jobs (
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     CONSTRAINT fk_saved_jobs_job
         FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
 -- applications: jobs a student marked as applied, with a status.
@@ -129,4 +131,4 @@ CREATE TABLE applications (
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     CONSTRAINT fk_applications_job
         FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

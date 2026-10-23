@@ -15,6 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.util.Base64;
+import java.util.Locale;
 
 /**
  * Blocks forged form posts. Every page load (GET or HEAD) makes sure the session
@@ -67,7 +68,7 @@ public class CsrfFilter implements Filter {
         }
     }
 
-    private static boolean tokenMatches(HttpServletRequest request) {
+    private static boolean tokenMatches(HttpServletRequest request) throws UnsupportedEncodingException {
         HttpSession session = request.getSession(false);
         if (session == null) {
             return false;
@@ -79,9 +80,14 @@ public class CsrfFilter implements Filter {
         String submitted = tokenFromQuery(request.getQueryString());
         String contentType = request.getContentType();
         boolean multipart = contentType != null
-                && contentType.toLowerCase().startsWith("multipart/form-data");
+                && contentType.toLowerCase(Locale.ROOT).startsWith("multipart/form-data");
         // Reading a parameter of a multipart request would parse the whole upload.
         if (submitted == null && !multipart) {
+            // Reading a parameter fixes how the whole form is decoded, so set UTF-8 first
+            // or names like "José" would be stored as "JosÃ©".
+            if (request.getCharacterEncoding() == null) {
+                request.setCharacterEncoding("UTF-8");
+            }
             submitted = request.getParameter(PARAMETER);
         }
         if (submitted == null) {

@@ -1,10 +1,9 @@
 package com.resumematch.web;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import com.resumematch.dao.ResumeDAO;
 import com.resumematch.dao.SkillDAO;
 import com.resumematch.exception.AppException;
+import com.resumematch.model.JobMatch;
 import com.resumematch.model.Resume;
 import com.resumematch.model.User;
 import com.resumematch.service.ResumeAnalyzer;
@@ -17,6 +16,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Shows the score of the logged-in user's latest resume: the total out of 100, the five
@@ -34,12 +35,6 @@ public class ScoreServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
 
     private static final String VIEW = "/WEB-INF/views/score.jsp";
-
-    /** A score at or above this is shown in green. */
-    static final int HIGH_SCORE = 75;
-
-    /** A score at or above this (and below {@link #HIGH_SCORE}) is shown in amber. */
-    static final int MID_SCORE = 50;
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -79,10 +74,7 @@ public class ScoreServlet extends HttpServlet {
 
     /** CSS class for the score ring: hi (green), mid (amber) or lo (red). */
     static String ringClass(int score) {
-        if (score >= HIGH_SCORE) {
-            return "hi";
-        }
-        return (score >= MID_SCORE) ? "mid" : "lo";
+        return JobMatch.levelFor(score);
     }
 
     /** One-line summary shown next to the ring. */

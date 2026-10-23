@@ -1,7 +1,5 @@
 package com.resumematch.service;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import com.resumematch.exception.FileReadException;
 
 import java.io.BufferedReader;
@@ -10,6 +8,8 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Reads a plain-text (.txt) resume line by line with a {@link BufferedReader}, decoding
@@ -25,7 +25,7 @@ public class TxtResumeReader implements ResumeReader {
     private static final Logger LOGGER = Logger.getLogger(TxtResumeReader.class.getName());
 
     /** Byte order mark that some Windows editors put at the start of a UTF-8 file. */
-    private static final char BOM = '﻿';
+    private static final char BOM = '\uFEFF';
 
     @Override
     public String read(Path p) throws FileReadException {

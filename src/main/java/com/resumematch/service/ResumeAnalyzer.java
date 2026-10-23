@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -146,9 +147,9 @@ public class ResumeAnalyzer {
             if (line.isEmpty()) {
                 continue;
             }
-            String key = TRAILING_COLON.matcher(line).replaceAll("").toUpperCase();
+            String key = TRAILING_COLON.matcher(line).replaceAll("").toUpperCase(Locale.ROOT);
             String section = SECTION_HEADINGS.get(key);
-            if (section != null && line.equals(line.toUpperCase())) {
+            if (section != null && line.equals(line.toUpperCase(Locale.ROOT))) {
                 current = section;
                 sections.computeIfAbsent(current, k -> new ArrayList<>());
                 continue;
@@ -256,7 +257,7 @@ public class ResumeAnalyzer {
 
     /** "ARUN KUMAR" becomes "Arun Kumar": lower-case, then capitalise each word's first letter. */
     private static String toTitleCase(String line) {
-        char[] chars = line.toLowerCase().toCharArray();
+        char[] chars = line.toLowerCase(Locale.ROOT).toCharArray();
         boolean startOfWord = true;
         for (int i = 0; i < chars.length; i++) {
             boolean wordChar = Character.isLetterOrDigit(chars[i]) || chars[i] == '_';

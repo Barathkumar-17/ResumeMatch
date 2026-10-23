@@ -1,5 +1,6 @@
 package com.resumematch;
 
+import com.resumematch.util.HtmlUtil;
 import com.resumematch.util.LoginAttemptLimiter;
 import com.resumematch.util.PasswordUtil;
 
@@ -11,11 +12,11 @@ import java.time.ZoneOffset;
 import java.util.Base64;
 
 /**
- * Checks for the salted password hashing and the login attempt limiter.
- * These need the newer PasswordUtil and LoginAttemptLimiter classes, so this file
- * only compiles once they are on the branch being tested.
+ * Checks for the salted password hashing, the login attempt limiter (including the
+ * 15-minute window, driven by a movable clock) and the HTML escaping.
  *
- * <p>Demonstrates: string parsing, Base64, objects with state.</p>
+ * <p>Demonstrates: string parsing, Base64, objects with state, a test double for
+ * {@code java.time.Clock}.</p>
  */
 public class SecurityTests {
 
@@ -25,6 +26,7 @@ public class SecurityTests {
     static void run() {
         passwordTests();
         limiterTests();
+        htmlTests();
     }
 
     private static void passwordTests() {
@@ -88,6 +90,44 @@ public class SecurityTests {
             limiter.recordFailure(email2, ip);
         }
         TestRunner.check("success resets the failure count", !limiter.isBlocked(email2, ip));
+
+        String email3 = "limit-test3@example.com";
+        for (int i = 0; i < LoginAttemptLimiter.MAX_FAILURES_PER_EMAIL; i++) {
+            limiter.recordFailure(email3, "10.0.1." + i);
+        }
+        TestRunner.check("blocked inside the window", limiter.isBlocked(email3, "10.0.2.1"));
+        TestRunner.checkEquals("15 minutes are left at the start of the window", 15,
+                limiter.minutesLeft(email3, "10.0.2.1"));
+        clock.advance(Duration.ofMinutes(14).plusSeconds(1));
+        TestRunner.checkEquals("minutes left are rounded up", 1, limiter.minutesLeft(email3, "10.0.2.1"));
+        clock.advance(Duration.ofMinutes(1));
+        TestRunner.check("block ends when the window is over", !limiter.isBlocked(email3, "10.0.2.1"));
+        limiter.recordFailure(email3, "10.0.2.1");
+        TestRunner.check("a new window starts counting from one", !limiter.isBlocked(email3, "10.0.2.1"));
+
+        String ipOnly = "10.0.9.9";
+        for (int i = 0; i < LoginAttemptLimiter.MAX_FAILURES_PER_IP; i++) {
+            limiter.recordFailure("many-" + i + "@example.com", ipOnly);
+        }
+        TestRunner.check("30 failures block the IP for any email", limiter.isBlocked("fresh@example.com", ipOnly));
+        limiter.recordSuccess("many-0@example.com");
+        TestRunner.check("a good login does not clear the IP count", limiter.isBlocked("fresh@example.com", ipOnly));
+
+        for (int i = 0; i < LoginAttemptLimiter.MAX_FAILURES_PER_EMAIL; i++) {
+            limiter.recordFailure(" Case@Example.com ", "10.0.7." + i);
+        }
+        TestRunner.check("email counting ignores case and spaces", limiter.isBlocked("case@example.com", "10.0.8.8"));
+    }
+
+    private static void htmlTests() {
+        System.out.println("== HtmlUtil ==");
+        TestRunner.checkEquals("null becomes empty text", "", HtmlUtil.escape(null));
+        TestRunner.checkEquals("plain text is unchanged", "Java and SQL", HtmlUtil.escape("Java and SQL"));
+        TestRunner.checkEquals("script tag is escaped", "&lt;script&gt;alert(&#39;x&#39;)&lt;/script&gt;",
+                HtmlUtil.escape("<script>alert('x')</script>"));
+        TestRunner.checkEquals("quotes and ampersand are escaped", "&quot;a&quot; &amp; b",
+                HtmlUtil.escape("\"a\" & b"));
+        TestRunner.checkEquals("any object is escaped through toString", "12", HtmlUtil.escape(12));
     }
 
     /** A clock the test can move forward, so the 15-minute window can be checked instantly. */
