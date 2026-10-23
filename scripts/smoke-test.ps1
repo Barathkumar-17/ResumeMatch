@@ -26,6 +26,8 @@ param(
 
 $BaseUrl = $BaseUrl.TrimEnd('/')
 $Sample = Join-Path (Split-Path -Parent $PSScriptRoot) 'sample-data\arun_kumar_resume.txt'
+$SamplePdf = Join-Path (Split-Path -Parent $PSScriptRoot) 'test\fixtures\arun_kumar_resume.pdf'
+$SampleDocx = Join-Path (Split-Path -Parent $PSScriptRoot) 'test\fixtures\arun_kumar_resume.docx'
 
 $Stamp = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
 $Email = "smoke-$Stamp@example.com"
@@ -185,7 +187,9 @@ function Invoke-Cleanup {
 
 try {
     Write-Host "Smoke test against $BaseUrl as $Email"
-    if (-not (Test-Path $Sample)) { throw "Sample resume not found: $Sample" }
+    foreach ($f in @($Sample, $SamplePdf, $SampleDocx)) {
+        if (-not (Test-Path $f)) { throw "Sample resume not found: $f" }
+    }
     if (-not (Get-Command curl.exe -ErrorAction SilentlyContinue)) { throw 'curl.exe not found (it ships with Windows 10 and later).' }
 
     Get-Page '/'
@@ -282,7 +286,32 @@ try {
     $same = (Test-Path $download) -and ([IO.File]::ReadAllText($download) -ceq [IO.File]::ReadAllText($Sample))
     Test-Check 'downloaded bytes equal the uploaded file' $same
 
+    Write-Host '== upload a PDF and a DOCX resume =='
+    $kinds = @(
+        @{ Ext = 'pdf';  File = $SamplePdf;  Type = 'application/pdf' },
+        @{ Ext = 'docx'; File = $SampleDocx; Type = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' }
+    )
+    foreach ($k in $kinds) {
+        $ext = $k.Ext
+        Get-Token '/dashboard'
+        Send-Upload $k.File "arun_kumar_resume.$ext"
+        Test-Check "$ext upload redirects to /analysis" (Test-Redirect '/analysis')
+        Get-Token '/analysis'
+        Test-Check "$ext analysis shows 7 skills found" (($script:Code -eq 200) -and (Test-Body '>7<|7 skills'))
+        Get-Token '/score'
+        Test-Check "$ext score page shows 78" (($script:Code -eq 200) -and (Test-Body '(^|[^0-9])78([^0-9]|$)'))
+        $dl = Join-Path $Tmp "download.$ext"
+        $dlCode = & curl.exe -s --connect-timeout 5 --max-time 60 -o $dl -D $HdrFile -w '%{http_code}' -b $Jar -c $Jar "$BaseUrl/resume-file"
+        $hdr = [IO.File]::ReadAllText($HdrFile)
+        Test-Check "$ext download returns 200 with the right Content-Type" (("$dlCode".Trim() -eq '200') -and ($hdr -match ('(?im)^content-type:\s*' + [regex]::Escape($k.Type))))
+        $sent = [IO.File]::ReadAllBytes($k.File)
+        $got = if (Test-Path $dl) { [IO.File]::ReadAllBytes($dl) } else { [byte[]]@() }
+        Test-Check "downloaded $ext bytes equal the uploaded file" (($sent.Length -eq $got.Length) -and ([Convert]::ToBase64String($sent) -ceq [Convert]::ToBase64String($got)))
+    }
+
     Write-Host '== bad uploads =='
+    $doc = Join-Path $Tmp 'resume.doc'
+    [IO.File]::WriteAllText($doc, 'old word file')
     $pdf = Join-Path $Tmp 'resume.pdf'
     $empty = Join-Path $Tmp 'empty.txt'
     $big = Join-Path $Tmp 'big.txt'
@@ -291,8 +320,11 @@ try {
     [IO.File]::WriteAllBytes($big, ([byte[]](,[byte]97 * 307200)))
 
     Get-Token '/dashboard'
+    Send-Upload $doc
+    Test-Check '.doc upload rejected with a friendly message' (($script:Code -eq 200) -and (Test-Body 'Upload a \.txt, \.pdf or \.docx file') -and -not (Test-Leak))
+    Get-Token '/dashboard'
     Send-Upload $pdf
-    Test-Check 'pdf upload rejected with a friendly message' (($script:Code -eq 200) -and (Test-Body 'txt file') -and -not (Test-Leak))
+    Test-Check 'text renamed to .pdf rejected with a friendly message' (($script:Code -eq 200) -and (Test-Body 'real PDF') -and -not (Test-Leak))
     Get-Token '/dashboard'
     Send-Upload $empty
     Test-Check 'empty file rejected with a friendly message' (($script:Code -eq 200) -and (Test-Body 'file is empty') -and -not (Test-Leak))
