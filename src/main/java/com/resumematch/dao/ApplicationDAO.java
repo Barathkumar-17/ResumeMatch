@@ -61,6 +61,12 @@ public class ApplicationDAO {
             + " WHERE a.user_id = sj.user_id AND a.job_id = sj.job_id)"
             + " ORDER BY sj.saved_at DESC, sj.job_id";
 
+    private static final String COUNT_MY_JOBS =
+            "SELECT (SELECT COUNT(*) FROM saved_jobs sj WHERE sj.user_id = ?"
+            + " AND NOT EXISTS (SELECT 1 FROM applications a"
+            + " WHERE a.user_id = sj.user_id AND a.job_id = sj.job_id))"
+            + " + (SELECT COUNT(*) FROM applications WHERE user_id = ?)";
+
     private static final String SELECT_APPLICATIONS =
             "SELECT id, user_id, job_id, status, applied_at FROM applications"
             + " WHERE user_id = ? ORDER BY applied_at DESC, id DESC";
@@ -199,6 +205,23 @@ public class ApplicationDAO {
             return saved;
         } catch (SQLException e) {
             throw wrap("findSaved", e);
+        }
+    }
+
+    /**
+     * @return how many jobs are on the user's My jobs page: saved (not yet applied) plus applied
+     * @throws DatabaseConnectionException if the query fails
+     */
+    public int countMyJobs(int userId) throws DatabaseConnectionException {
+        try (Connection con = DatabaseConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(COUNT_MY_JOBS)) {
+            ps.setInt(1, userId);
+            ps.setInt(2, userId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getInt(1) : 0;
+            }
+        } catch (SQLException e) {
+            throw wrap("countMyJobs", e);
         }
     }
 

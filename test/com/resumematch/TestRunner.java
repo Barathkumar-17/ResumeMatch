@@ -59,6 +59,7 @@ public class TestRunner {
             fileServiceTests();
             DocumentReaderTests.run();
             SecurityTests.run();
+            LogicTests.run();
         } catch (Exception e) {
             failed++;
             System.out.println("FAIL  unexpected exception: " + e);
@@ -190,7 +191,7 @@ public class TestRunner {
         checkEquals("header section holds the lines before the first heading", 2,
                 sections.get(ResumeAnalyzer.HEADER).size());
         checkEquals("EDUCATION: with colon is a heading", 1, sections.get(ResumeAnalyzer.EDUCATION).size());
-        check("mixed-case 'Projects' is not a heading", sections.get(ResumeAnalyzer.PROJECTS) == null);
+        checkEquals("mixed-case 'Projects' is a heading", 1, sections.get(ResumeAnalyzer.PROJECTS).size());
 
         checkThrows("empty resume text throws EmptyResumeException", EmptyResumeException.class, () -> {
             Resume empty = new Resume();
@@ -325,12 +326,6 @@ public class TestRunner {
         check("7 characters rejected with the length message",
                 ValidationUtil.newPasswordError("Ab1!xyz").contains("at least 8"));
         check("normal 8-char password accepted", ValidationUtil.newPasswordError("Tr1cky!!") == null);
-        check(".txt accepted", ValidationUtil.isTxtFile("resume.txt"));
-        check(".TXT accepted", ValidationUtil.isTxtFile("RESUME.TXT"));
-        check(".pdf is not a .txt", !ValidationUtil.isTxtFile("resume.pdf"));
-        check("txt without dot rejected", !ValidationUtil.isTxtFile("resumetxt"));
-        check("200 KB is within limit", ValidationUtil.isWithinSizeLimit(200L * 1024));
-        check("200 KB + 1 is over limit", !ValidationUtil.isWithinSizeLimit(200L * 1024 + 1));
         checkEquals("blank name error", "Enter your full name.", ValidationUtil.nameError(""));
         check("valid name has no error", ValidationUtil.nameError("Arun") == null);
         checkEquals("blank email error", "Enter your email.", ValidationUtil.emailError(" "));

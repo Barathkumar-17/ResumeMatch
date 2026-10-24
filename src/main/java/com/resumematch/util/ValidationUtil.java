@@ -66,16 +66,6 @@ public final class ValidationUtil {
         return password != null && password.length() >= MIN_PASSWORD_LENGTH;
     }
 
-    /** True when the file name ends with {@code .txt}, ignoring case. */
-    public static boolean isTxtFile(String fileName) {
-        return !isBlank(fileName) && fileName.trim().toLowerCase(Locale.ROOT).endsWith(".txt");
-    }
-
-    /** True when the size is within the 200 KB limit for .txt uploads. */
-    public static boolean isWithinSizeLimit(long sizeInBytes) {
-        return sizeInBytes <= MAX_FILE_SIZE_BYTES;
-    }
-
     /** Register form: full name. */
     public static String nameError(String name) {
         if (isBlank(name)) {

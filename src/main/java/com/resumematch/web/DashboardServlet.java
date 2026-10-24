@@ -85,14 +85,12 @@ public class DashboardServlet extends HttpServlet {
             return;
         }
 
-        ApplicationDAO applicationDAO = new ApplicationDAO();
-        int savedCount = applicationDAO.findSaved(user.getId()).size()
-                + applicationDAO.findApplications(user.getId()).size();
+        int savedCount = new ApplicationDAO().countMyJobs(user.getId());
         request.setAttribute("savedCount", savedCount);
         request.setAttribute("myJobsCount", savedCount);
 
-        ResumeDAO resumeDAO = new ResumeDAO();
-        List<Resume> resumes = resumeDAO.findAllByUser(user.getId()); // newest first
+        // Only the newest few are listed, and their text is not needed.
+        List<Resume> resumes = new ResumeDAO().findRecentByUser(user.getId(), RECENT_LIMIT); // newest first
         if (resumes.isEmpty()) {
             return;
         }
@@ -115,7 +113,7 @@ public class DashboardServlet extends HttpServlet {
                 new ArrayList<>(ranked.subList(0, Math.min(TOP_MATCHES, ranked.size()))));
 
         List<Map<String, Object>> recent = new ArrayList<>();
-        for (Resume resume : resumes.subList(0, Math.min(RECENT_LIMIT, resumes.size()))) {
+        for (Resume resume : resumes) {
             Map<String, Object> row = new HashMap<>();
             row.put("fileName", resume.getFileName());
             row.put("date", formatDate(resume.getUploadedAt()));

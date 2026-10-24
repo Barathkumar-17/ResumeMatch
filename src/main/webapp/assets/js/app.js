@@ -296,6 +296,19 @@
 
     // Keep any message the server rendered (e.g. "This file is empty.").
     showIdle(err ? err.textContent : "");
+
+    // Back or Forward can restore this page from the browser cache with the form still in its
+    // "analyzing" state; start again from the idle state so the form is usable.
+    window.addEventListener("pageshow", function (e) {
+      if (!e.persisted) { return; }
+      busy = false;
+      input.value = "";
+      if (pipeline) {
+        pipeline.hidden = true;
+        all("li", pipeline).forEach(function (li) { li.className = ""; });
+      }
+      showIdle("");
+    });
   }
 
   all("form[data-upload]").forEach(setupUpload);
@@ -322,7 +335,7 @@
   });
 
   /* ------------------------------------------------------------------
-     6a. Client-side tabs: <button data-tab="saved"> shows [data-tab-panel="saved"]
+     6a. Client-side tabs: <a data-tab="saved"> shows [data-tab-panel="saved"]
      ------------------------------------------------------------------ */
   all("[data-tabs]").forEach(function (group) {
     var buttons = all("[data-tab]", group);

@@ -96,8 +96,6 @@
        pageContext.setAttribute("m", m);
        pageContext.setAttribute("saved", savedJobIds.contains(m.getJob().getId()));
        pageContext.setAttribute("applied", appliedJobIds.contains(m.getJob().getId()));
-       pageContext.setAttribute("missingText", String.join(", ", m.getMissing()));
-       pageContext.setAttribute("missingPreferredText", String.join(", ", m.getMissingPreferred()));
 %>
       <article class="job">
         <div class="job-top">
@@ -117,9 +115,7 @@
 <%     } %>
           </div>
         </div>
-<%     if (hasResume && (!m.getMissing().isEmpty() || !m.getMissingPreferred().isEmpty())) { %>
-        <div class="small muted">Missing: ${empty missingText ? 'none required' : rm:h(missingText)}${empty missingPreferredText ? '' : '; preferred: '}${rm:h(missingPreferredText)}</div>
-<%     } %>
+        <div class="small muted" ${requestScope.hasResume and (not empty m.missing or not empty m.missingPreferred) ? '' : 'hidden'}>Missing: ${empty m.missingText ? 'none required' : rm:h(m.missingText)}${empty m.missingPreferredText ? '' : '; preferred: '}${rm:h(m.missingPreferredText)}</div>
         <div class="job-actions">
           <a class="btn btn-primary btn-sm" href="${pageContext.request.contextPath}/job?id=${m.job.id}">View details</a>
           <span class="btn btn-ghost btn-sm is-on" ${applied ? '' : 'hidden'}>Applied</span>

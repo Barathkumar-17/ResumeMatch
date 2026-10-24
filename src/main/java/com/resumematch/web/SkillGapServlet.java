@@ -59,8 +59,9 @@ public class SkillGapServlet extends HttpServlet {
         User user = (User) request.getSession().getAttribute("user");
         request.setAttribute("activePage", "skill-gap");
 
+        PageSupport.loadMyJobsCount(request, user);
         try {
-            Resume resume = (user == null) ? null : resumeDAO.findLatestByUser(user.getId());
+            Resume resume = (user == null) ? null : resumeDAO.findLatestSummaryByUser(user.getId());
             request.setAttribute("hasResume", resume != null);
             if (resume != null) {
                 List<Job> jobs = jobDAO.findAll();

@@ -1,7 +1,6 @@
 package com.resumematch.web;
 
 import com.resumematch.dao.ResumeDAO;
-import com.resumematch.dao.SkillDAO;
 import com.resumematch.exception.AppException;
 import com.resumematch.model.JobMatch;
 import com.resumematch.model.Resume;
@@ -16,13 +15,16 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
  * Shows the score of the logged-in user's latest resume: the total out of 100, the five
- * rule rows with their bars, the strengths and the areas to improve. The stored text is
- * analysed again so every row carries its rule text; nothing is computed in the JSP.
+ * rule rows with their bars, the strengths and the areas to improve. The total is the score
+ * stored at upload, the same number the dashboard shows. The stored text is read again for
+ * the section facts, and the rows are scored from the stored skills, so every row carries
+ * its rule text and the rows add up to that total; nothing is computed in the JSP.
  *
  * <p>Demonstrates: Servlets ({@code HttpServlet}, {@code doGet}, {@code @WebServlet}),
  * sessions, request attributes, forwarding to a JSP, catching custom exceptions.</p>
@@ -49,11 +51,15 @@ public class ScoreServlet extends HttpServlet {
             return;
         }
 
+        PageSupport.loadMyJobsCount(request, user);
+
         try {
             Resume resume = new ResumeDAO().findLatestByUser(user.getId());
             if (resume != null) {
-                new ResumeAnalyzer(new SkillDAO().findAll()).analyze(resume);
                 ResumeScorer scorer = new ResumeScorer();
+                // The section facts do not need the skill dictionary; the skills are the stored ones.
+                resume.setInfo(new ResumeAnalyzer(Collections.emptyList()).readInfo(resume.getResumeText()));
+                resume.setBreakdown(scorer.calculateScore(resume.getInfo(), resume.getSkills()));
                 int score = resume.getScore();
 
                 request.setAttribute("resume", resume);

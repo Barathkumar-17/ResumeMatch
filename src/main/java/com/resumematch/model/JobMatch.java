@@ -83,6 +83,16 @@ public class JobMatch {
         this.missing = (missing == null) ? new ArrayList<>() : missing;
     }
 
+    /** The missing required skills as one line, e.g. "Spring Boot, Docker"; empty when none. */
+    public String getMissingText() {
+        return String.join(", ", missing);
+    }
+
+    /** The missing preferred skills as one line; empty when none. */
+    public String getMissingPreferredText() {
+        return String.join(", ", missingPreferred);
+    }
+
     /** Never null. */
     public List<String> getMissingPreferred() {
         return missingPreferred;

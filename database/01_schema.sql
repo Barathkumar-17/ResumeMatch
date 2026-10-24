@@ -29,7 +29,7 @@ CREATE TABLE users (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
--- resumes: every uploaded .txt resume. file_path is where the file was
+-- resumes: every uploaded resume (.txt, .pdf or .docx). file_path is where the file was
 -- saved on disk, resume_text is the full text, score is out of 100.
 -- ---------------------------------------------------------------------
 CREATE TABLE resumes (

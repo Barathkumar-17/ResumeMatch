@@ -1,6 +1,5 @@
 package com.resumematch.web;
 
-import com.resumematch.dao.ApplicationDAO;
 import com.resumematch.dao.ResumeDAO;
 import com.resumematch.dao.SkillDAO;
 import com.resumematch.exception.AppException;
@@ -78,9 +77,7 @@ public class AnalysisServlet extends HttpServlet {
         if (user == null) {
             return;
         }
-        ApplicationDAO applicationDAO = new ApplicationDAO();
-        request.setAttribute("myJobsCount", applicationDAO.findSaved(user.getId()).size()
-                + applicationDAO.findApplications(user.getId()).size());
+        PageSupport.loadMyJobsCount(request, user);
 
         Resume resume = new ResumeDAO().findLatestByUser(user.getId());
         if (resume == null) {
@@ -89,9 +86,7 @@ public class AnalysisServlet extends HttpServlet {
         List<Skill> dictionary = new SkillDAO().findAll(); // ordered by id
 
         // Sections, education, projects ... are worked out again from the stored text.
-        Resume reread = new Resume();
-        reread.setResumeText(resume.getResumeText());
-        ResumeInfo info = new ResumeAnalyzer(dictionary).analyze(reread).getInfo();
+        ResumeInfo info = new ResumeAnalyzer(dictionary).readInfo(resume.getResumeText());
 
         Set<String> found = resume.getSkills();
         Map<String, List<String>> groups = new LinkedHashMap<>();

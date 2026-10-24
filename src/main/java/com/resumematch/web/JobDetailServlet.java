@@ -21,7 +21,6 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
 /**
  * One job in full (URL /job?id=101): its details, the required and preferred skills, and
@@ -57,10 +56,10 @@ public class JobDetailServlet extends HttpServlet {
         Set<Integer> savedJobIds = new HashSet<>();
 
         try {
-            Job job = findJob(request.getParameter("id"));
+            Job job = PageSupport.findJob(jobDAO, request.getParameter("id"));
             request.setAttribute("job", job);
 
-            Resume resume = (user == null) ? null : resumeDAO.findLatestByUser(user.getId());
+            Resume resume = (user == null) ? null : resumeDAO.findLatestSummaryByUser(user.getId());
             request.setAttribute("hasResume", resume != null);
             if (resume != null) {
                 JobMatch match = matcher.match(resume.getSkills(), job);
@@ -93,27 +92,9 @@ public class JobDetailServlet extends HttpServlet {
 
         request.setAttribute("savedJobIds", savedJobIds);
         request.setAttribute("activePage", "jobs");
-        moveFlashToRequest(request);
+        PageSupport.moveFlash(request, "flashError");
+        PageSupport.loadMyJobsCount(request, user);
         request.getRequestDispatcher("/WEB-INF/views/job-detail.jsp").forward(request, response);
-    }
-
-    /**
-     * Parses the id and loads the job.
-     *
-     * @throws InvalidJobException if the id is missing, not a number or not in the database
-     */
-    private Job findJob(String idParam) throws AppException {
-        int id;
-        try {
-            id = Integer.parseInt(idParam == null ? "" : idParam.trim());
-        } catch (NumberFormatException e) {
-            throw new InvalidJobException();
-        }
-        Job job = jobDAO.findById(id);
-        if (job == null) {
-            throw new InvalidJobException();
-        }
-        return job;
     }
 
     /** True if the user has marked this job as applied (any status after that). */
@@ -124,17 +105,5 @@ public class JobDetailServlet extends HttpServlet {
             }
         }
         return false;
-    }
-
-    /** Shows the one-time message left by the save or apply form, then forgets it. */
-    private static void moveFlashToRequest(HttpServletRequest request) {
-        HttpSession session = request.getSession();
-        for (String key : new String[] {"flash", "flashError"}) {
-            Object message = session.getAttribute(key);
-            if (message != null) {
-                request.setAttribute(key, message);
-                session.removeAttribute(key);
-            }
-        }
     }
 }

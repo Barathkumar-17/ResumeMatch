@@ -79,10 +79,6 @@ public class ResumeInfo {
         this.cgpa = cgpa;
     }
 
-    public boolean hasCgpa() {
-        return cgpa != null;
-    }
-
     /** Never null. */
     public List<String> getEducation() {
         return education;

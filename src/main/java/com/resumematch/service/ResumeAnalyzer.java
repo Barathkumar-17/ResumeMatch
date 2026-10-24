@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
 
 /**
  * Reads a resume's text with fixed, rule-based steps: splits it into sections by their
- * uppercase headings, finds skills by literal text matching against the skill dictionary,
+ * headings, finds skills by literal text matching against the skill dictionary,
  * and pulls out the name, contact line, degree, CGPA and the bullet items of each section.
  *
  * <p>Skill matching is case-insensitive and only matches whole words: the characters
@@ -67,8 +67,15 @@ public class ResumeAnalyzer {
     /** A trailing colon and/or spaces after a heading, e.g. "SKILLS:". */
     private static final Pattern TRAILING_COLON = Pattern.compile("[:\\s]+$");
 
+    private static final Pattern WHITESPACE = Pattern.compile("\\s+");
+
+    /**
+     * A degree abbreviation. The two-letter forms "BE" and "ME" must be written in capitals
+     * ({@code (?-i:...)}), otherwise the ordinary words "be" and "me" in an education line
+     * would count as a degree; the longer forms ("b.tech", "bsc", "mca") may be in any case.
+     */
     private static final Pattern DEGREE = Pattern.compile(
-            "\\b(B\\.?\\s?E|B\\.?\\s?Tech|M\\.?\\s?E|M\\.?\\s?Tech|B\\.?\\s?Sc|M\\.?\\s?Sc|BCA|MCA)\\b",
+            "\\b((?-i:B\\.?\\s?E)|B\\.?\\s?Tech|(?-i:M\\.?\\s?E)|M\\.?\\s?Tech|B\\.?\\s?Sc|M\\.?\\s?Sc|BCA|MCA)\\b",
             Pattern.CASE_INSENSITIVE);
 
     private static final Pattern CGPA = Pattern.compile(
@@ -119,7 +126,17 @@ public class ResumeAnalyzer {
      * "JavaScript". {@code Pattern.quote} makes '.', '+' and other symbols literal.
      */
     public static Pattern skillPattern(String alias) {
-        return Pattern.compile("(?<![A-Za-z0-9+#])" + Pattern.quote(alias) + "(?![A-Za-z0-9+#])",
+        // A multi-word spelling ("Spring Boot") also matches across a line break or a double
+        // space, which PDF and Word text often has where the original wrapped a line.
+        String[] words = alias.trim().split("\\s+");
+        StringBuilder body = new StringBuilder();
+        for (String word : words) {
+            if (body.length() > 0) {
+                body.append("\\s+");
+            }
+            body.append(Pattern.quote(word));
+        }
+        return Pattern.compile("(?<![A-Za-z0-9+#])" + body + "(?![A-Za-z0-9+#])",
                 Pattern.CASE_INSENSITIVE);
     }
 
@@ -130,7 +147,7 @@ public class ResumeAnalyzer {
 
     /**
      * Splits the text into sections. A line is a heading when, after trimming and dropping a
-     * trailing colon, it is one of the known headings and is written in uppercase. Lines
+     * trailing colon, it is one of the known headings in any letter case (so "Education" and "EDUCATION" both work). Lines
      * before the first heading go to {@value #HEADER}. Blank lines are skipped.
      *
      * @return section key mapped to its lines, in file order; always contains {@value #HEADER}
@@ -142,14 +159,17 @@ public class ResumeAnalyzer {
             return sections;
         }
         String current = HEADER;
-        for (String raw : text.split("\\r?\\n")) {
-            String line = raw.trim();
+        for (String raw : text.split("\\r\\n|\\r|\\n")) {
+            // a non-breaking space or byte order mark is not removed by trim()
+            String line = raw.replace(' ', ' ').replace("﻿", "").trim();
             if (line.isEmpty()) {
                 continue;
             }
-            String key = TRAILING_COLON.matcher(line).replaceAll("").toUpperCase(Locale.ROOT);
+            // "TECHNICAL   SKILLS :" is the same heading as "TECHNICAL SKILLS"
+            String key = WHITESPACE.matcher(TRAILING_COLON.matcher(line).replaceAll(""))
+                    .replaceAll(" ").toUpperCase(Locale.ROOT);
             String section = SECTION_HEADINGS.get(key);
-            if (section != null && line.equals(line.toUpperCase(Locale.ROOT))) {
+            if (section != null) {
                 current = section;
                 sections.computeIfAbsent(current, k -> new ArrayList<>());
                 continue;
@@ -213,6 +233,14 @@ public class ResumeAnalyzer {
     }
 
     /**
+     * The facts of a resume text: its sections parsed and {@link #extractInfo} applied.
+     * Used by pages that show the section details of an already stored resume.
+     */
+    public ResumeInfo readInfo(String text) {
+        return extractInfo(parseSections(text), text);
+    }
+
+    /**
      * Runs the whole analysis on {@code resume.getResumeText()} and stores the results back on
      * the same object: the skills found, the extracted {@link ResumeInfo}, the five score rows
      * from {@link ResumeScorer} and the total score.
@@ -235,7 +263,10 @@ public class ResumeAnalyzer {
         return resume;
     }
 
-    /** The bullet items of a section with the bullet character removed. */
+    /**
+     * The items of a section: its bullet lines with the bullet character removed. A section
+     * with no bullet line at all uses its non-empty lines instead.
+     */
     private static List<String> bullets(Map<String, List<String>> sections, String key) {
         List<String> items = new ArrayList<>();
         for (String line : linesOf(sections, key)) {
@@ -243,6 +274,9 @@ public class ResumeAnalyzer {
             if (m.find()) {
                 items.add(line.substring(m.end()));
             }
+        }
+        if (items.isEmpty()) {
+            items.addAll(linesOf(sections, key));
         }
         return items;
     }

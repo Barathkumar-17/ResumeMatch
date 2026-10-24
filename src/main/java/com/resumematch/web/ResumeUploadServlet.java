@@ -87,6 +87,7 @@ public class ResumeUploadServlet extends HttpServlet {
         User user = (User) request.getSession().getAttribute("user");
         FileService fileService = createFileService();
         Path saved = null;
+        boolean stored = false; // true once the database row exists, so the file must stay
         try {
             Part part = readFilePart(request);
             String fileName = (part == null) ? null : part.getSubmittedFileName();
@@ -108,17 +109,22 @@ public class ResumeUploadServlet extends HttpServlet {
             new ResumeAnalyzer(skillDAO.findAll()).analyze(resume);
             Set<Integer> skillIds = skillDAO.findIdsByNames(resume.getSkills());
             new ResumeDAO().saveResumeWithSkills(resume, skillIds);
+            stored = true;
 
             request.getSession().setAttribute(FLASH, "Resume analyzed. Score " + resume.getScore()
                     + "/100, " + resume.getSkills().size() + " skills found.");
             response.sendRedirect(request.getContextPath() + "/analysis");
         } catch (AppException e) {
-            fileService.deleteResume(saved); // does nothing when nothing was saved
             showDashboard(request, response, user, e.getUserMessage());
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "upload failed while reading the request or file", e);
-            fileService.deleteResume(saved);
             showDashboard(request, response, user, FileReadException.MESSAGE);
+        } finally {
+            // Any failure after the file was written, even an unexpected RuntimeException,
+            // must not leave an orphan file behind. Does nothing when nothing was saved.
+            if (!stored) {
+                fileService.deleteResume(saved);
+            }
         }
     }
 
