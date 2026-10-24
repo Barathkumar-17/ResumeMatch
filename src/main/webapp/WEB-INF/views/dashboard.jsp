@@ -83,7 +83,7 @@
               '<div class="list-row">'
               += '<div class="ring sm ' += r.ringClass += '" data-p="' += r.score += '" role="img" aria-label="' += r.score += ' percent"><span>' += r.score += '%</span></div>'
               += '<div class="grow"><b>' += rm:h(r.fileName) += '</b><span class="small muted">' += rm:h(r.date) += ', ' += r.skillCount += ' skills</span></div>'
-              += (r.latest ? '<a class="btn btn-ghost btn-sm" href="' += pageContext.request.contextPath += '/analysis">Open</a>' : '')
+              += (r.latest ? '<a class="btn btn-ghost btn-sm" href="' += pageContext.request.contextPath += '/analysis" aria-label="Open analysis of ' += rm:h(r.fileName) += '">Open</a>' : '')
               += '</div>'
             ).reduce('', (a, b) -> a += b)}
           <p class="muted small" ${empty requestScope.recentAnalyses ? '' : 'hidden'}>Your analyses will appear here.</p>
@@ -94,7 +94,7 @@
           ${requestScope.topMatches.stream().map(m ->
               '<div class="list-row">'
               += '<div class="grow"><b>' += rm:h(m.job.title) += '</b><span class="small muted">' += rm:h(m.job.company) += ', ' += rm:h(m.job.location) += '</span></div>'
-              += '<a class="btn btn-ghost btn-sm" href="' += pageContext.request.contextPath += '/job?id=' += m.job.id += '">' += m.score += '%</a>'
+              += '<a class="btn btn-ghost btn-sm" href="' += pageContext.request.contextPath += '/job?id=' += m.job.id += '" aria-label="' += rm:h(m.job.title) += ', ' += m.score += '% match">' += m.score += '%</a>'
               += '</div>'
             ).reduce('', (a, b) -> a += b)}
         </div>

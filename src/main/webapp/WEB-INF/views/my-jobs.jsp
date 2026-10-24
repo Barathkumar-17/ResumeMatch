@@ -49,23 +49,23 @@
       <%-- Saved tab --%>
       <div class="panel" id="panel-saved" role="tabpanel" aria-labelledby="tab-saved" data-tab-panel="saved" ${requestScope.tab == 'applied' ? 'hidden' : ''}>
         <div class="tbl-wrap" role="region" aria-label="Saved jobs" tabindex="0" ${requestScope.savedCount > 0 ? '' : 'hidden'}>
-          <table class="tbl">
-            <thead><tr><th>Position</th><th>Company</th><th>Match</th><th>Status</th><th>Date saved</th><th></th></tr></thead>
-            <tbody>
+          <table class="tbl" role="table">
+            <thead role="rowgroup"><tr role="row"><th role="columnheader">Position</th><th role="columnheader">Company</th><th role="columnheader">Match</th><th role="columnheader">Status</th><th role="columnheader">Date saved</th><th role="columnheader"><span class="sr-only">Actions</span></th></tr></thead>
+            <tbody role="rowgroup">
 <% for (Object item : (java.util.List<?>) request.getAttribute("savedRows")) { pageContext.setAttribute("row", item); %>
-              <tr>
-                <td><a class="job-link" href="${pageContext.request.contextPath}/job?id=${row.job.id}">${rm:h(row.job.title)}</a></td>
-                <td>${rm:h(row.job.company)}</td>
-                <td><span class="pct-badge inline ${row.matchClass}"><b>${row.matchText}</b></span></td>
-                <td><span class="status st-Saved">Saved</span></td>
-                <td>${rm:h(row.dateText)}</td>
-                <td class="actions">
+              <tr role="row">
+                <td role="cell" data-label="Position"><a class="job-link" href="${pageContext.request.contextPath}/job?id=${row.job.id}">${rm:h(row.job.title)}</a></td>
+                <td role="cell" data-label="Company">${rm:h(row.job.company)}</td>
+                <td role="cell" data-label="Match"><span class="pct-badge inline ${row.matchClass}"><b>${row.matchText}</b></span></td>
+                <td role="cell" data-label="Status"><span class="status st-Saved">Saved</span></td>
+                <td role="cell" data-label="Date">${rm:h(row.dateText)}</td>
+                <td role="cell" class="actions">
                   <form method="post" action="${pageContext.request.contextPath}/application">
                     <input type="hidden" name="_csrf" value="${sessionScope.csrfToken}">
                     <input type="hidden" name="jobId" value="${row.job.id}">
                     <input type="hidden" name="tab" value="saved">
-                    <button class="btn btn-primary btn-sm" type="submit" name="action" value="apply">Mark as applied</button>
-                    <button class="btn btn-ghost btn-sm" type="submit" name="action" value="remove"
+                    <button class="btn btn-primary btn-sm" type="submit" name="action" value="apply" aria-label="Mark as applied: ${rm:h(row.job.title)}">Mark as applied</button>
+                    <button class="btn btn-ghost btn-sm" type="submit" name="action" value="remove" aria-label="Remove ${rm:h(row.job.title)}"
                             data-confirm="Remove ${rm:h(row.job.title)} from My jobs?">Remove</button>
                   </form>
                 </td>
@@ -84,15 +84,15 @@
       <%-- Applied tab --%>
       <div class="panel" id="panel-applied" role="tabpanel" aria-labelledby="tab-applied" data-tab-panel="applied" ${requestScope.tab == 'applied' ? '' : 'hidden'}>
         <div class="tbl-wrap" role="region" aria-label="Applied jobs" tabindex="0" ${requestScope.appliedCount > 0 ? '' : 'hidden'}>
-          <table class="tbl">
-            <thead><tr><th>Position</th><th>Company</th><th>Match</th><th>Status</th><th>Date updated</th><th></th></tr></thead>
-            <tbody>
+          <table class="tbl" role="table">
+            <thead role="rowgroup"><tr role="row"><th role="columnheader">Position</th><th role="columnheader">Company</th><th role="columnheader">Match</th><th role="columnheader">Status</th><th role="columnheader">Date updated</th><th role="columnheader"><span class="sr-only">Actions</span></th></tr></thead>
+            <tbody role="rowgroup">
 <% for (Object item : (java.util.List<?>) request.getAttribute("appliedRows")) { pageContext.setAttribute("row", item); %>
-              <tr>
-                <td><a class="job-link" href="${pageContext.request.contextPath}/job?id=${row.job.id}">${rm:h(row.job.title)}</a></td>
-                <td>${rm:h(row.job.company)}</td>
-                <td><span class="pct-badge inline ${row.matchClass}"><b>${row.matchText}</b></span></td>
-                <td>
+              <tr role="row">
+                <td role="cell" data-label="Position"><a class="job-link" href="${pageContext.request.contextPath}/job?id=${row.job.id}">${rm:h(row.job.title)}</a></td>
+                <td role="cell" data-label="Company">${rm:h(row.job.company)}</td>
+                <td role="cell" data-label="Match"><span class="pct-badge inline ${row.matchClass}"><b>${row.matchText}</b></span></td>
+                <td role="cell" data-label="Status">
                   <form method="post" action="${pageContext.request.contextPath}/application">
                     <input type="hidden" name="_csrf" value="${sessionScope.csrfToken}">
                     <input type="hidden" name="action" value="status">
@@ -106,13 +106,13 @@
                     <noscript><button class="btn btn-ghost btn-sm" type="submit">Update</button></noscript>
                   </form>
                 </td>
-                <td>${rm:h(row.dateText)}</td>
-                <td class="actions">
+                <td role="cell" data-label="Date">${rm:h(row.dateText)}</td>
+                <td role="cell" class="actions">
                   <form method="post" action="${pageContext.request.contextPath}/application">
                     <input type="hidden" name="_csrf" value="${sessionScope.csrfToken}">
                     <input type="hidden" name="jobId" value="${row.job.id}">
                     <input type="hidden" name="tab" value="applied">
-                    <button class="btn btn-ghost btn-sm" type="submit" name="action" value="remove"
+                    <button class="btn btn-ghost btn-sm" type="submit" name="action" value="remove" aria-label="Remove ${rm:h(row.job.title)}"
                             data-confirm="Remove ${rm:h(row.job.title)} from My jobs?">Remove</button>
                   </form>
                 </td>
@@ -131,7 +131,7 @@
   </main>
 </div>
 
-<div class="toasts" aria-live="polite">
+<div class="toasts">
   <div class="toast good" role="status">${rm:h(requestScope.flash)}</div>
   <div class="toast bad" role="alert">${rm:h(requestScope.loadFailed ? '' : requestScope.error)}</div>
 </div>
