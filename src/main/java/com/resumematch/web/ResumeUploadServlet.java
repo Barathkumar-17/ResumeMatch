@@ -14,6 +14,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -38,6 +40,10 @@ import javax.servlet.http.Part;
  * unreadable, an encrypted or scanned PDF, database down) re-shows the dashboard with the exception's friendly message. If the file was
  * already written when a later step fails, it is deleted again, so a failed upload leaves
  * nothing behind on disk or in the database.</p>
+ *
+ * <p>Two limits keep a public site small: new uploads are refused once all stored resumes
+ * together would pass the storage limit, and a user keeps only their five newest resumes
+ * (saving a sixth deletes the oldest row and its file).</p>
  *
  * <p>The container's own size limit is set a little above 2 MB, so normal uploads are
  * checked by {@link FileService} and get its exact per-type messages (200 KB for .txt,
@@ -69,6 +75,12 @@ public class ResumeUploadServlet extends HttpServlet {
      * Without it, {@link FileService#DEFAULT_BASE_DIR} ({@code resumes}) is used.
      */
     static final String RESUME_DIR_PARAM = "resumeDir";
+
+    /** Optional context parameter: total size limit of all stored resumes, in megabytes (default 200). */
+    static final String MAX_STORAGE_PARAM = "maxResumeStorageMb";
+
+    /** Environment variable for the same limit; it wins over the context parameter. */
+    static final String MAX_STORAGE_ENV = "RESUMEMATCH_MAX_STORAGE_MB";
 
     /** Session attribute holding a one-time success message for the next page. */
     static final String FLASH = "flash";
@@ -108,8 +120,13 @@ public class ResumeUploadServlet extends HttpServlet {
             SkillDAO skillDAO = new SkillDAO();
             new ResumeAnalyzer(skillDAO.findAll()).analyze(resume);
             Set<Integer> skillIds = skillDAO.findIdsByNames(resume.getSkills());
-            new ResumeDAO().saveResumeWithSkills(resume, skillIds);
+            List<String> replaced = new ArrayList<>();
+            new ResumeDAO().saveResumeWithSkills(resume, skillIds, ResumeDAO.MAX_RESUMES_PER_USER, replaced);
             stored = true;
+            // The oldest resumes were removed from the database; remove their files too.
+            for (String oldPath : replaced) {
+                fileService.deleteResume(Paths.get(oldPath));
+            }
 
             request.getSession().setAttribute(FLASH, "Resume analyzed. Score " + resume.getScore()
                     + "/100, " + resume.getSkills().size() + " skills found.");
@@ -159,7 +176,9 @@ public class ResumeUploadServlet extends HttpServlet {
     }
 
     private FileService createFileService() {
-        return new FileService(resumeBaseDir(getServletContext()));
+        long limit = FileService.resolveStorageLimitBytes(System.getenv(MAX_STORAGE_ENV),
+                getServletContext().getInitParameter(MAX_STORAGE_PARAM));
+        return new FileService(resumeBaseDir(getServletContext()), limit);
     }
 
     /**

@@ -11,6 +11,7 @@
                                    register: name, email, password, confirmPassword
     error   (String)               message for the red alert strip, e.g. wrong password
     message (String, optional)     message for the green alert strip, e.g. "Logged out."
+    signupPaused (Boolean, optional) live demo: the register fields are hidden and `error` explains why
   Submitted name and email are refilled from the request parameters.
   Passwords are never refilled.
 --%>
@@ -59,6 +60,7 @@
         <input type="hidden" name="_csrf" value="${sessionScope.csrfToken}">
         <h1>Create your account</h1>
         <p class="muted">You'll need an account to save jobs and track applications.</p>
+        <fieldset class="plain" ${requestScope.signupPaused ? 'disabled hidden' : ''}>
         <div class="field">
           <label for="rg-name">Full name</label>
           <input class="input ${requestScope.mode == 'register' and not empty requestScope.errors.name ? 'err' : ''}" id="rg-name" aria-required="true" aria-describedby="rg-name-err" name="name" autocomplete="name"
@@ -81,9 +83,10 @@
           <input class="input ${requestScope.mode == 'register' and not empty requestScope.errors.confirmPassword ? 'err' : ''}" id="rg-conf" aria-required="true" aria-describedby="rg-conf-err" name="confirmPassword" type="password" autocomplete="new-password">
           <div class="ferr" id="rg-conf-err">${rm:h(requestScope.mode == 'register' ? requestScope.errors.confirmPassword : '')}</div>
         </div>
+        </fieldset>
         <div class="alert bad" id="rg-alert" role="alert">${rm:h(requestScope.mode == 'register' ? requestScope.error : '')}</div>
         <div class="alert good" role="status">${rm:h(requestScope.mode == 'register' ? requestScope.message : '')}</div>
-        <button class="btn btn-primary" type="submit">Create account</button>
+        <button class="btn btn-primary" type="submit" ${requestScope.signupPaused ? 'disabled hidden' : ''}>Create account</button>
       </form>
     </div>
   </main>

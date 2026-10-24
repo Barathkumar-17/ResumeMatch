@@ -24,7 +24,7 @@ import javax.servlet.annotation.WebListener;
  * Runs once when the web application starts and stops. On start it attaches a rolling
  * log file ({@code resumematch.<n>.log}, 1 MB each, 5 files) to the {@code com.resumematch}
  * logger so every error the application logs lands in one place; on stop it detaches
- * and closes that file again.
+ * and closes that file again. It also creates the {@link DemoMode} switch.
  *
  * <p>Demonstrates: {@code ServletContextListener} (application life cycle), {@code java.util.logging}
  * ({@code Logger}, {@code FileHandler}, custom {@code Formatter}), File Handling, exception handling.</p>
@@ -43,6 +43,7 @@ public class AppStartupListener implements ServletContextListener {
 
     @Override
     public void contextInitialized(ServletContextEvent event) {
+        DemoMode.install(event.getServletContext(), baseFolder().resolve(DemoMode.FLAG_FILE_NAME));
         try {
             Path dir = logFolder();
             Files.createDirectories(dir);
@@ -69,6 +70,15 @@ public class AppStartupListener implements ServletContextListener {
             handler.close();
             handler = null;
         }
+    }
+
+    /** {@code <catalina.base>}, or the system temp folder when Tomcat's property is not set. */
+    private static Path baseFolder() {
+        String base = System.getProperty("catalina.base");
+        if (base != null && !base.trim().isEmpty()) {
+            return Paths.get(base.trim());
+        }
+        return Paths.get(System.getProperty("java.io.tmpdir"));
     }
 
     /** {@code <catalina.base>/logs}, or the system temp folder when Tomcat's property is not set. */

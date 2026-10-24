@@ -4,6 +4,7 @@ import com.resumematch.exception.EmptyResumeException;
 import com.resumematch.exception.FileReadException;
 import com.resumematch.exception.InvalidFileException;
 import com.resumematch.exception.MissingFieldException;
+import com.resumematch.exception.StorageFullException;
 import com.resumematch.util.ValidationUtil;
 
 import java.io.IOException;
@@ -17,6 +18,7 @@ import java.util.EnumMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Stream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -27,7 +29,8 @@ import java.util.logging.Logger;
  * a name the server makes up ({@code <timestamp>_<random>.<ext>}, never the name the
  * browser sent) so two uploads never overwrite each other, and reads the text back through
  * the {@link ResumeReader} that matches the file type. Every path is normalised and must
- * stay inside the base folder before it is written, read or deleted.
+ * stay inside the base folder before it is written, read or deleted. A total storage limit
+ * (200 MB unless configured) stops new uploads once the folder would grow past it.
  *
  * <p>Demonstrates: Java File Handling ({@code java.nio.file.Files}, {@code Path},
  * {@code InputStream}), composition (has one {@link ResumeReader} per file type, typed by
@@ -44,7 +47,11 @@ public class FileService {
     /** Longest file name kept for display and in the database. */
     public static final int MAX_DISPLAY_NAME_LENGTH = 100;
 
+    /** Default total size of all stored resumes, in megabytes. */
+    public static final long DEFAULT_MAX_STORAGE_MB = 200;
+
     private final Path baseDir;
+    private final long maxStorageBytes;
     private final Map<ResumeFileType, ResumeReader> readers = new EnumMap<>(ResumeFileType.class);
 
     /** Stores files under {@code ./resumes}. */
@@ -54,10 +61,60 @@ public class FileService {
 
     /** Stores files under the given folder; .txt, .pdf and .docx each get their own reader. */
     public FileService(Path baseDir) {
+        this(baseDir, DEFAULT_MAX_STORAGE_MB * 1024 * 1024);
+    }
+
+    /** Like {@link #FileService(Path)} but with a chosen limit (in bytes) for the whole folder. */
+    public FileService(Path baseDir, long maxStorageBytes) {
         this.baseDir = baseDir;
+        this.maxStorageBytes = maxStorageBytes;
         readers.put(ResumeFileType.TXT, new TxtResumeReader());
         readers.put(ResumeFileType.PDF, new PdfResumeReader());
         readers.put(ResumeFileType.DOCX, new DocxResumeReader());
+    }
+
+    /**
+     * Turns the configured limit into bytes. The environment value wins when it is a positive
+     * whole number of megabytes, then the context parameter, then the 200 MB default.
+     */
+    public static long resolveStorageLimitBytes(String envValue, String paramValue) {
+        long mb = parsePositive(envValue);
+        if (mb <= 0) {
+            mb = parsePositive(paramValue);
+        }
+        if (mb <= 0) {
+            mb = DEFAULT_MAX_STORAGE_MB;
+        }
+        return mb * 1024 * 1024;
+    }
+
+    private static long parsePositive(String text) {
+        if (text == null) {
+            return -1;
+        }
+        try {
+            return Long.parseLong(text.trim());
+        } catch (NumberFormatException e) {
+            return -1;
+        }
+    }
+
+    /** Total size in bytes of every file under the base folder (0 when the folder does not exist). */
+    public long usedBytes() {
+        if (!Files.isDirectory(baseDir)) {
+            return 0;
+        }
+        long total = 0;
+        try (Stream<Path> files = Files.walk(baseDir)) {
+            for (Path file : (Iterable<Path>) files::iterator) {
+                if (Files.isRegularFile(file)) {
+                    total += Files.size(file);
+                }
+            }
+        } catch (IOException | java.io.UncheckedIOException e) {
+            LOGGER.log(Level.WARNING, "could not measure the resume folder", e);
+        }
+        return total;
     }
 
     /** The root folder that holds every {@code user_<id>} folder. */
@@ -106,7 +163,7 @@ public class FileService {
      */
     public Path saveResume(int userId, String fileName, long sizeInBytes, InputStream content)
             throws MissingFieldException, InvalidFileException, EmptyResumeException,
-                   FileReadException {
+                   FileReadException, StorageFullException {
         validate(fileName, sizeInBytes);
         ResumeFileType type = ResumeFileType.fromFileName(displayName(fileName));
         if (content == null) {
@@ -128,6 +185,9 @@ public class FileService {
             throw type.tooLarge();
         }
         type.checkContent(data);
+        if (usedBytes() + data.length > maxStorageBytes) {
+            throw new StorageFullException();
+        }
 
         Path target;
         try {

@@ -27,6 +27,7 @@ Upload a resume, see which skills it shows, get a score out of 100 and find the 
 - [Project layout](#project-layout)
 - [Setup and configuration](#setup-and-configuration)
 - [Security](#security)
+- [Share a live demo](DEPLOY.md)
 - [Testing](#testing)
 - [Backup and restore](#backup-and-restore)
 - [Troubleshooting](#troubleshooting)
@@ -67,6 +68,9 @@ to your Tomcat folder, for example `export CATALINA_HOME=$HOME/apache-tomcat-9.0
 default is `C:\Program Files\Apache Software Foundation\Tomcat 9.0`.
 
 Run it without the flag to just rebuild and redeploy. Then log in with `demo@resumematch.in` / `demo1234`.
+
+**Share a live demo.** To let other people try the running app over the internet, `scripts/public-demo.ps1` /
+`scripts/public-demo.sh` open a free temporary https address to your PC. See [DEPLOY.md](DEPLOY.md).
 
 More screens: [SCREENSHOTS.md](SCREENSHOTS.md).
 
@@ -313,6 +317,9 @@ adds the detail.
 | Tomcat folder for `deploy` and the demo script | environment variable `CATALINA_HOME` | `C:\Program Files\Apache Software Foundation\Tomcat 9.0` |
 | Application log | `java.util.logging`, set up at startup | `<tomcat>/logs/resumematch.0.log` (1 MB × 5 files, rotated) |
 | Session timeout | `WEB-INF/web.xml` | 30 minutes |
+| Total storage for resumes | context parameter `maxResumeStorageMb` in `WEB-INF/web.xml`, or the environment variable `RESUMEMATCH_MAX_STORAGE_MB` (wins); when all stored resumes together would pass it, uploads are refused with a friendly message | 200 MB |
+| Resumes kept per user | fixed in `ResumeDAO.MAX_RESUMES_PER_USER`; saving a sixth resume deletes the oldest row and its file | 5 |
+| Live-demo mode (pauses new sign-ups) | environment variable `RESUMEMATCH_DEMO_MODE=true`, context parameter `demoMode`, or the flag file `<tomcat>/resumematch-demo-mode.flag` (checked every 10 s; the share scripts create and remove it) | off |
 
 To use another resume folder, add this to `WEB-INF/web.xml`:
 ```xml
@@ -332,7 +339,8 @@ To use another resume folder, add this to `WEB-INF/web.xml`:
   emails are registered.
 - **Sign-in limit:** after 5 failed attempts for one email, or 30 from one IP address, within
   15 minutes, sign-in is refused until the window ends. The counters are kept in memory and reset
-  when Tomcat restarts. Only the address Tomcat sees is trusted (never `X-Forwarded-For`); an IPv6
+  when Tomcat restarts. The address Tomcat sees is used (`X-Forwarded-For` is read only when the request comes from this
+  machine, see the proxy setting below); an IPv6
   client is counted by its /64 network, and the tables are capped so random emails cannot fill the memory.
   The register form refuses further attempts for a while after 5 "email already exists" answers from one
   address, so it cannot be used to test a list of emails.
@@ -354,8 +362,10 @@ To use another resume folder, add this to `WEB-INF/web.xml`:
 - **Errors:** users only see friendly messages; details go to the application log.
 - **SQL:** every query is a `PreparedStatement` in a DAO class.
 - **HTTPS** is not set up by the app itself. When it is put online, run it behind a host or proxy
-  that provides HTTPS. The sign-in limit uses the address Tomcat sees, so behind a
-  proxy configure Tomcat's `RemoteIpValve` to read the real client address.
+  that provides HTTPS. `META-INF/context.xml` sets up Tomcat's `RemoteIpValve` to trust only a proxy
+  on this same machine (`127.0.0.1` / `::1`), so behind a local tunnel or proxy the sign-in limit sees each
+  visitor's real address and the session cookie gets `Secure`. For a proxy on another machine, add its
+  address to `internalProxies`. See [DEPLOY.md](DEPLOY.md).
 
 ### Hardening the server
 These settings belong to Tomcat, not to the application, so the project does not change them:
