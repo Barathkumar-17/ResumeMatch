@@ -18,8 +18,9 @@ import java.text.Normalizer;
 public interface ResumeReader {
 
     /**
-     * Longest text kept from a PDF or DOCX, in characters. The {@code resumes.resume_text}
-     * column is a TEXT column (65,535 bytes), so this keeps the row safe to store.
+     * Longest text kept from a PDF or DOCX, in characters. This is a sensible limit for
+     * analysis (a resume is normally well under 20,000 characters); the {@code resumes.resume_text}
+     * column is a MEDIUMTEXT column, so storage is not the constraint.
      */
     int MAX_TEXT_CHARS = 20000;
 
