@@ -1,5 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Tomcat context settings: session cookies are sent with SameSite=Lax. -->
+<!--
+  Tomcat context settings.
+  - Session cookies are sent with SameSite=Lax.
+  - RemoteIpValve: when the app is reached through a tunnel or reverse proxy on this same machine
+    (for example cloudflared), Tomcat replaces the proxy's address with the real client address
+    from X-Forwarded-For and treats the request as HTTPS when X-Forwarded-Proto says so. Only a
+    loopback caller is trusted as that proxy, so a visitor cannot forge the header.
+    Direct requests to http://localhost:8080 are unchanged.
+-->
 <Context>
     <CookieProcessor className="org.apache.tomcat.util.http.Rfc6265CookieProcessor" sameSiteCookies="lax"/>
+    <Valve className="org.apache.catalina.valves.RemoteIpValve"
+           internalProxies="127\.0\.0\.1|0:0:0:0:0:0:0:1"
+           remoteIpHeader="x-forwarded-for"
+           protocolHeader="x-forwarded-proto"/>
 </Context>
