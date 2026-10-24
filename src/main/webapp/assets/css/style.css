@@ -51,8 +51,8 @@
 .theme-toggle.float{position:absolute;top:0;right:0}
 
 *{box-sizing:border-box;margin:0;padding:0}
-html{font-size:16px}
-body{font-family:var(--sans);background:var(--bg);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased}
+html{font-size:16px;max-width:100%}
+body{overflow-x:clip;font-family:var(--sans);background:var(--bg);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased}
 button,input,select{font:inherit;color:inherit}
 button{cursor:pointer}
 a{color:var(--link)}
@@ -428,9 +428,10 @@ table.tbl{width:100%;border-collapse:collapse;font-size:.93rem}
   .stat:nth-child(3){border-left:0}
   .stat:nth-child(n+3){border-top:1px solid var(--line)}
   .steps,.filters,.skill-compare{grid-template-columns:1fr}
-  .l-nav{padding:.75rem 1rem;gap:.5rem}
+  .l-nav{padding:.75rem 1rem;gap:.25rem .5rem;flex-wrap:wrap}
+  .l-nav .logo{min-width:0}
   .l-nav .logo,.error-page .logo{min-height:44px}
-  .l-nav .actions{align-items:center}
+  .l-nav .actions{align-items:center;margin-left:auto}
   .l-nav .actions .btn-ghost{display:none}
   .hero{padding:2rem 1rem}
   .sheet-wrap{padding:1rem 0 0}
@@ -466,6 +467,10 @@ table.tbl{width:100%;border-collapse:collapse;font-size:.93rem}
   .ring-head{gap:1rem}
   .toasts{left:1rem;right:1rem;bottom:1rem}
   .toast{max-width:none}
+}
+@media (max-width:480px){
+  .l-nav .logo{font-size:.95rem;gap:.4rem}
+  .l-nav .actions .btn{padding-inline:.85rem;font-size:.9rem}
 }
 @media (max-width:380px){
   .stats{grid-template-columns:1fr}
