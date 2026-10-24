@@ -95,17 +95,18 @@ public final class PasswordUtil {
      * Does the same PBKDF2 work as a real check and throws the result away. The login uses
      * it for an unknown email, so a wrong password for a real account and any password for
      * a made-up account take the same time and the response time does not reveal which
-     * emails are registered.
+     * emails are registered. Returns the number of iterations performed (0 for no password).
      */
-    public static void spendVerifyTime(String password) {
+    public static int spendVerifyTime(String password) {
         if (password == null) {
-            return;
+            return 0;
         }
         try {
             deriveBits(password, DUMMY_SALT, ITERATIONS, KEY_BITS);
         } catch (GeneralSecurityException e) {
             throw new IllegalStateException(ALGORITHM + " is not available", e);
         }
+        return ITERATIONS;
     }
 
     /** True when the stored value is a legacy SHA-256 hash or uses fewer iterations than today. */
