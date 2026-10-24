@@ -10,7 +10,7 @@ import java.util.Base64;
 
 /**
  * Hashes passwords with PBKDF2 (HMAC-SHA256) and a random salt. The value stored in
- * {@code users.password} looks like {@code pbkdf2$210000$<salt>$<hash>}, where the salt
+ * {@code users.password} looks like {@code pbkdf2$600000$<salt>$<hash>}, where the salt
  * and hash are Base64. The plain password is never stored. Older accounts that still
  * hold an unsalted SHA-256 hex hash are accepted by {@link #matches} and can be upgraded
  * after login with {@link #needsRehash}.
@@ -23,17 +23,19 @@ public final class PasswordUtil {
 
     private static final String PREFIX = "pbkdf2";
     private static final String ALGORITHM = "PBKDF2WithHmacSHA256";
-    private static final int ITERATIONS = 210_000;
+    private static final int ITERATIONS = 600_000;
     private static final int SALT_BYTES = 16;
     private static final int KEY_BITS = 256;
     private static final SecureRandom RANDOM = new SecureRandom();
+    /** Fixed salt for {@link #spendVerifyTime}; its value does not matter. */
+    private static final byte[] DUMMY_SALT = new byte[SALT_BYTES];
 
     private PasswordUtil() {
         // utility class, no instances
     }
 
     /**
-     * Returns {@code pbkdf2$210000$<salt>$<hash>} for the password, using a new random
+     * Returns {@code pbkdf2$600000$<salt>$<hash>} for the password, using a new random
      * 16-byte salt and a 256-bit key.
      */
     public static String hash(String password) {
@@ -86,6 +88,23 @@ public final class PasswordUtil {
             return MessageDigest.isEqual(actual, expected);
         } catch (GeneralSecurityException | RuntimeException e) {
             return false;
+        }
+    }
+
+    /**
+     * Does the same PBKDF2 work as a real check and throws the result away. The login uses
+     * it for an unknown email, so a wrong password for a real account and any password for
+     * a made-up account take the same time and the response time does not reveal which
+     * emails are registered.
+     */
+    public static void spendVerifyTime(String password) {
+        if (password == null) {
+            return;
+        }
+        try {
+            deriveBits(password, DUMMY_SALT, ITERATIONS, KEY_BITS);
+        } catch (GeneralSecurityException e) {
+            throw new IllegalStateException(ALGORITHM + " is not available", e);
         }
     }
 

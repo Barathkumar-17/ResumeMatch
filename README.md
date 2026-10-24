@@ -323,20 +323,28 @@ To use another resume folder, add this to `WEB-INF/web.xml`:
 ```
 
 ## Security
-- **Passwords** are stored as salted PBKDF2 hashes (`PBKDF2WithHmacSHA256`, 210,000 iterations,
-  16-byte random salt) in the form `pbkdf2$210000$<salt>$<hash>`. Accounts created by older versions
-  (unsalted SHA-256) can still log in, and their hash is upgraded to PBKDF2 on that login.
+- **Passwords** are stored as salted PBKDF2 hashes (`PBKDF2WithHmacSHA256`, 600,000 iterations,
+  16-byte random salt) in the form `pbkdf2$600000$<salt>$<hash>`. Accounts created by older versions
+  (unsalted SHA-256, or fewer iterations) can still log in, and their hash is upgraded on that login.
+  New passwords need at least 8 characters and must not be one of a few very common ones. Emails are
+  plain ASCII only, so look-alike spellings cannot reach the same account. A login for an email that
+  does not exist does the same hashing work as a real one, so the response time does not reveal which
+  emails are registered.
 - **Sign-in limit:** after 5 failed attempts for one email, or 30 from one IP address, within
   15 minutes, sign-in is refused until the window ends. The counters are kept in memory and reset
-  when Tomcat restarts.
+  when Tomcat restarts. Only the address Tomcat sees is trusted (never `X-Forwarded-For`); an IPv6
+  client is counted by its /64 network, and the tables are capped so random emails cannot fill the memory.
+  The register form refuses further attempts for a while after 5 "email already exists" answers from one
+  address, so it cannot be used to test a list of emails.
 - **CSRF:** every form carries a random per-session token (`_csrf`) that is checked on every POST.
   A missing or wrong token gets a friendly 403 page. Log out is a POST button too, so a link on another
   site cannot sign a user out.
-- **Session cookie** is `HttpOnly` and `SameSite=Lax`, sessions end after 30 idle minutes, and a new
-  session is started at login.
+- **Session cookie** is `HttpOnly` and `SameSite=Lax`, sessions end after 30 idle minutes (20 for a visitor who never logs in), and a new
+  session is started at login. The `Secure` flag is added by Tomcat when the site is served over HTTPS.
 - **Response headers:** `Content-Security-Policy` (scripts, styles and fonts from the app only),
-  `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: same-origin`.
-  Private pages are sent with `Cache-Control: no-store`.
+  `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: same-origin`,
+  `Permissions-Policy`, `Cross-Origin-Opener-Policy` and, over HTTPS, `Strict-Transport-Security`.
+  Every page (not the files under `/assets/`) is sent with `Cache-Control: no-store`.
 - **Request limits:** request bodies over 1 MB are refused (413), except the resume upload, which allows 3 MB. Resumes must be `.txt`, `.pdf` or
   `.docx` (`.txt` up to 200 KB; `.pdf` and `.docx` up to 2 MB) and not empty; text files must be valid UTF-8 without NUL bytes. Name,
   email and password lengths are limited.
@@ -348,6 +356,24 @@ To use another resume folder, add this to `WEB-INF/web.xml`:
 - **HTTPS** is not set up by the app itself. When it is put online, run it behind a host or proxy
   that provides HTTPS. The sign-in limit uses the address Tomcat sees, so behind a
   proxy configure Tomcat's `RemoteIpValve` to read the real client address.
+
+### Hardening the server
+These settings belong to Tomcat, not to the application, so the project does not change them:
+- A request with an illegal character in the URL (for example `|` or an unencoded `<`) is refused by
+  Tomcat before the application sees it, and Tomcat's own 400 page shows the Tomcat version and a stack
+  trace. Switch that off in `conf/server.xml`, inside `<Host>`:
+  ```xml
+  <Valve className="org.apache.catalina.valves.ErrorReportValve" showReport="false" showServerInfo="false"/>
+  ```
+- Remove the sample web apps you do not use (`webapps/docs`, `webapps/examples`, `webapps/host-manager`,
+  and `webapps/manager` unless you need it) and keep the manager protected by a strong password and a
+  `RemoteAddrValve`. `webapps/docs` shows the exact Tomcat version.
+- Serve the site over HTTPS (a `Connector` with a certificate, or a proxy in front). Tomcat then marks
+  the session cookie `Secure` by itself.
+- The upload form sends its CSRF token in the query string (`/upload?_csrf=...`) so the file is not parsed
+  before the check. Tomcat's access log therefore records the token. It is only useful together with the
+  session cookie, but keep `logs/` readable by the administrator only.
+- Use a strong MySQL password and a database user that only owns the `resumematch` schema, not `root`.
 
 ## Testing
 **Unit tests** (plain Java, no extra libraries, no database needed):

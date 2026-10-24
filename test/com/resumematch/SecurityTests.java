@@ -3,6 +3,7 @@ package com.resumematch;
 import com.resumematch.util.HtmlUtil;
 import com.resumematch.util.LoginAttemptLimiter;
 import com.resumematch.util.PasswordUtil;
+import com.resumematch.web.SaveJobServlet;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -27,6 +28,7 @@ public class SecurityTests {
         passwordTests();
         limiterTests();
         htmlTests();
+        redirectTests();
     }
 
     private static void passwordTests() {
@@ -35,7 +37,7 @@ public class SecurityTests {
         String[] parts = hash.split("\\$");
         TestRunner.checkEquals("hash has 4 parts", 4, parts.length);
         TestRunner.checkEquals("hash starts with pbkdf2", "pbkdf2", parts[0]);
-        TestRunner.checkEquals("iteration count is 210000", "210000", parts[1]);
+        TestRunner.checkEquals("iteration count is 600000", "600000", parts[1]);
         TestRunner.check("salt is Base64", parts.length == 4 && isBase64(parts[2]));
         TestRunner.check("hash part is Base64", parts.length == 4 && isBase64(parts[3]));
         TestRunner.check("two hashes of the same password differ", !hash.equals(PasswordUtil.hash("demo1234")));
@@ -50,6 +52,30 @@ public class SecurityTests {
         TestRunner.check("empty stored hash does not match", !PasswordUtil.matches("demo1234", ""));
         TestRunner.check("legacy hash needs rehash", PasswordUtil.needsRehash(LEGACY_HASH));
         TestRunner.check("new hash does not need rehash", !PasswordUtil.needsRehash(hash));
+        String older = "pbkdf2$210000$A4xz70OwsDPn0SSGyca8gw==$CMC+nktYjhPFCpi0G2ObkPnmTCaexNZ2kSRuEdzif2I=";
+        TestRunner.check("a 210000-iteration hash still matches", PasswordUtil.matches("demo1234", older));
+        TestRunner.check("a 210000-iteration hash is upgraded at login", PasswordUtil.needsRehash(older));
+
+        // An unknown email must cost about the same as a wrong password for a real account.
+        PasswordUtil.matches("warm-up", hash);
+        PasswordUtil.spendVerifyTime("warm-up");
+        long real = nanosOf(() -> PasswordUtil.matches("wrong-password", hash));
+        long dummy = nanosOf(() -> PasswordUtil.spendVerifyTime("wrong-password"));
+        double ratio = (double) dummy / real;
+        TestRunner.check("dummy verify takes about as long as a real one (ratio " + String.format("%.2f", ratio) + ")",
+                ratio > 0.5 && ratio < 2.0);
+        PasswordUtil.spendVerifyTime(null); // must not throw
+    }
+
+    /** Fastest of three runs, which keeps a busy machine from skewing the comparison. */
+    private static long nanosOf(Runnable action) {
+        long best = Long.MAX_VALUE;
+        for (int i = 0; i < 3; i++) {
+            long start = System.nanoTime();
+            action.run();
+            best = Math.min(best, System.nanoTime() - start);
+        }
+        return best;
     }
 
     private static boolean isBase64(String text) {
@@ -117,6 +143,58 @@ public class SecurityTests {
             limiter.recordFailure(" Case@Example.com ", "10.0.7." + i);
         }
         TestRunner.check("email counting ignores case and spaces", limiter.isBlocked("case@example.com", "10.0.8.8"));
+
+        TestRunner.checkEquals("IPv4 key is the address", "203.0.113.7", LoginAttemptLimiter.ipKey(" 203.0.113.7 "));
+        TestRunner.checkEquals("IPv6 addresses in one /64 share a key",
+                LoginAttemptLimiter.ipKey("2001:db8:1:2::1"), LoginAttemptLimiter.ipKey("2001:DB8:1:2:ffff:eeee:dddd:cccc"));
+        TestRunner.check("IPv6 addresses in different /64 networks differ",
+                !LoginAttemptLimiter.ipKey("2001:db8:1:2::1").equals(LoginAttemptLimiter.ipKey("2001:db8:1:3::1")));
+        TestRunner.checkEquals("IPv4-mapped IPv6 is the IPv4 address", "203.0.113.7",
+                LoginAttemptLimiter.ipKey("::ffff:203.0.113.7"));
+        TestRunner.checkEquals("text that is not an address is only trimmed and lower-cased", "not:an:ip!",
+                LoginAttemptLimiter.ipKey(" Not:An:IP! "));
+        TestRunner.checkEquals("null IP gives an empty key", "", LoginAttemptLimiter.ipKey(null));
+        String v6 = LoginAttemptLimiter.ipKey("2001:db8:aaaa:bbbb:1:2:3:4");
+        for (int i = 0; i < LoginAttemptLimiter.MAX_FAILURES_PER_IP; i++) {
+            limiter.recordFailure("v6-" + i + "@example.com", v6);
+        }
+        TestRunner.check("30 failures block a whole IPv6 /64",
+                limiter.isBlocked("x@example.com", LoginAttemptLimiter.ipKey("2001:db8:aaaa:bbbb:ffff::9")));
+
+        // Random emails must not make the tables grow without limit.
+        LoginAttemptLimiter small = new LoginAttemptLimiter(new MovableClock());
+        for (int i = 0; i < LoginAttemptLimiter.MAX_TRACKED + 500; i++) {
+            small.recordFailure("flood-" + i + "@example.com", "198.51.100." + (i % 250));
+        }
+        small.recordFailure("late@example.com", "198.51.100.1");
+        TestRunner.check("tables stop growing at the cap", small.trackedEmails() <= LoginAttemptLimiter.MAX_TRACKED);
+    }
+
+    private static void redirectTests() {
+        System.out.println("== Redirect after save (Referer) ==");
+        String ctx = "/ResumeMatch";
+        String jobs = ctx + "/jobs";
+        TestRunner.checkEquals("same-app page is kept, with its query", ctx + "/jobs?q=java",
+                SaveJobServlet.backTarget("http://localhost:8080/ResumeMatch/jobs?q=java", "localhost", ctx));
+        TestRunner.checkEquals("missing header gives the job list", jobs, SaveJobServlet.backTarget(null, "localhost", ctx));
+        TestRunner.checkEquals("other host gives the job list", jobs,
+                SaveJobServlet.backTarget("http://evil.com/ResumeMatch/jobs", "localhost", ctx));
+        TestRunner.checkEquals("user-info trick gives the job list", jobs,
+                SaveJobServlet.backTarget("http://localhost@evil.com/ResumeMatch/jobs", "localhost", ctx));
+        TestRunner.checkEquals("protocol-relative path gives the job list", jobs,
+                SaveJobServlet.backTarget("//evil.com/x", "localhost", ctx));
+        TestRunner.checkEquals("javascript: gives the job list", jobs,
+                SaveJobServlet.backTarget("javascript:alert(1)", "localhost", ctx));
+        TestRunner.checkEquals("../ out of the app gives the job list", jobs,
+                SaveJobServlet.backTarget("http://localhost:8080/ResumeMatch/../manager/html", "localhost", ctx));
+        TestRunner.checkEquals("encoded ../ out of the app gives the job list", jobs,
+                SaveJobServlet.backTarget("http://localhost:8080/ResumeMatch/%2e%2e/manager", "localhost", ctx));
+        TestRunner.checkEquals("path ending in /.. gives the job list", jobs,
+                SaveJobServlet.backTarget("http://localhost:8080/ResumeMatch/..", "localhost", ctx));
+        TestRunner.checkEquals("another app with the same prefix gives the job list", jobs,
+                SaveJobServlet.backTarget("http://localhost:8080/ResumeMatchX/jobs", "localhost", ctx));
+        TestRunner.checkEquals("garbage header gives the job list", jobs,
+                SaveJobServlet.backTarget("http://local host/ResumeMatch/jobs", "localhost", ctx));
     }
 
     private static void htmlTests() {

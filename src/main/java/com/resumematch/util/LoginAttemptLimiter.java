@@ -1,5 +1,7 @@
 package com.resumematch.util;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.time.Clock;
 import java.util.Locale;
 import java.util.concurrent.ConcurrentHashMap;
@@ -25,6 +27,9 @@ public final class LoginAttemptLimiter {
 
     /** Length of the counting window in milliseconds (15 minutes). */
     public static final long WINDOW_MILLIS = 15L * 60 * 1000;
+
+    /** Most email and most IP entries kept at once, so random emails cannot fill the memory. */
+    public static final int MAX_TRACKED = 50_000;
 
     private static final long MILLIS_PER_MINUTE = 60L * 1000;
 
@@ -76,6 +81,11 @@ public final class LoginAttemptLimiter {
         return (int) ((wait + MILLIS_PER_MINUTE - 1) / MILLIS_PER_MINUTE);
     }
 
+    /** How many emails are being counted right now (for tests and monitoring). */
+    public int trackedEmails() {
+        return byEmail.size();
+    }
+
     /** Counts one failed sign-in against both the email and the IP. */
     public void recordFailure(String email, String ip) {
         long now = clock.millis();
@@ -98,6 +108,9 @@ public final class LoginAttemptLimiter {
 
     private void increment(ConcurrentMap<String, Counter> map, String key, long now) {
         map.compute(key, (k, old) -> {
+            if (old == null && map.size() >= MAX_TRACKED) {
+                return null; // table full: a new key is not tracked until old ones expire
+            }
             if (old == null || now - old.windowStart >= WINDOW_MILLIS) {
                 return new Counter(1, now);
             }
@@ -105,14 +118,40 @@ public final class LoginAttemptLimiter {
         });
     }
 
-    /** Removes expired entries, at most once a minute, so the maps cannot grow forever. */
+    /** Removes expired entries, at most once a minute (or at once when a table is full). */
     private void sweep(long now) {
-        if (now - lastSweep < MILLIS_PER_MINUTE) {
+        boolean full = byEmail.size() >= MAX_TRACKED || byIp.size() >= MAX_TRACKED;
+        if (!full && now - lastSweep < MILLIS_PER_MINUTE) {
             return;
         }
         lastSweep = now;
         byEmail.entrySet().removeIf(e -> now - e.getValue().windowStart >= WINDOW_MILLIS);
         byIp.entrySet().removeIf(e -> now - e.getValue().windowStart >= WINDOW_MILLIS);
+    }
+
+    /**
+     * The key an IP address is counted under. An IPv6 client usually owns a whole /64, so
+     * only its first 64 bits are used and it cannot dodge the limit by changing the rest.
+     * IPv4 and anything that is not an IP address are only trimmed and lower-cased.
+     */
+    public static String ipKey(String ip) {
+        String value = normalize(ip);
+        if (value.indexOf(':') < 0 || !value.matches("[0-9a-f:.%]+")) {
+            return value;
+        }
+        try {
+            byte[] bytes = InetAddress.getByName(value).getAddress(); // a literal: no DNS lookup
+            if (bytes.length != 16) {
+                return InetAddress.getByAddress(bytes).getHostAddress();
+            }
+            StringBuilder key = new StringBuilder("v6/");
+            for (int i = 0; i < 8; i++) {
+                key.append(String.format("%02x", bytes[i]));
+            }
+            return key.toString();
+        } catch (UnknownHostException e) {
+            return value;
+        }
     }
 
     private static String normalize(String value) {

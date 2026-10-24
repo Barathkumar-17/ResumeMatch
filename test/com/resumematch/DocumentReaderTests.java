@@ -3,9 +3,12 @@ package com.resumematch;
 import com.resumematch.exception.AppException;
 import com.resumematch.exception.InvalidFileException;
 import com.resumematch.model.Resume;
+import com.resumematch.service.DocxResumeReader;
 import com.resumematch.service.FileService;
+import com.resumematch.service.PdfResumeReader;
 import com.resumematch.service.ResumeAnalyzer;
 import com.resumematch.service.ResumeFileType;
+import com.resumematch.service.ResumeReader;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -42,6 +45,7 @@ public class DocumentReaderTests {
             fixtureTests(files);
             validationTests(files);
             pdfProblemTests(files);
+            hostileInputTests();
             docxProblemTests(files, temp);
         } finally {
             deleteTree(temp);
@@ -137,6 +141,44 @@ public class DocumentReaderTests {
         } catch (AppException e) {
             TestRunner.check("pdf without text rejected with a scanned-image message",
                     e.getUserMessage().contains("scanned"));
+        }
+    }
+
+    /** Hostile files must be refused quickly: every case here has to finish inside the time budget. */
+    private static void hostileInputTests() throws Exception {
+        String neverEnding = "1 0 obj <</A [ ".repeat(150_000);
+        timedRefusal("150k objects that never end", ".pdf",
+                ("%PDF-1.4\n" + neverEnding).getBytes(StandardCharsets.ISO_8859_1));
+        timedRefusal("2M nested arrays in a pdf", ".pdf",
+                ("%PDF-1.4\n1 0 obj\n" + "[".repeat(2_000_000)).getBytes(StandardCharsets.ISO_8859_1));
+        timedRefusal("page tree that points at itself", ".pdf",
+                ("%PDF-1.4\n1 0 obj\n<</Type/Catalog/Pages 2 0 R>>\nendobj\n"
+                + "2 0 obj\n<</Type/Pages/Kids[2 0 R 2 0 R]/Count 9>>\nendobj\ntrailer\n<</Root 1 0 R>>")
+                        .getBytes(StandardCharsets.ISO_8859_1));
+        String entities = "<?xml version=\"1.0\"?><!DOCTYPE d [<!ENTITY a \"aaaaaaaaaa\">"
+                + "<!ENTITY b \"&a;&a;&a;&a;&a;&a;&a;&a;&a;&a;\">]><w:document " + W_NS
+                + "><w:body><w:p><w:r><w:t>&b;&b;</w:t></w:r></w:p></w:body></w:document>";
+        timedRefusal("docx with entity definitions", ".docx", zip("word/document.xml", entities));
+        timedRefusal("docx with 3M nested paragraphs", ".docx", zip("word/document.xml",
+                "<w:document " + W_NS + "><w:body>" + "<w:p>".repeat(3_000_000)));
+    }
+
+    /** Reads the bytes with the matching reader; passes when it finishes or refuses within 5 seconds. */
+    private static void timedRefusal(String label, String extension, byte[] data) throws Exception {
+        Path file = Files.createTempFile("hostile", extension);
+        try {
+            Files.write(file, data);
+            ResumeReader reader = extension.equals(".pdf") ? new PdfResumeReader() : new DocxResumeReader();
+            long start = System.nanoTime();
+            try {
+                reader.read(file);
+            } catch (AppException e) {
+                // a friendly refusal is the expected outcome
+            }
+            long millis = (System.nanoTime() - start) / 1_000_000;
+            TestRunner.check(label + " finishes within 5 seconds", millis < 5000);
+        } finally {
+            Files.deleteIfExists(file);
         }
     }
 

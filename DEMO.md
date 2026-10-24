@@ -81,12 +81,12 @@ Click **Create account**. Try the validation first: leave the name empty, type `
 You should see four messages, one under each field, and nothing is submitted:
 - Enter your full name.
 - Enter a valid email, like name@example.com.
-- Use at least 6 characters.
+- Use at least 8 characters.
 - Passwords don't match.
 
 ![Register form with validation messages](screenshots/demo/02-register-validation.png)
 
-Now fill the form properly (for example `Arun Kumar`, your own email address and a password of six or more
+Now fill the form properly (for example `Arun Kumar`, your own email address and a password of eight or more
 characters) and submit. You are sent to the login page. An email that is already registered is refused with a
 friendly message instead of creating a second account.
 

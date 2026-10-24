@@ -94,8 +94,17 @@ public class SaveJobServlet extends HttpServlet {
      * application; anything else falls back to the job list.
      */
     private String backUrl(HttpServletRequest request) {
-        String fallback = request.getContextPath() + "/jobs";
-        String referer = request.getHeader("Referer");
+        return backTarget(request.getHeader("Referer"), request.getServerName(), request.getContextPath());
+    }
+
+    /**
+     * Works out the page to return to from the Referer header. Only an http(s) address on
+     * this host whose path starts with the application path is used; a path that climbs out
+     * of the application with ".." or holds a backslash is not, so the redirect can never
+     * leave the application. Anything else gives the job list.
+     */
+    public static String backTarget(String referer, String serverName, String contextPath) {
+        String fallback = contextPath + "/jobs";
         if (referer == null || referer.isBlank()) {
             return fallback;
         }
@@ -103,11 +112,13 @@ public class SaveJobServlet extends HttpServlet {
             URI uri = new URI(referer);
             String scheme = uri.getScheme();
             boolean webScheme = "http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme);
-            boolean sameHost = request.getServerName().equalsIgnoreCase(uri.getHost());
+            boolean sameHost = serverName != null && serverName.equalsIgnoreCase(uri.getHost());
             String path = uri.getRawPath();
+            String decoded = uri.getPath();
             // "//other-site" would be read by the browser as a different host
-            boolean insideApp = path != null && !path.startsWith("//")
-                    && path.startsWith(request.getContextPath() + "/");
+            boolean insideApp = path != null && decoded != null && !path.startsWith("//")
+                    && path.startsWith(contextPath + "/") && !decoded.contains("\\")
+                    && !(decoded + "/").contains("/../") && !(decoded + "/").contains("/./");
             if (webScheme && sameHost && insideApp) {
                 return uri.getRawQuery() == null ? path : path + "?" + uri.getRawQuery();
             }

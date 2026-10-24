@@ -309,9 +309,22 @@ public class TestRunner {
         check("email without @ rejected", !ValidationUtil.isValidEmail("name.example.com"));
         check("email without domain dot rejected", !ValidationUtil.isValidEmail("name@example"));
         check("email with space rejected", !ValidationUtil.isValidEmail("na me@example.com"));
-        check("6-char password ok", ValidationUtil.isValidPassword("abcdef"));
-        check("5-char password rejected", !ValidationUtil.isValidPassword("abcde"));
+        check("8-char password ok", ValidationUtil.isValidPassword("abcdefgh"));
+        check("7-char password rejected", !ValidationUtil.isValidPassword("abcdefg"));
         check("null password rejected", !ValidationUtil.isValidPassword(null));
+        check("accented email rejected", !ValidationUtil.isValidEmail("séc1@example.com"));
+        check("full-width letter email rejected", !ValidationUtil.isValidEmail("ｓec1@example.com"));
+        check("zero-width space in email rejected", !ValidationUtil.isValidEmail("sec1@example.com​"));
+        check("non-breaking space in email rejected", !ValidationUtil.isValidEmail("sec1@example.com "));
+        check("non-ASCII domain rejected", !ValidationUtil.isValidEmail("sec1@exämple.com"));
+        check("plus and dots in email accepted", ValidationUtil.isValidEmail("first.last+tag@mail.example.co.in"));
+        check("email with two @ rejected", !ValidationUtil.isValidEmail("a@b@example.com"));
+        check("email with a trailing dot rejected", !ValidationUtil.isValidEmail("a@example."));
+        check("common password rejected", ValidationUtil.newPasswordError("Password123") != null);
+        check("common digits-only password rejected", ValidationUtil.newPasswordError("12345678") != null);
+        check("7 characters rejected with the length message",
+                ValidationUtil.newPasswordError("Ab1!xyz").contains("at least 8"));
+        check("normal 8-char password accepted", ValidationUtil.newPasswordError("Tr1cky!!") == null);
         check(".txt accepted", ValidationUtil.isTxtFile("resume.txt"));
         check(".TXT accepted", ValidationUtil.isTxtFile("RESUME.TXT"));
         check(".pdf is not a .txt", !ValidationUtil.isTxtFile("resume.pdf"));
