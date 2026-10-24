@@ -19,10 +19,11 @@
     </div>
   </header>
 
+  <main id="main">
   <section class="hero">
     <div>
       <h1>Find out which jobs your resume already fits.</h1>
-      <p class="lead">Upload your resume as a .txt, PDF or Word (.docx) file. ResumeMatch picks out your skills, scores each section out of 100, and ranks internships by how many of their required skills you already have.</p>
+      <p class="lead">Upload your resume as a .txt, PDF or Word (.docx) file. ResumeMatch picks out your skills, scores the resume out of 100 across five sections, and ranks internships by how many of their required skills you already have.</p>
       <div class="cta">
         <a class="btn btn-hl" href="${pageContext.request.contextPath}/dashboard">Analyze resume</a>
         <a class="btn btn-ghost" href="${pageContext.request.contextPath}/jobs">Find jobs</a>
@@ -50,7 +51,7 @@
   <section class="how">
     <div class="how-inner">
       <h2>How the analysis works</h2>
-      <p>Every step is plain, explainable logic, built with Java file handling, collections and JDBC.</p>
+      <p>Every step is plain, explainable logic. There is no black box.</p>
       <div class="steps">
         <div class="step"><h3>Upload</h3><p>Your .txt, .pdf or .docx resume is saved to a resume folder and its path is recorded in the database.</p></div>
         <div class="step"><h3>Extract skills</h3><p>The text is scanned for 18 known skills, such as Java, SQL, JDBC and Git, grouped by category.</p></div>
@@ -64,6 +65,7 @@
       </div>
     </div>
   </section>
+  </main>
   <footer class="l-foot">ResumeMatch · Built by the ResumeMatch team · Java, JDBC, MySQL, Servlets and JSP</footer>
 </div>
 </body>
