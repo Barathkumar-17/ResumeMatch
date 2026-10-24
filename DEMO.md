@@ -62,7 +62,7 @@ cp src/main/resources/db.properties.example src/main/resources/db.properties   #
 Then open http://localhost:8080/ResumeMatch/. Details and troubleshooting:
 [README](README.md#quick-start-for-beginners).
 
-You should see: the script ends with `site is up`, the line `Passed: 186, Failed: 0` appears above it (the
+You should see: the script ends with `site is up`, the line `Passed: <n>, Failed: 0` appears above it (the
 test count can grow as tests are added, but Failed must be 0) and the address http://localhost:8080/ResumeMatch/.
 
 ## Step 1: The landing page
