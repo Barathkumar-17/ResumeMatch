@@ -6,6 +6,10 @@
 #                   preinstalled on the Ubuntu runner, then runs
 #                   scripts/smoke-test.sh against it.
 #
+# The Linux runners are pinned to ubuntu-24.04: the smoke test relies on the MySQL
+# service and systemd that image ships with, so a moving "latest" label could break
+# it. Windows stays on windows-latest.
+#
 # The two jars the project needs are downloaded from Maven Central and checked
 # against their published SHA-1 files; nothing else is installed.
 
@@ -33,14 +37,15 @@ jobs:
   build-and-test:
     name: build-and-test (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-24.04, windows-latest]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-java@v5
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '17'
@@ -82,24 +87,25 @@ jobs:
 
       - name: Upload the war
         if: runner.os == 'Linux'
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: ResumeMatch-war
           path: build/ResumeMatch.war
           if-no-files-found: error
+          retention-days: 14
 
   smoke-test:
     name: smoke-test
     needs: build-and-test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     env:
       CATALINA_HOME: ${{ github.workspace }}/tomcat
       MYSQL_PWD: root
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-java@v5
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '17'
@@ -185,10 +191,11 @@ jobs:
 
       - name: Upload the Tomcat logs
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: tomcat-logs
           path: |
             tomcat/logs/catalina.out
             tomcat/logs/resumematch.0.log
           if-no-files-found: ignore
+          retention-days: 7

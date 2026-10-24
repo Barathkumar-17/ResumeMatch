@@ -26,7 +26,7 @@ RESET=0
 for arg in "$@"; do
   case "$arg" in
     --reset-db) RESET=1 ;;
-    -h|--help) sed -n '2,15p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -h|--help) sed -n '2,16p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     *) echo "Unknown argument: $arg (use --reset-db or --help)"; exit 1 ;;
   esac
 done
@@ -49,8 +49,8 @@ if [ -z "$MYSQL" ]; then
 fi
 ok "mysql client: $MYSQL"
 
-ls lib/servlet-api.jar >/dev/null 2>&1 || die "lib/servlet-api.jar is missing. Copy it from <tomcat>/lib/ (see README, Setup step 1)."
-ls lib/mysql-connector-j*.jar >/dev/null 2>&1 || die "lib/mysql-connector-j-<version>.jar is missing (see README, Setup step 1)."
+ls lib/servlet-api.jar >/dev/null 2>&1 || die "lib/servlet-api.jar is missing. Copy it from <tomcat>/lib/ (see README, Quick start step 3)."
+ls lib/mysql-connector-j*.jar >/dev/null 2>&1 || die "lib/mysql-connector-j-<version>.jar is missing (see README, Quick start step 3)."
 ok "lib/ jars present"
 
 [ -d "$CATALINA_HOME/webapps" ] || die "Tomcat not found at: $CATALINA_HOME (set CATALINA_HOME to your Tomcat 9 folder)."
@@ -61,7 +61,7 @@ if [ -f "$PROPS" ]; then
   ok "$PROPS already exists, keeping it"
 else
   [ -f "$PROPS.example" ] || die "$PROPS.example is missing."
-  read -r -p "   MySQL user [root]: " DBUSER
+  read -r -p "   MySQL user [root]: " DBUSER || die "No input available. Create $PROPS yourself (copy $PROPS.example) and run again."
   DBUSER="${DBUSER:-root}"
   read -r -s -p "   MySQL password (not shown): " DBPASS
   echo

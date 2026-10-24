@@ -19,27 +19,30 @@ Contents: [0 Setup](#step-0-set-up) | [1 Landing page](#step-1-the-landing-page)
 ## Step 0: Set up
 
 ### What you need
-| Tool | Version |
-|---|---|
-| JDK | 17 or newer |
-| MySQL | 8.x, running, with the `mysql` command line client |
-| Apache Tomcat | 9.x, running on port 8080 |
-| Jars in `lib/` | `mysql-connector-j-<version>.jar` and Tomcat's `servlet-api.jar` (see [README, Setup](README.md#setup)) |
+| Tool | Version | Download |
+|---|---|---|
+| Git | any recent | https://git-scm.com/downloads |
+| JDK (Java Development Kit) | 17 or newer | https://adoptium.net/ |
+| MySQL Community Server | 8.x, running, with the `mysql` command line client | https://dev.mysql.com/downloads/mysql/ |
+| Apache Tomcat | 9.x (not 10), running on port 8080 | https://tomcat.apache.org/download-90.cgi |
+| Jars in `lib/` | `mysql-connector-j-<version>.jar` and Tomcat's `servlet-api.jar` | see the [README Quick start](README.md#quick-start-for-beginners), step 3 |
 
 ### One command
 Clone the repository, put the two jars in `lib/`, then run the setup script from the repository root.
 
 Windows (PowerShell 5.1):
 ```
-.\scripts\demo-setup.ps1 -ResetDb
+powershell -ExecutionPolicy Bypass -File scripts\demo-setup.ps1 -ResetDb
 ```
 Linux, macOS or Git Bash:
 ```
+export CATALINA_HOME=$HOME/apache-tomcat-9.0.123      # your Tomcat folder (Windows has a default)
 scripts/demo-setup.sh --reset-db
 ```
 
-The script checks Java 17+, the `mysql` client, the jars and Tomcat's folder (`CATALINA_HOME`, default
-`C:\Program Files\Apache Software Foundation\Tomcat 9.0`). It creates `src/main/resources/db.properties`
+The script checks Java 17+, the `mysql` client, the jars and Tomcat's folder (the `CATALINA_HOME`
+environment variable; the default `C:\Program Files\Apache Software Foundation\Tomcat 9.0` only exists on
+Windows, so set it elsewhere). It creates `src/main/resources/db.properties`
 from the example file if it is missing (it asks for your MySQL user and password and never prints the
 password), loads the database, runs the unit tests, builds the war, copies it into Tomcat's `webapps`,
 and waits until the login page answers. It then prints the address, the demo login and the first steps.
@@ -51,12 +54,13 @@ it once. Run the script without the flag any time later to rebuild and redeploy 
 
 ### Manual alternative
 ```
-mysql -u root -p < database/01_schema.sql
-mysql -u root -p < database/02_seed_data.sql
-cp src/main/resources/db.properties.example src/main/resources/db.properties   # set db.user and db.password
+mysql -u root -p -e "source database/01_schema.sql"
+mysql -u root -p -e "source database/02_seed_data.sql"
+cp src/main/resources/db.properties.example src/main/resources/db.properties   # Windows: copy ... ; set db.user and db.password
 ./build.sh test deploy                                                         # Windows: build.bat test deploy
 ```
-Then open http://localhost:8080/ResumeMatch/. Details and troubleshooting: [README](README.md#setup).
+Then open http://localhost:8080/ResumeMatch/. Details and troubleshooting:
+[README](README.md#quick-start-for-beginners).
 
 You should see: the script ends with `site is up`, the line `Passed: 186, Failed: 0` appears above it (the
 test count can grow as tests are added, but Failed must be 0) and the address http://localhost:8080/ResumeMatch/.
@@ -281,7 +285,7 @@ example `/dashboard`) now sends you back to the login page.
   matches change.
 - **Check every flow automatically.** `scripts/smoke-test.sh` (or `scripts/smoke-test.ps1`) registers a
   throw-away user, walks through all pages including bad uploads, and removes what it created.
-- **Run the analysis without a server.** See "Run the analysis without a server" in the [README](README.md#usage-walkthrough).
+- **Run the analysis without a server.** See "Run the analysis without a server" in the [README](README.md#how-it-works).
 
 ### Troubleshooting
 If a page does not load, the login says the database cannot be reached, or the script stops early, see the

@@ -50,8 +50,8 @@ if (-not $mysql) {
 }
 Ok "mysql client: $mysql"
 
-if (-not (Test-Path 'lib\servlet-api.jar')) { Fail 'lib\servlet-api.jar is missing. Copy it from <tomcat>\lib\ (see README, Setup step 1).' }
-if (-not (Get-ChildItem 'lib\mysql-connector-j*.jar' -ErrorAction SilentlyContinue)) { Fail 'lib\mysql-connector-j-<version>.jar is missing (see README, Setup step 1).' }
+if (-not (Test-Path 'lib\servlet-api.jar')) { Fail 'lib\servlet-api.jar is missing. Copy it from <tomcat>\lib\ (see README, Quick start step 3).' }
+if (-not (Get-ChildItem 'lib\mysql-connector-j*.jar' -ErrorAction SilentlyContinue)) { Fail 'lib\mysql-connector-j-<version>.jar is missing (see README, Quick start step 3).' }
 Ok 'lib\ jars present'
 
 if (-not (Test-Path (Join-Path $env:CATALINA_HOME 'webapps'))) { Fail "Tomcat not found at: $($env:CATALINA_HOME) (set CATALINA_HOME to your Tomcat 9 folder)." }

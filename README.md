@@ -57,9 +57,15 @@ search jobs (80, 75, 40, 33), save and apply, then try dark mode and the phone l
 One command sets everything up. It checks your tools, creates `db.properties`, runs the unit tests, builds
 and deploys the app, and waits until the site answers. It never starts or stops Tomcat or MySQL.
 ```
-scripts/demo-setup.sh --reset-db          # Linux, macOS, Git Bash
-.\scripts\demo-setup.ps1 -ResetDb         # Windows PowerShell
+scripts/demo-setup.sh --reset-db                                            # Linux, macOS, Git Bash
+powershell -ExecutionPolicy Bypass -File scripts\demo-setup.ps1 -ResetDb    # Windows PowerShell
 ```
+(`-ExecutionPolicy Bypass` lets Windows run a script that is not signed; it applies to this one command
+only.) Tomcat and MySQL must already be running and `lib/` must hold the two jars (see the
+[Quick start](#quick-start-for-beginners), steps 1 to 3). On Linux and macOS first set `CATALINA_HOME`
+to your Tomcat folder, for example `export CATALINA_HOME=$HOME/apache-tomcat-9.0.123`; on Windows the
+default is `C:\Program Files\Apache Software Foundation\Tomcat 9.0`.
+
 Run it without the flag to just rebuild and redeploy. Then log in with `demo@resumematch.in` / `demo1234`.
 
 More screens: [SCREENSHOTS.md](SCREENSHOTS.md).
@@ -71,13 +77,19 @@ More screens: [SCREENSHOTS.md](SCREENSHOTS.md).
 Never set up a Java web app before? Follow these steps in order. Each one says what it does and how to
 check that it worked. (Want it done for you? Use the [demo setup script](#demo-run).)
 
-1. **Install the tools.** You need three things:
-   - **JDK 17 or newer** (the Java compiler and runtime). Get it from https://adoptium.net/.
-   - **MySQL 8** (the database). Get it from https://dev.mysql.com/downloads/mysql/.
-   - **Apache Tomcat 9** (the web server that runs the app). Get it from https://tomcat.apache.org/download-90.cgi.
-     Use version 9, not 10: this project uses `javax.servlet`.
+1. **Install the tools.** You need four things:
+   - **Git** (to download the code). Get it from https://git-scm.com/downloads. On Windows it also gives
+     you *Git Bash*, a terminal that understands the `./build.sh` commands below.
+   - **JDK 17 or newer** (the Java Development Kit: compiler and runtime). Get it from
+     https://adoptium.net/ (Temurin 17 or 21).
+   - **MySQL Community Server 8.x** (the database). Get it from https://dev.mysql.com/downloads/mysql/.
+     Make sure the server is running and you know the password of its `root` user.
+   - **Apache Tomcat 9** (the web server that runs the app). Download the *Core* `zip` (Windows) or
+     `tar.gz` (Linux, macOS) from https://tomcat.apache.org/download-90.cgi and unpack it anywhere. Use
+     version 9, not 10: this project uses `javax.servlet`. This README calls that folder `<tomcat>`.
 
-   *Check:* `java -version` prints 17 or higher, and `mysql --version` prints 8.x.
+   *Check:* `git --version` works, `java -version` and `javac -version` print 17 or higher (you need a
+   JDK, not only a JRE), and `mysql --version` prints 8.x.
 
 2. **Get the code.**
    ```
@@ -90,16 +102,21 @@ check that it worked. (Want it done for you? Use the [demo setup script](#demo-r
      (choose *Platform Independent*). It lets Java talk to MySQL.
    - `servlet-api.jar`, found in `<tomcat>/lib/`. It lets the code compile against Tomcat.
 
-   Also copy the MySQL jar into `<tomcat>/lib/` and restart Tomcat once. The jars are not committed.
+   Also copy the MySQL jar into `<tomcat>/lib/` (Tomcat needs the driver at run time too). The jars are
+   not committed to the repository.
 
    *Check:* `lib/` holds exactly two `.jar` files.
 
 4. **Load the database.** These two scripts create the `resumematch` database, 18 skills, 8 jobs and a
-   demo user:
+   demo user. Run them from the project folder; MySQL asks for the `root` password each time:
    ```
-   mysql -u root -p < database/01_schema.sql
-   mysql -u root -p < database/02_seed_data.sql
+   mysql -u root -p -e "source database/01_schema.sql"
+   mysql -u root -p -e "source database/02_seed_data.sql"
    ```
+   (`mysql -u root -p < database/01_schema.sql` does the same in Bash and `cmd`, but not in PowerShell.)
+   If `mysql` is "not recognized" on Windows, add `C:\Program Files\MySQL\MySQL Server 8.0\bin` to your
+   `PATH` or call it with the full path.
+
    *Check:* `mysql -u root -p -e "SELECT COUNT(*) FROM resumematch.jobs"` prints 8.
 
 5. **Tell the app how to reach the database.** Copy the example settings file, then open the copy and set
@@ -107,13 +124,27 @@ check that it worked. (Want it done for you? Use the [demo setup script](#demo-r
    ```
    cp src/main/resources/db.properties.example src/main/resources/db.properties
    ```
-   (On Windows PowerShell use `copy` instead of `cp`.) This file stays on your machine and is not committed.
+   (On Windows `cmd` or PowerShell use `copy src\main\resources\db.properties.example src\main\resources\db.properties`.)
+   This file stays on your machine and is not committed.
 
-6. **Build and deploy.** This compiles the code, packs `build/ResumeMatch.war` and copies it into Tomcat's
-   `webapps` folder. Tomcat notices the new file and starts the app by itself.
+6. **Build and deploy.** This compiles the code, packs `build/ResumeMatch.war` (a *war* is a web
+   application packed into one file) and copies it into Tomcat's `webapps` folder. First tell the script
+   where Tomcat is by setting `CATALINA_HOME`. On Windows the default is
+   `C:\Program Files\Apache Software Foundation\Tomcat 9.0`, so skip this if you installed it there:
    ```
-   ./build.sh deploy          # Windows: build.bat deploy
+   export CATALINA_HOME=$HOME/apache-tomcat-9.0.123      # Linux, macOS, Git Bash: your Tomcat folder
+   ./build.sh deploy
    ```
+   ```
+   set CATALINA_HOME=C:\tools\apache-tomcat-9.0.123      & rem Windows cmd: your Tomcat folder
+   build.bat deploy
+   ```
+   (In PowerShell use `$env:CATALINA_HOME = "C:\tools\apache-tomcat-9.0.123"` and `.\build.bat deploy`.)
+
+   Then start Tomcat if it is not running yet: `<tomcat>/bin/startup.sh` (Linux, macOS) or
+   `<tomcat>\bin\startup.bat` (Windows). Tomcat notices a new war by itself, so later rebuilds need no
+   restart.
+
    *Check:* the script ends without errors and `webapps/ResumeMatch/` appears in Tomcat after a few seconds.
 
 7. **Open the app.** Go to http://localhost:8080/ResumeMatch/ and log in with `demo@resumematch.in` /
@@ -181,12 +212,19 @@ recommended skills are the required skills missing across all jobs, weighted by 
 resume already is to each job, top five shown.
 
 **Run the analysis without a server.** This prints the skills, the score breakdown and the ranked job
-list for the sample resume (it needs the database for the skill dictionary and jobs):
+list for the sample resume (it needs the database for the skill dictionary and jobs). Add a file path
+at the end to analyse another `.txt` resume, for example `sample-data/priya_sharma_resume.txt` (75/100).
 ```
 javac --release 17 -cp "lib/*" -d build/classes $(find src/main/java -name '*.java')
 java -cp "build/classes:src/main/resources:lib/*" com.resumematch.console.ConsoleDemo
 ```
-(On Windows use `;` instead of `:` in the classpath.)
+On Windows (`cmd`) use a source list file and `;` in the classpath:
+```
+mkdir build
+dir /s /b src\main\java\*.java > build\sources.txt
+javac --release 17 -cp "lib\*" -d build\classes @build\sources.txt
+java -cp "build\classes;src\main\resources;lib\*" com.resumematch.console.ConsoleDemo
+```
 
 ## Code tour: where to look
 All Java code is under [`src/main/java/com/resumematch/`](src/main/java/com/resumematch). Every class starts with a
@@ -262,8 +300,9 @@ adds the detail.
   script clears the seeded tables before inserting. **Running either again deletes all accounts and resumes.**
 - **Build.** `build.bat` on Windows, `./build.sh` elsewhere, produces `build/ResumeMatch.war`.
 - **Deploy.** `build.bat deploy` (or `./build.sh deploy`) builds the war and copies it into
-  `%CATALINA_HOME%\webapps` (default `C:\Program Files\Apache Software Foundation\Tomcat 9.0`).
-  The script never stops or starts Tomcat or any other service.
+  `%CATALINA_HOME%\webapps` (`$CATALINA_HOME/webapps` in Bash). If `CATALINA_HOME` is not set the default is
+  `C:\Program Files\Apache Software Foundation\Tomcat 9.0`, so on Linux and macOS you must set it. The
+  script never stops or starts Tomcat or any other service.
 
 ### Configuration
 | Setting | Where | Default |
@@ -271,6 +310,7 @@ adds the detail.
 | Database URL, user, password | `db.properties` keys `db.url`, `db.user`, `db.password`, or the environment variables `RESUMEMATCH_DB_URL`, `RESUMEMATCH_DB_USER`, `RESUMEMATCH_DB_PASSWORD` (these win) | `jdbc:mysql://localhost:3306/resumematch`, `root`, empty |
 | Database timeouts | added to the URL automatically unless it already sets them | connect 5 s, socket 30 s |
 | Resume folder | context parameter `resumeDir` in `WEB-INF/web.xml` | `<tomcat>/resumes/user_<id>/` |
+| Tomcat folder for `deploy` and the demo script | environment variable `CATALINA_HOME` | `C:\Program Files\Apache Software Foundation\Tomcat 9.0` |
 | Application log | `java.util.logging`, set up at startup | `<tomcat>/logs/resumematch.0.log` (1 MB × 5 files, rotated) |
 | Session timeout | `WEB-INF/web.xml` | 30 minutes |
 
@@ -340,12 +380,12 @@ Linux and Windows, then deploys the war to a real Tomcat 9 with MySQL 8 and runs
 ## Backup and restore
 Back up the database and the resume folder together, because each resume row points to a file:
 ```
-mysqldump -u root -p --single-transaction resumematch > resumematch-backup.sql
+mysqldump -u root -p --single-transaction --result-file=resumematch-backup.sql resumematch
 ```
 and copy `<tomcat>/resumes/`. To restore:
 ```
 mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS resumematch CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
-mysql -u root -p resumematch < resumematch-backup.sql
+mysql -u root -p resumematch -e "source resumematch-backup.sql"
 ```
 then put the resume folder back in the same place.
 
@@ -357,8 +397,11 @@ then put the resume folder back in the same place.
 | `Access denied for user 'root'` in the log | The password in `db.properties` does not match your MySQL password. |
 | "This form expired" (403) after submitting a form | The session timed out or the page was open in an old tab. Reload the page and submit again. |
 | "Too many failed sign-in attempts" | Wait for the time shown, or restart Tomcat to clear the in-memory counters. |
+| `Tomcat webapps folder not found` when deploying | `CATALINA_HOME` is not set (or points to the wrong folder). Set it to your Tomcat 9 folder, see step 6. |
 | Build says `servlet-api.jar is missing` | Copy `servlet-api.jar` from `<tomcat>/lib/` into `lib/`. |
 | `build.sh` fails with `$'\r': command not found` | The script was checked out with Windows line endings. Run `git add --renormalize . && git checkout -- build.sh`. |
+| PowerShell says running scripts is disabled | Run the script as `powershell -ExecutionPolicy Bypass -File scripts\demo-setup.ps1`. |
+| `mysql` or `mysqldump` is "not recognized" / "command not found" | Add MySQL's `bin` folder to your `PATH`, or call it with the full path. |
 | Port 8080 already in use | Stop the other program, or change the connector port in `<tomcat>/conf/server.xml`. |
 | `package javax.servlet does not exist` or `jakarta` errors | This project targets Tomcat 9 (`javax.servlet`). Tomcat 10 and later use `jakarta.servlet`. |
 | "password-protected" or "scanned image" message for a PDF | Text cannot be read from encrypted PDFs or scans. Export a text-based PDF, or upload a `.txt` or `.docx` copy. Old `.doc` files must be saved as `.docx` first. |
@@ -377,4 +420,6 @@ then put the resume folder back in the same place.
 | Rishi | Saved jobs and application tracking, unit and smoke tests |
 
 ## License
-Released under the [MIT License](LICENSE). Copyright (c) 2026 the ResumeMatch team.
+Released under the [MIT License](LICENSE). Copyright (c) 2026 the ResumeMatch team. The bundled fonts keep
+their own licence, the SIL Open Font License 1.1 (see
+[`OFL.txt`](src/main/webapp/assets/fonts/OFL.txt)).
