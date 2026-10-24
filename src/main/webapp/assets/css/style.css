@@ -154,6 +154,7 @@ form.inline{display:inline}
 .ferr:empty{margin-top:0}
 .alert{border-radius:10px;padding:.7rem .9rem;font-size:.9rem;margin-top:1rem;font-weight:500}
 .alert:empty{display:none}
+fieldset.plain{border:0;margin:0;padding:0;min-width:0}
 .alert.bad{background:var(--miss-soft);color:var(--miss)}
 .alert.good{background:var(--match-soft);color:var(--match)}
 .auth-box .btn-primary{width:100%;justify-content:center;margin-top:1.5rem;padding:.8rem}

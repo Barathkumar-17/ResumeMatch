@@ -60,6 +60,7 @@ public class TestRunner {
             DocumentReaderTests.run();
             SecurityTests.run();
             LogicTests.run();
+            PublicDemoTests.run();
         } catch (Exception e) {
             failed++;
             System.out.println("FAIL  unexpected exception: " + e);

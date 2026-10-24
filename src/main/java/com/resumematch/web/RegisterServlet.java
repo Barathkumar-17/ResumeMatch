@@ -24,7 +24,8 @@ import java.util.Map;
  * separately and its message is put in a map keyed by the input name, so the page can
  * show it under the right box. A second account with the same email is reported with
  * the {@code DuplicateEmailException} message. On success the browser is redirected to
- * the login page with a one-time "Account created" message.
+ * the login page with a one-time "Account created" message. In the public live demo
+ * ({@link DemoMode}) new accounts are refused and the page shows a friendly notice instead.
  *
  * <p>Demonstrates: {@code HttpServlet} doGet/doPost, {@code @WebServlet}, request
  * attributes, {@code LinkedHashMap}, catching custom exceptions, Post/Redirect/Get.</p>
@@ -62,6 +63,12 @@ public class RegisterServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
+
+        if (DemoMode.isOn(getServletContext())) {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            showForm(request, response);
+            return;
+        }
 
         String name = request.getParameter("name");
         String email = request.getParameter("email");
@@ -108,6 +115,11 @@ public class RegisterServlet extends HttpServlet {
     private void showForm(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.setAttribute("mode", "register");
+        if (DemoMode.isOn(getServletContext())) {
+            // Live demo: the page shows this message instead of the form.
+            request.setAttribute("signupPaused", Boolean.TRUE);
+            request.setAttribute("error", DemoMode.SIGNUP_PAUSED_MESSAGE);
+        }
         request.getRequestDispatcher(VIEW).forward(request, response);
     }
 

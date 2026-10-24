@@ -20,7 +20,8 @@ import java.util.logging.Logger;
 /**
  * Stores uploaded resumes and the skills found in them ({@code resumes} and
  * {@code resume_skills}). Saving a resume is one transaction: either the resume row and
- * all its skill rows are written, or nothing is.
+ * all its skill rows are written, or nothing is. A user keeps at most their five newest
+ * resumes: saving another one deletes the oldest rows in the same transaction.
  *
  * <p>Demonstrates: JDBC transactions ({@code setAutoCommit(false)}, {@code commit},
  * {@code rollback}), batch inserts ({@code addBatch} / {@code executeBatch}), generated
@@ -34,6 +35,15 @@ public class ResumeDAO {
     private static final String INSERT_RESUME =
             "INSERT INTO resumes (user_id, file_name, file_path, resume_text, score)"
             + " VALUES (?, ?, ?, ?, ?)";
+
+    /** Most resumes one user keeps; saving a newer one removes the oldest. */
+    public static final int MAX_RESUMES_PER_USER = 5;
+
+    private static final String SELECT_OLD_RESUMES =
+            "SELECT id, file_path FROM resumes WHERE user_id = ?"
+            + " ORDER BY uploaded_at DESC, id DESC LIMIT ? OFFSET ?";
+
+    private static final String DELETE_RESUME = "DELETE FROM resumes WHERE id = ?";
 
     private static final String INSERT_RESUME_SKILL =
             "INSERT INTO resume_skills (resume_id, skill_id) VALUES (?, ?)";
@@ -69,6 +79,21 @@ public class ResumeDAO {
      */
     public int saveResumeWithSkills(Resume resume, Set<Integer> skillIds)
             throws DatabaseConnectionException {
+        return saveResumeWithSkills(resume, skillIds, 0, null);
+    }
+
+    /**
+     * Like {@link #saveResumeWithSkills(Resume, Set)}, and in the same transaction deletes the
+     * user's oldest resumes (their skill rows go with them) so that only {@code keepNewest}
+     * remain. The stored file paths of the deleted rows are added to {@code removedPaths}, so
+     * the caller can delete those files once the commit has succeeded.
+     *
+     * @param keepNewest   how many resumes the user keeps in total, or 0 for no limit
+     * @param removedPaths receives the file paths of the deleted resumes; may be {@code null}
+     */
+    public int saveResumeWithSkills(Resume resume, Set<Integer> skillIds, int keepNewest,
+                                    List<String> removedPaths) throws DatabaseConnectionException {
+        List<String> removed = new ArrayList<>();
         try (Connection con = DatabaseConnection.getConnection()) {
             boolean oldAutoCommit = con.getAutoCommit();
             try {
@@ -102,8 +127,15 @@ public class ResumeDAO {
                     }
                 }
 
+                if (keepNewest > 0) {
+                    deleteOldResumes(con, resume.getUserId(), keepNewest, removed);
+                }
+
                 con.commit();
                 resume.setId(resumeId);
+                if (removedPaths != null) {
+                    removedPaths.addAll(removed);
+                }
                 return resumeId;
             } catch (SQLException e) {
                 try {
@@ -122,6 +154,33 @@ public class ResumeDAO {
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "saveResumeWithSkills failed, rolled back", e);
             throw new DatabaseConnectionException(e);
+        }
+    }
+
+    /** Deletes every resume of the user after their newest {@code keep}, collecting the file paths. */
+    private void deleteOldResumes(Connection con, int userId, int keep, List<String> removedPaths)
+            throws SQLException {
+        List<Integer> oldIds = new ArrayList<>();
+        try (PreparedStatement ps = con.prepareStatement(SELECT_OLD_RESUMES)) {
+            ps.setInt(1, userId);
+            ps.setInt(2, Integer.MAX_VALUE);
+            ps.setInt(3, keep);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    oldIds.add(rs.getInt("id"));
+                    removedPaths.add(rs.getString("file_path"));
+                }
+            }
+        }
+        if (oldIds.isEmpty()) {
+            return;
+        }
+        try (PreparedStatement ps = con.prepareStatement(DELETE_RESUME)) {
+            for (Integer id : oldIds) {
+                ps.setInt(1, id);
+                ps.addBatch();
+            }
+            ps.executeBatch();
         }
     }
 
