@@ -30,7 +30,7 @@
   <main class="main" id="main" tabindex="-1">
 <% if (job == null) { %>
     <div class="panel empty">
-      <h2>Job not found</h2>
+      <h1>Job not found</h1>
       <p>${empty requestScope.error ? 'It may have been removed.' : rm:h(requestScope.error)}</p>
       <a class="btn btn-primary" href="${pageContext.request.contextPath}/jobs">Back to jobs</a>
     </div>
@@ -133,9 +133,9 @@
 <% } %>
   </main>
 </div>
-<div class="toasts" aria-live="polite">
-  <div class="toast good">${rm:h(requestScope.flash)}</div>
-  <div class="toast bad">${rm:h(requestScope.flashError)}</div>
+<div class="toasts">
+  <div class="toast good" role="status">${rm:h(requestScope.flash)}</div>
+  <div class="toast bad" role="alert">${rm:h(requestScope.flashError)}</div>
 </div>
 </body>
 </html>

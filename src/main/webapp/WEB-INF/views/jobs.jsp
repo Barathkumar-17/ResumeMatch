@@ -44,7 +44,7 @@
 
     <form method="get" action="${pageContext.request.contextPath}/jobs">
       <div class="search-bar">
-        <input name="q" placeholder="Search jobs, skills or companies" aria-label="Search jobs, skills or companies" value="${rm:h(requestScope.q)}">
+        <input name="q" type="search" placeholder="Search jobs, skills or companies" aria-label="Search jobs, skills or companies" value="${rm:h(requestScope.q)}">
         <button class="btn btn-primary" type="submit">Search</button>
       </div>
       <div class="filters">
@@ -78,7 +78,8 @@
         <div>
           <label for="f-min">Minimum match: <span class="range-val" id="min-val">${requestScope.minMatch}%</span></label>
           <input type="range" id="f-min" name="minMatch" min="0" max="100" step="10" value="${requestScope.minMatch}"
-                 data-range-label="min-val" data-autosubmit ${requestScope.hasResume ? '' : 'disabled'}>
+                 data-range-label="min-val" data-autosubmit ${requestScope.hasResume ? '' : 'disabled aria-describedby="min-hint"'}>
+          <span class="sr-only" id="min-hint" ${requestScope.hasResume ? 'hidden' : ''}>Available once your resume is analyzed.</span>
         </div>
       </div>
     </form>
@@ -86,7 +87,7 @@
     <div class="alert bad mb" role="alert">${rm:h(requestScope.error)}</div>
 
     <div class="result-meta">
-      <span>${requestScope.resultCount} job${requestScope.resultCount == 1 ? '' : 's'}${empty requestScope.q ? '' : ' for &quot;'}${rm:h(requestScope.q)}${empty requestScope.q ? '' : '&quot;'}${requestScope.hasResume ? ', best match first' : ''}</span>
+      <span role="status">${requestScope.resultCount} job${requestScope.resultCount == 1 ? '' : 's'}${empty requestScope.q ? '' : ' for &quot;'}${rm:h(requestScope.q)}${empty requestScope.q ? '' : '&quot;'}${requestScope.hasResume ? ', best match first' : ''}</span>
       <a class="btn btn-ghost btn-sm" href="${pageContext.request.contextPath}/jobs">Clear filters</a>
     </div>
 
@@ -121,13 +122,13 @@
         <div class="small muted">Missing: ${empty missingText ? 'none required' : rm:h(missingText)}${empty missingPreferredText ? '' : '; preferred: '}${rm:h(missingPreferredText)}</div>
 <%     } %>
         <div class="job-actions">
-          <a class="btn btn-primary btn-sm" href="${pageContext.request.contextPath}/job?id=${m.job.id}">View details</a>
-          <span class="btn btn-ghost btn-sm is-on" ${applied ? '' : 'hidden'}>Applied</span>
+          <a class="btn btn-primary btn-sm" href="${pageContext.request.contextPath}/job?id=${m.job.id}" aria-label="View details for ${rm:h(m.job.title)}, ${rm:h(m.job.company)}">View details</a>
+          <span class="btn btn-ghost btn-sm is-on" role="img" aria-label="Applied: ${rm:h(m.job.title)}" ${applied ? '' : 'hidden'}>Applied</span>
           <form class="inline" method="post" action="${pageContext.request.contextPath}/save-job" ${applied ? 'hidden' : ''}>
             <input type="hidden" name="_csrf" value="${sessionScope.csrfToken}">
             <input type="hidden" name="jobId" value="${m.job.id}">
             <input type="hidden" name="action" value="${saved ? 'remove' : 'save'}">
-            <button class="btn btn-ghost btn-sm ${saved ? 'is-on' : ''}" type="submit">${saved ? 'Saved' : 'Save'}</button>
+            <button class="btn btn-ghost btn-sm ${saved ? 'is-on' : ''}" type="submit" aria-label="Save job: ${rm:h(m.job.title)}" aria-pressed="${saved}">${saved ? 'Saved' : 'Save'}</button>
           </form>
         </div>
       </article>
@@ -142,9 +143,9 @@
     </div>
   </main>
 </div>
-<div class="toasts" aria-live="polite">
-  <div class="toast good">${rm:h(requestScope.flash)}</div>
-  <div class="toast bad">${rm:h(requestScope.flashError)}</div>
+<div class="toasts">
+  <div class="toast good" role="status">${rm:h(requestScope.flash)}</div>
+  <div class="toast bad" role="alert">${rm:h(requestScope.flashError)}</div>
 </div>
 </body>
 </html>

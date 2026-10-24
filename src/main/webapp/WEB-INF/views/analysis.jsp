@@ -97,6 +97,6 @@
     </div>
   </main>
 </div>
-<div class="toasts" aria-live="polite"><div class="toast good">${rm:h(requestScope.message)}</div></div>
+<div class="toasts"><div class="toast good" role="status">${rm:h(requestScope.message)}</div></div>
 </body>
 </html>
