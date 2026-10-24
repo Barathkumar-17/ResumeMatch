@@ -80,6 +80,7 @@
     registerTab.tabIndex = tab === "register" ? 0 : -1;
     loginForm.hidden = tab !== "login";
     registerForm.hidden = tab !== "register";
+    document.title = (tab === "login" ? "Log in" : "Create account") + " · ResumeMatch";
     clearAuthMessages();
   }
 
@@ -305,7 +306,10 @@
      ------------------------------------------------------------------ */
   all("input[type=range][data-range-label]").forEach(function (range) {
     var label = byId(range.getAttribute("data-range-label"));
-    var update = function () { if (label) { label.textContent = range.value + "%"; } };
+    var update = function () {
+      if (label) { label.textContent = range.value + "%"; }
+      range.setAttribute("aria-valuetext", range.value + " percent");
+    };
     range.addEventListener("input", update);
     update();
   });
@@ -317,8 +321,27 @@
     if (!form) { return; }
     if (typeof form.requestSubmit === "function") { form.requestSubmit(); } else { form.submit(); }
   }
+  /*
+    A change made with the mouse or touch submits at once. A change made with
+    the keyboard (arrow keys on a dropdown or slider) would reload the page on
+    every key press and drop the focus, so it waits until the user presses
+    Enter or leaves the control.
+  */
   all("[data-autosubmit]").forEach(function (el) {
-    el.addEventListener("change", function () { submitForm(el.form); });
+    var byKeys = false, pending = false;
+    el.addEventListener("pointerdown", function () { byKeys = false; });
+    el.addEventListener("keydown", function (e) {
+      if (/^(Arrow|Home$|End$|Page)/.test(e.key)) { byKeys = true; return; }
+      if (e.key === "Enter" && pending) { e.preventDefault(); pending = false; submitForm(el.form); return; }
+      byKeys = false;
+    });
+    el.addEventListener("change", function () {
+      if (byKeys) { pending = true; return; }
+      submitForm(el.form);
+    });
+    el.addEventListener("blur", function () {
+      if (pending) { pending = false; submitForm(el.form); }
+    });
   });
 
   /* ------------------------------------------------------------------
@@ -358,8 +381,41 @@
   /* 6c. Flash messages rendered by the server fade out on their own */
   all(".toast").forEach(function (t) {
     if (!t.textContent.trim()) { t.parentNode.removeChild(t); return; }
-    setTimeout(function () { if (t.parentNode) { t.parentNode.removeChild(t); } }, 4200);
+    var close = document.createElement("button");
+    close.type = "button";
+    close.className = "toast-close";
+    close.setAttribute("aria-label", "Dismiss message");
+    close.textContent = "×";
+    close.addEventListener("click", function () { if (t.parentNode) { t.parentNode.removeChild(t); } });
+    t.appendChild(close);
+    // Success messages fade out; error messages stay until dismissed.
+    if (t.classList.contains("bad")) { return; }
+    setTimeout(function () { if (t.parentNode) { t.parentNode.removeChild(t); } }, 7000);
   });
+
+  /* 6d. A server-rendered error moves focus to the first field or message that needs attention */
+  (function () {
+    var target = document.querySelector(".auth-box form:not([hidden]) .input.err")
+      || document.querySelector(".auth-box form:not([hidden]) .alert.bad:not(:empty)");
+    if (!target) {
+      var up = document.querySelector("[data-file-err]");
+      if (up && up.textContent.trim()) { target = document.querySelector("[data-pick-file]"); }
+    }
+    if (!target) { target = document.querySelector("main .alert.bad:not(:empty)"); }
+    if (target) {
+      if (!/^(INPUT|BUTTON|A|SELECT)$/.test(target.tagName)) { target.tabIndex = -1; }
+      target.focus();
+    }
+  })();
+
+  /* 6e. On phones the nav bar scrolls sideways; bring the current page into view */
+  (function () {
+    var current = document.querySelector(".nav a.active");
+    var nav = current && current.parentNode;
+    if (nav && nav.scrollWidth > nav.clientWidth && window.matchMedia("(max-width: 760px)").matches) {
+      nav.scrollLeft = current.offsetLeft - (nav.clientWidth - current.offsetWidth) / 2;
+    }
+  })();
 
   /* ------------------------------------------------------------------
      7. Light / dark theme toggle. The saved choice (or the system setting)
