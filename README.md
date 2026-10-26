@@ -1,10 +1,12 @@
+<a id="readme-top"></a>
+
 <div align="center">
 
-<img src="screenshots/logo.png" alt="ResumeMatch logo" width="84">
+<img src="screenshots/logo.png" alt="ResumeMatch logo" width="72">
 
 # ResumeMatch
 
-**Know what your resume says.**<br>
+**Smart resume analyzer and job recommendation system**<br>
 Upload a resume, see which skills it shows, get a score out of 100 and find the jobs it already fits. Every number comes with the rule behind it.
 
 [![Java 17](https://img.shields.io/badge/Java-17-orange?logo=openjdk&logoColor=white)](https://adoptium.net/)
@@ -18,7 +20,7 @@ Upload a resume, see which skills it shows, get a score out of 100 and find the 
 
 <br>
 
-<img src="screenshots/hero.png" alt="ResumeMatch in three steps. Read: a resume with seven skills highlighted. Score: 78 out of 100 with five rule-based parts. Match: jobs ranked 80%, 75% and 75%, with the formula 4 divided by 5 times 100 equals 80%." width="100%">
+<img src="screenshots/hero.png" alt="ResumeMatch: know what your resume says. In three steps. Read: a resume with seven skills highlighted. Score: 78 out of 100 with five rule-based parts. Match: jobs ranked 80%, 75% and 75%, with the formula 4 divided by 5 times 100 equals 80%." width="100%">
 
 <sub>After the demo setup, log in with <code>demo@resumematch.in</code> / <code>demo1234</code>. Want to show it to others? See <a href="DEPLOY.md">Share a live demo</a>.</sub>
 
@@ -99,6 +101,8 @@ out. Every row follows a rule written down in [How it works](#how-it-works), so 
 
 More pictures, full size: [SCREENSHOTS.md](SCREENSHOTS.md).
 
+<p align="right"><a href="#readme-top">back to top &uarr;</a></p>
+
 ## Try the demo
 One command sets everything up. It checks your tools, creates `db.properties`, runs the unit tests, builds
 and deploys the app, and waits until the site answers. It never starts or stops Tomcat or MySQL.
@@ -117,8 +121,8 @@ Run it without the flag to just rebuild and redeploy. Then log in with `demo@res
 **Share a live demo.** To let other people try the running app over the internet, `scripts/public-demo.ps1` /
 `scripts/public-demo.sh` open a free temporary https address to your PC. See [DEPLOY.md](DEPLOY.md).
 
-> **Warning:** `--reset-db` / `-ResetDb` reloads the database and **deletes all accounts and resumes**,
-> so the script asks for confirmation first.
+> [!WARNING]
+> `--reset-db` / `-ResetDb` reloads the database and **deletes all accounts and resumes**, so the script asks for confirmation first.
 
 ## Quick start
 Never set up a Java web app before? Follow these steps in order. Each one says what it does and how to
@@ -199,8 +203,8 @@ check that it worked. (Want it done for you? Use the [demo setup script](#try-th
 
    *Check:* the dashboard shows **78/100** and **7 skills**.
 
-> **Tip:** if something goes wrong, the [Troubleshooting](#troubleshooting) table lists the common
-> messages and their fixes. The app log is `<tomcat>/logs/resumematch.0.log`.
+> [!TIP]
+> if something goes wrong, the [Troubleshooting](#troubleshooting) table lists the common messages and their fixes. The app log is `<tomcat>/logs/resumematch.0.log`.
 
 ## Take the tour
 New here? [DEMO.md](DEMO.md) is a guided tour of about ten minutes. Every step has a screenshot and the
@@ -296,6 +300,8 @@ mysql -u root -p resumematch -e "source resumematch-backup.sql"
 then put the resume folder back in the same place.
 
 </details>
+
+<p align="right"><a href="#readme-top">back to top &uarr;</a></p>
 
 ## How it works
 Everything is deterministic and rule-based: the same resume always gives the same result.
@@ -544,12 +550,8 @@ CREATE TABLE applications (
 All Java code is under [`src/main/java/com/resumematch/`](src/main/java/com/resumematch). Every class starts with a
 short comment ending in "Demonstrates: ...", so you can also search for that word.
 
-> **Tip:** to follow one request from start to finish, open
-> [`ResumeUploadServlet`](src/main/java/com/resumematch/web/ResumeUploadServlet.java), then
-> [`FileService`](src/main/java/com/resumematch/service/FileService.java),
-> [`ResumeAnalyzer`](src/main/java/com/resumematch/service/ResumeAnalyzer.java),
-> [`ResumeScorer`](src/main/java/com/resumematch/service/ResumeScorer.java) and
-> [`ResumeDAO`](src/main/java/com/resumematch/dao/ResumeDAO.java).
+> [!TIP]
+> to follow one request from start to finish, open [`ResumeUploadServlet`](src/main/java/com/resumematch/web/ResumeUploadServlet.java), then [`FileService`](src/main/java/com/resumematch/service/FileService.java), [`ResumeAnalyzer`](src/main/java/com/resumematch/service/ResumeAnalyzer.java), [`ResumeScorer`](src/main/java/com/resumematch/service/ResumeScorer.java) and [`ResumeDAO`](src/main/java/com/resumematch/dao/ResumeDAO.java).
 
 <details>
 <summary><b>Show the full code tour (12 topics)</b></summary>
@@ -651,7 +653,8 @@ with status 1 on any failure. `./build.sh test deploy` deploys only when the tes
 MYSQL_PWD=<mysql root password> scripts/smoke-test.sh http://localhost:8080/ResumeMatch
 ```
 ```
-$env:MYSQL_PWD = "<mysql root password>"; .\scripts\smoke-test.ps1 -BaseUrl http://localhost:8080/ResumeMatch
+$env:MYSQL_PWD = "<mysql root password>"
+.\scripts\smoke-test.ps1 -BaseUrl http://localhost:8080/ResumeMatch
 ```
 It registers a throw-away `smoke-<timestamp>@example.com` user, walks through every page and flow
 (including an unsupported file type, an empty file, an oversized file and a `../` file name), checks the
@@ -678,10 +681,12 @@ build.sh           build, test and deploy script for Linux/macOS/Git Bash
 build.bat          the same for Windows
 ```
 
+<p align="right"><a href="#readme-top">back to top &uarr;</a></p>
+
 ## Team
 | Member | Area |
 |---|---|
-| Barathkumar M P | Database, analysis engine, authentication, upload and analysis pages, build, packaging and deployment |
+| Barathkumar&nbsp;M&nbsp;P | Database, analysis engine, authentication, upload and analysis pages, build, packaging and deployment |
 | Gokul K | Models, exceptions, JDBC data access, password hashing and sign-in limit |
 | Hemanth Suresh | Page shell: stylesheet, scripts, landing and login pages, security filters |
 | Faseesh | Resume score page, resume download, accessibility and mobile layout |
