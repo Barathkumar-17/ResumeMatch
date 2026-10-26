@@ -22,12 +22,17 @@
 > skill dictionary stored in the database. There is no AI or machine learning, so every number on screen
 > can be explained by a rule shown next to it.
 
+> Reviewing this project? [How it works](#how-it-works) explains the rules, the
+> [code tour](#code-tour-where-to-look) maps each Java concept to its source file, and
+> [Database schema](#database-schema) lists the tables and their relationships.
+
 ## Contents
 
 - [Highlights](#highlights)
 - [Try the demo](#try-the-demo)
 - [Take the tour](#take-the-tour)
 - [Architecture](#architecture)
+- [Database schema](#database-schema)
 - [Code tour: where to look](#code-tour-where-to-look)
 - [How it works](#how-it-works)
 - [Security](#security)
@@ -118,6 +123,171 @@ No frameworks, no ORM and no build tool: the project compiles with plain `javac`
 MySQL Connector/J and Tomcat's servlet API. Fonts (Bricolage Grotesque and Source Serif 4, SIL Open Font
 License) are bundled, so pages work offline.
 
+## Database schema
+Eight tables, created by [`database/01_schema.sql`](database/01_schema.sql) and filled with starter
+data (18 skills, 8 jobs, one demo user) by [`database/02_seed_data.sql`](database/02_seed_data.sql).
+
+| Table | What it stores | Keys and relationships |
+|---|---|---|
+| `users` | registered accounts; the password column holds a salted PBKDF2 hash, never plain text | `id` PK; `email` UNIQUE |
+| `resumes` | every uploaded resume: file name and path, extracted text, score | `id` PK; `user_id` FK -> `users.id` (ON DELETE CASCADE) |
+| `skills` | the skill dictionary used for text matching, with aliases for other spellings | `id` PK; `skill_name` UNIQUE |
+| `resume_skills` | which skills were found in which resume (many-to-many) | (`resume_id`, `skill_id`) composite PK; FKs to `resumes` and `skills` |
+| `jobs` | job and internship listings | `id` PK; `job_type` ENUM('Internship','Full-time','Part-time') |
+| `job_skills` | the skills each job asks for, marked REQUIRED or PREFERRED; only REQUIRED skills count toward the match % | (`job_id`, `skill_id`) composite PK; FKs to `jobs` and `skills` |
+| `saved_jobs` | jobs a user bookmarked | (`user_id`, `job_id`) composite PK; FKs to `users` and `jobs` |
+| `applications` | jobs a user applied to, with status (Applied, Interview, Rejected, Selected) | `id` PK; UNIQUE(`user_id`, `job_id`), so one application per user per job |
+
+Relationships at a glance. Many-to-many links get their own table with a composite primary key,
+so skills are queried and compared without parsing comma-separated strings:
+```
+users  1 -- *  resumes  * -- *  skills   (through resume_skills)
+jobs   * -- *  skills             (through job_skills, REQUIRED or PREFERRED)
+users  * -- *  jobs               (through saved_jobs and applications)
+```
+
+<details>
+<summary>Full CREATE TABLE definitions (copied from <code>database/01_schema.sql</code>)</summary>
+
+```sql
+-- =====================================================================
+-- ResumeMatch - database schema
+-- Drops and recreates the whole database, so it is safe to run again.
+--
+-- Run:  mysql -u root -p < database/01_schema.sql
+-- Then: mysql -u root -p < database/02_seed_data.sql
+-- =====================================================================
+
+DROP DATABASE IF EXISTS resumematch;
+CREATE DATABASE resumematch
+    CHARACTER SET utf8mb4
+    COLLATE utf8mb4_unicode_ci;
+
+USE resumematch;
+
+-- ---------------------------------------------------------------------
+-- users: one row per registered user.
+-- The UNIQUE index on email is what makes a second sign-up with the same
+-- email fail (SQLIntegrityConstraintViolationException in JDBC).
+-- password holds a salted PBKDF2 hash (pbkdf2$iterations$salt$hash), never plain text.
+-- ---------------------------------------------------------------------
+CREATE TABLE users (
+    id          INT AUTO_INCREMENT PRIMARY KEY,
+    name        VARCHAR(100) NOT NULL,
+    email       VARCHAR(150) NOT NULL,
+    password    VARCHAR(255) NOT NULL,
+    created_at  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_users_email UNIQUE (email)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------
+-- resumes: every uploaded resume (.txt, .pdf or .docx). file_path is where the file was
+-- saved on disk, resume_text is the full text, score is out of 100.
+-- ---------------------------------------------------------------------
+CREATE TABLE resumes (
+    id           INT AUTO_INCREMENT PRIMARY KEY,
+    user_id      INT          NOT NULL,
+    file_name    VARCHAR(255) NOT NULL,
+    file_path    VARCHAR(500) NOT NULL,
+    resume_text  MEDIUMTEXT   NOT NULL,
+    score        INT          NOT NULL DEFAULT 0,
+    uploaded_at  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_resumes_user
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    -- "latest resume of a user" is ORDER BY uploaded_at DESC for one user_id
+    INDEX idx_resumes_user_uploaded (user_id, uploaded_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------
+-- skills: the skill dictionary used for text matching.
+-- aliases is a comma separated list of other spellings (e.g. "CPP").
+-- ---------------------------------------------------------------------
+CREATE TABLE skills (
+    id          INT AUTO_INCREMENT PRIMARY KEY,
+    skill_name  VARCHAR(50)  NOT NULL,
+    category    VARCHAR(30)  NOT NULL,
+    aliases     VARCHAR(200) NULL,
+    CONSTRAINT uq_skills_name UNIQUE (skill_name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------
+-- resume_skills: which skills were found in which resume (many-to-many).
+-- ---------------------------------------------------------------------
+CREATE TABLE resume_skills (
+    resume_id  INT NOT NULL,
+    skill_id   INT NOT NULL,
+    PRIMARY KEY (resume_id, skill_id),
+    CONSTRAINT fk_resume_skills_resume
+        FOREIGN KEY (resume_id) REFERENCES resumes(id) ON DELETE CASCADE,
+    CONSTRAINT fk_resume_skills_skill
+        FOREIGN KEY (skill_id) REFERENCES skills(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------
+-- jobs: job and internship listings shown on the search page.
+-- ---------------------------------------------------------------------
+CREATE TABLE jobs (
+    id           INT AUTO_INCREMENT PRIMARY KEY,
+    title        VARCHAR(120) NOT NULL,
+    company      VARCHAR(120) NOT NULL,
+    location     VARCHAR(80),
+    job_type     ENUM('Internship','Full-time','Part-time'),
+    experience   VARCHAR(40),
+    description  TEXT,
+    salary       VARCHAR(50),
+    posted_at    TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------
+-- job_skills: skills each job asks for.
+-- Only REQUIRED rows count towards the match score; PREFERRED rows are
+-- shown as "nice to have" and on the skill gap page.
+-- ---------------------------------------------------------------------
+CREATE TABLE job_skills (
+    job_id          INT NOT NULL,
+    skill_id        INT NOT NULL,
+    required_level  ENUM('REQUIRED','PREFERRED') NOT NULL DEFAULT 'REQUIRED',
+    PRIMARY KEY (job_id, skill_id),
+    CONSTRAINT fk_job_skills_job
+        FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE,
+    CONSTRAINT fk_job_skills_skill
+        FOREIGN KEY (skill_id) REFERENCES skills(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------
+-- saved_jobs: jobs a user bookmarked but has not applied to yet.
+-- ---------------------------------------------------------------------
+CREATE TABLE saved_jobs (
+    user_id   INT NOT NULL,
+    job_id    INT NOT NULL,
+    saved_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id, job_id),
+    CONSTRAINT fk_saved_jobs_user
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT fk_saved_jobs_job
+        FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------
+-- applications: jobs a user marked as applied, with a status.
+-- One application per user per job.
+-- ---------------------------------------------------------------------
+CREATE TABLE applications (
+    id          INT AUTO_INCREMENT PRIMARY KEY,
+    user_id     INT NOT NULL,
+    job_id      INT NOT NULL,
+    status      ENUM('Applied','Interview','Rejected','Selected') NOT NULL DEFAULT 'Applied',
+    applied_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_applications_user_job UNIQUE (user_id, job_id),
+    CONSTRAINT fk_applications_user
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT fk_applications_job
+        FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+```
+
+</details>
+
 ## Code tour: where to look
 All Java code is under [`src/main/java/com/resumematch/`](src/main/java/com/resumematch). Every class starts with a
 short comment ending in "Demonstrates: ...", so you can also search for that word.
@@ -131,6 +301,7 @@ short comment ending in "Demonstrates: ...", so you can also search for that wor
 | **Exception handling** | [`exception/`](src/main/java/com/resumematch/exception): abstract [`AppException`](src/main/java/com/resumematch/exception/AppException.java) with [`InvalidFileException`](src/main/java/com/resumematch/exception/InvalidFileException.java), [`EmptyResumeException`](src/main/java/com/resumematch/exception/EmptyResumeException.java), [`FileReadException`](src/main/java/com/resumematch/exception/FileReadException.java), [`DatabaseConnectionException`](src/main/java/com/resumematch/exception/DatabaseConnectionException.java), [`DuplicateEmailException`](src/main/java/com/resumematch/exception/DuplicateEmailException.java), [`InvalidLoginException`](src/main/java/com/resumematch/exception/InvalidLoginException.java), [`InvalidJobException`](src/main/java/com/resumematch/exception/InvalidJobException.java), [`MissingFieldException`](src/main/java/com/resumematch/exception/MissingFieldException.java) | A custom checked-exception hierarchy with friendly messages and exception chaining; servlets turn them into on-page messages, never a stack trace |
 | **File handling** | [`FileService`](src/main/java/com/resumematch/service/FileService.java) (save, read, path checks), [`TxtResumeReader`](src/main/java/com/resumematch/service/TxtResumeReader.java), [`PdfResumeReader`](src/main/java/com/resumematch/service/PdfResumeReader.java), [`DocxResumeReader`](src/main/java/com/resumematch/service/DocxResumeReader.java); [`ResumeUploadServlet`](src/main/java/com/resumematch/web/ResumeUploadServlet.java), [`ResumeDownloadServlet`](src/main/java/com/resumematch/web/ResumeDownloadServlet.java) | `java.nio.file`, buffered reading, ZIP and XML (`.docx`) and PDF parsing with only the JDK |
 | **JDBC** | [`dao/`](src/main/java/com/resumematch/dao): [`UserDAO`](src/main/java/com/resumematch/dao/UserDAO.java), [`ResumeDAO`](src/main/java/com/resumematch/dao/ResumeDAO.java), [`JobDAO`](src/main/java/com/resumematch/dao/JobDAO.java), [`SkillDAO`](src/main/java/com/resumematch/dao/SkillDAO.java), [`ApplicationDAO`](src/main/java/com/resumematch/dao/ApplicationDAO.java); connection in [`DatabaseConnection`](src/main/java/com/resumematch/util/DatabaseConnection.java) | `PreparedStatement` everywhere, try-with-resources; `ResumeDAO` saves a resume in one transaction (commit and rollback) with batch inserts |
+| **Database tables** | [`database/01_schema.sql`](database/01_schema.sql), [`database/02_seed_data.sql`](database/02_seed_data.sql) | The 8 tables, keys and relationships (see [Database schema](#database-schema)) |
 | **Servlets and JSP** | [`web/`](src/main/java/com/resumematch/web) servlets, for example [`LoginServlet`](src/main/java/com/resumematch/web/LoginServlet.java), [`ScoreServlet`](src/main/java/com/resumematch/web/ScoreServlet.java), [`JobSearchServlet`](src/main/java/com/resumematch/web/JobSearchServlet.java); pages in [`WEB-INF/views/`](src/main/webapp/WEB-INF/views); settings in [`web.xml`](src/main/webapp/WEB-INF/web.xml) | Servlets prepare the data and forward to a JSP; JSPs only display it (plain EL, no logic) |
 | **Filters and security** | [`SecurityHeadersFilter`](src/main/java/com/resumematch/web/SecurityHeadersFilter.java), [`CsrfFilter`](src/main/java/com/resumematch/web/CsrfFilter.java), [`AuthFilter`](src/main/java/com/resumematch/web/AuthFilter.java), [`LoginAttemptLimiter`](src/main/java/com/resumematch/util/LoginAttemptLimiter.java), [`PasswordUtil`](src/main/java/com/resumematch/util/PasswordUtil.java), [`ValidationUtil`](src/main/java/com/resumematch/util/ValidationUtil.java), [`HtmlUtil`](src/main/java/com/resumematch/util/HtmlUtil.java) | Headers, CSRF tokens, login check, brute-force limit, PBKDF2 hashing, input validation, HTML escaping (see [Security](#security)) |
 | **Logging** | [`AppStartupListener`](src/main/java/com/resumematch/web/AppStartupListener.java) | `ServletContextListener` that sets up `java.util.logging` with a rotating file |
@@ -441,7 +612,7 @@ then put the resume folder back in the same place.
 
 ## Project layout
 ```
-database/          01_schema.sql, 02_seed_data.sql
+database/          01_schema.sql (all 8 tables, see Database schema), 02_seed_data.sql
 sample-data/       two sample resumes
 screenshots/       images used in this README (demo/ holds the ones used by DEMO.md)
 src/main/java/     com.resumematch.{model,exception,util,dao,service,web,console}
