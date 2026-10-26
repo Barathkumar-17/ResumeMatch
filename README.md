@@ -1,17 +1,13 @@
 <div align="center">
 
-# ResumeMatch
+<img src="screenshots/hero.png" alt="ResumeMatch: know what your resume says. Read: a resume with seven skills highlighted. Score: 78 out of 100 with five rule-based parts. Match: jobs ranked 80%, 75% and 75%, with the formula 4 divided by 5 times 100 equals 80%." width="100%">
 
-**Know what your resume says.** Skills found, score explained, jobs ranked, and the maths shown.
-
-[![Java 17](https://img.shields.io/badge/Java-17-ED8B00?logo=openjdk&logoColor=white)](https://adoptium.net/)
-[![Tomcat 9](https://img.shields.io/badge/Tomcat-9-F8DC75?logo=apachetomcat&logoColor=black)](https://tomcat.apache.org/download-90.cgi)
-[![MySQL 8](https://img.shields.io/badge/MySQL-8-4479A1?logo=mysql&logoColor=white)](https://dev.mysql.com/downloads/mysql/)
-[![Dependencies](https://img.shields.io/badge/dependencies-2%20jars-18223D)](lib/README.md)
-[![CI](https://github.com/Barathkumar-17/ResumeMatch/actions/workflows/ci.yml/badge.svg)](https://github.com/Barathkumar-17/ResumeMatch/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-
-<img src="screenshots/hero.png" alt="ResumeMatch in three steps. Read: a resume with seven skills highlighted. Score: 78 out of 100 with five rule-based parts. Match: jobs ranked 80%, 75% and 75%, with the formula 4 divided by 5 times 100 equals 80%." width="100%">
+[![Java 17](https://img.shields.io/badge/Java-17-FFE45C?style=flat-square&labelColor=2B3452&logo=openjdk&logoColor=white)](https://adoptium.net/)
+[![Tomcat 9](https://img.shields.io/badge/Tomcat-9-FFE45C?style=flat-square&labelColor=2B3452&logo=apachetomcat&logoColor=white)](https://tomcat.apache.org/download-90.cgi)
+[![MySQL 8](https://img.shields.io/badge/MySQL-8-FFE45C?style=flat-square&labelColor=2B3452&logo=mysql&logoColor=white)](https://dev.mysql.com/downloads/mysql/)
+[![Dependencies](https://img.shields.io/badge/dependencies-2%20jars-FFE45C?style=flat-square&labelColor=2B3452)](lib/README.md)
+[![CI](https://img.shields.io/github/actions/workflow/status/Barathkumar-17/ResumeMatch/ci.yml?branch=main&label=CI&logo=githubactions&logoColor=white&style=flat-square&labelColor=2B3452)](https://github.com/Barathkumar-17/ResumeMatch/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-FFE45C?style=flat-square&labelColor=2B3452)](LICENSE)
 
 **[Run it in one command](#try-the-demo)** &nbsp;·&nbsp; [See one resume start to finish](#one-resume-start-to-finish) &nbsp;·&nbsp; [Read the rules](#how-it-works) &nbsp;·&nbsp; [Explore the code](#code-tour-where-to-look)
 
@@ -19,43 +15,21 @@
 
 </div>
 
-> **Note:** the analysis is **rule-based**. Skills are found by matching the resume text against a fixed
-> skill dictionary stored in the database. There is no AI or machine learning, so every number on screen
-> can be explained by a rule shown next to it.
+> [!NOTE]
+> The analysis is **rule-based**. Skills are found by matching the resume text against a fixed skill dictionary stored in the database. There is no AI or machine learning, so every number on screen can be explained by a rule shown next to it.
 
-> Reviewing this project? [How it works](#how-it-works) explains the rules, the
-> [code tour](#code-tour-where-to-look) maps each Java concept to its source file, and
-> [Database schema](#database-schema) lists the tables and their relationships.
+> [!TIP]
+> Reviewing this project? [How it works](#how-it-works) explains the rules, the [code tour](#code-tour-where-to-look) maps each Java concept to its source file, and [Database schema](#database-schema) lists the tables and their relationships.
 
 ## Contents
 
-**What you get**
-- [What it does](#what-it-does)
-- [One resume, start to finish](#one-resume-start-to-finish)
-- [Features](#features)
-- [Screens](#screens)
+**What you get** &nbsp;·&nbsp; [What it does](#what-it-does) · [One resume, start to finish](#one-resume-start-to-finish) · [Features](#features) · [Screens](#screens)
 
-**Run it**
-- [Try the demo](#try-the-demo)
-- [Quick start](#quick-start)
-- [Take the tour](#take-the-tour)
-- [Setup and configuration](#setup-and-configuration)
-- [Share a live demo](DEPLOY.md)
-- [Troubleshooting](#troubleshooting)
-- [Backup and restore](#backup-and-restore)
+**Run it** &nbsp;·&nbsp; [Try the demo](#try-the-demo) · [Quick start](#quick-start) · [Take the tour](#take-the-tour) · [Setup and configuration](#setup-and-configuration) · [Troubleshooting](#troubleshooting) · [Backup and restore](#backup-and-restore) · [Share a live demo](DEPLOY.md)
 
-**Under the hood**
-- [How it works](#how-it-works)
-- [Architecture](#architecture)
-- [Database schema](#database-schema)
-- [Code tour: where to look](#code-tour-where-to-look)
-- [Security](#security)
-- [Testing](#testing)
-- [Project layout](#project-layout)
+**Under the hood** &nbsp;·&nbsp; [How it works](#how-it-works) · [Architecture](#architecture) · [Database schema](#database-schema) · [Code tour](#code-tour-where-to-look) · [Security](#security) · [Testing](#testing) · [Project layout](#project-layout)
 
-**About**
-- [Team](#team)
-- [License](#license)
+**About** &nbsp;·&nbsp; [Team](#team) · [License](#license)
 
 ## What it does
 You upload a resume. ResumeMatch then:
@@ -77,7 +51,7 @@ out. Every row follows a rule written down in [How it works](#how-it-works), so 
 | **4. Gap** | The same job, counting required and preferred skills | 4 of 6 = **67%**; missing Spring Boot and REST API |
 
 ## Features
-| | |
+| Area | What you get |
 | --- | --- |
 | **Accounts** | Register and log in. Salted PBKDF2 password hashes, session-based access control and a sign-in attempt limit. |
 | **Upload** | `.txt` (up to 200 KB), `.pdf` or `.docx` (up to 2 MB) with type, size, encoding and empty-file validation. Old binary `.doc` files are not supported, and a password-protected or scanned PDF gets a friendly message instead of a result. |
@@ -90,28 +64,29 @@ out. Every row follows a rule written down in [How it works](#how-it-works), so 
 | **Look and feel** | Light and dark theme, phone-width layout, keyboard accessible. |
 
 ## Screens
-<table>
-  <tr>
-    <td width="50%"><img src="screenshots/01-landing.png" alt="Landing page"><br><sub><b>Landing page.</b> Log in or create an account.</sub></td>
-    <td width="50%"><img src="screenshots/02-dashboard.png" alt="Dashboard"><br><sub><b>Dashboard.</b> Upload a resume and see the score, skill count and best-matching jobs.</sub></td>
-  </tr>
-  <tr>
-    <td width="50%"><img src="screenshots/03-analysis.png" alt="Resume analysis"><br><sub><b>Analysis.</b> 7 skills found, grouped by category and highlighted in the resume text.</sub></td>
-    <td width="50%"><img src="screenshots/04-score.png" alt="Resume score"><br><sub><b>Score.</b> 78/100 with the rule behind every point.</sub></td>
-  </tr>
-  <tr>
-    <td width="50%"><img src="screenshots/05-skill-gap.png" alt="Skill gap"><br><sub><b>Skill gap.</b> 67% match for one job, the missing skills and what to learn next.</sub></td>
-    <td width="50%"><img src="screenshots/06-job-search.png" alt="Job search"><br><sub><b>Job search.</b> Filters and a minimum-match slider; best match first (80%, 75%, 40%, 33%).</sub></td>
-  </tr>
-  <tr>
-    <td width="50%"><img src="screenshots/07-job-detail.png" alt="Job detail"><br><sub><b>Job detail.</b> Shows the maths: 4 of 5 required skills = 80%.</sub></td>
-    <td width="50%"><img src="screenshots/08-my-jobs.png" alt="My jobs"><br><sub><b>My jobs.</b> Saved and applied jobs, with a status for each.</sub></td>
-  </tr>
-  <tr>
-    <td width="50%"><img src="screenshots/09-score-dark.png" alt="Resume score in the dark theme"><br><sub><b>Dark theme.</b> One click in the sidebar.</sub></td>
-    <td width="50%"><img src="screenshots/10-score-phone.png" alt="Resume score on a phone" height="300"> <img src="screenshots/11-jobs-phone.png" alt="Job search on a phone" height="300"><br><sub><b>Phone layout.</b> Every page works on a narrow screen.</sub></td>
-  </tr>
-</table>
+<p align="center">
+  <img src="screenshots/01-landing.png" alt="Landing page" width="49%">
+  <img src="screenshots/02-dashboard.png" alt="Dashboard" width="49%">
+  <br><sub><b>Landing.</b> Log in or create an account. &nbsp;&nbsp;|&nbsp;&nbsp; <b>Dashboard.</b> Upload, score, best matches.</sub>
+</p>
+
+<p align="center">
+  <img src="screenshots/03-analysis.png" alt="Resume analysis with highlighted skills" width="49%">
+  <img src="screenshots/04-score.png" alt="Resume score page" width="49%">
+  <br><sub><b>Analysis.</b> 7 skills, highlighted in the text. &nbsp;&nbsp;|&nbsp;&nbsp; <b>Score.</b> 78/100, a rule behind every point.</sub>
+</p>
+
+<p align="center">
+  <img src="screenshots/06-job-search.png" alt="Job search" width="49%">
+  <img src="screenshots/07-job-detail.png" alt="Job detail with the match maths" width="49%">
+  <br><sub><b>Job search.</b> Filters and a minimum-match slider. &nbsp;&nbsp;|&nbsp;&nbsp; <b>Job detail.</b> 4 of 5 required skills = 80%.</sub>
+</p>
+
+<p align="center">
+  <img src="screenshots/09-score-dark.png" alt="Resume score in the dark theme" width="49%">
+  <img src="screenshots/05-skill-gap.png" alt="Skill gap page" width="49%">
+  <br><sub><b>Dark theme.</b> One click in the sidebar. &nbsp;&nbsp;|&nbsp;&nbsp; <b>Skill gap.</b> 67% for one job, what to learn next.</sub>
+</p>
 
 More pictures, full size: [SCREENSHOTS.md](SCREENSHOTS.md).
 
@@ -227,6 +202,9 @@ search jobs (80, 75, 40, 33), save and apply, then try dark mode and the phone l
 The [beginner steps](#quick-start) above are all you need to get running. This section
 adds the detail.
 
+<details>
+<summary><b>Show prerequisites, notes and the configuration table</b></summary>
+
 ### Prerequisites
 | Tool | Version | Needed for |
 |---|---|---|
@@ -266,7 +244,12 @@ To use another resume folder, add this to `WEB-INF/web.xml`:
 </context-param>
 ```
 
+</details>
+
 ## Troubleshooting
+<details>
+<summary><b>Common messages and fixes (15)</b></summary>
+
 | Problem | Fix |
 |---|---|
 | `ClassNotFoundException: com.mysql.cj.jdbc.Driver` in the log | The MySQL jar is missing from `<tomcat>/lib/`. Copy it there and restart Tomcat. |
@@ -286,7 +269,12 @@ To use another resume folder, add this to `WEB-INF/web.xml`:
 | Dates are a few hours off | Remove any `serverTimezone` setting from `db.url`; the driver detects the server time zone itself. |
 | Smoke test cannot clean up | Put the `mysql` client on the PATH (or set `MYSQL`) and set `MYSQL_PWD`. |
 
+</details>
+
 ## Backup and restore
+<details>
+<summary><b>Show the backup and restore commands</b></summary>
+
 Back up the database and the resume folder together, because each resume row points to a file:
 ```
 mysqldump -u root -p --single-transaction --result-file=resumematch-backup.sql resumematch
@@ -297,6 +285,8 @@ mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS resumematch CHARACTER SET utf
 mysql -u root -p resumematch -e "source resumematch-backup.sql"
 ```
 then put the resume folder back in the same place.
+
+</details>
 
 ## How it works
 Everything is deterministic and rule-based: the same resume always gives the same result.
@@ -337,7 +327,10 @@ Jobs are sorted by match, then by title. The sample resume against the Java Back
 recommended skills are the required skills missing across all jobs, weighted by how close the
 resume already is to each job, top five shown.
 
-**Run the analysis without a server.** This prints the skills, the score breakdown and the ranked job
+<details>
+<summary><b>Run the analysis without a server</b></summary>
+
+This prints the skills, the score breakdown and the ranked job
 list for the sample resume (it needs the database for the skill dictionary and jobs). Add a file path
 at the end to analyse another `.txt` resume, for example `sample-data/priya_sharma_resume.txt` (75/100).
 ```
@@ -352,12 +345,11 @@ javac --release 17 -cp "lib\*" -d build\classes @build\sources.txt
 java -cp "build\classes;src\main\resources;lib\*" com.resumematch.console.ConsoleDemo
 ```
 
+</details>
+
 ## Architecture
-```
-Browser  ->  Filters (security headers, CSRF, login)  ->  Servlet (web)  ->  Service (service)  ->  DAO (dao)  ->  MySQL
-                                                              |
-                                                         JSP views (display only)
-```
+<p align="center"><img src="screenshots/architecture.png" width="100%" alt="A request goes from the browser through filters, a servlet, the service layer and a DAO to MySQL. JSP views only display what the servlet prepared. model, exception and util are shared by every layer."></p>
+
 - `model`: plain objects passed between layers (`User`, `Resume`, `Skill`, `Job`, `JobMatch`, ...)
 - `exception`: custom exceptions with user-friendly messages; no stack trace ever reaches the browser
 - `util`: JDBC connection, password hashing, sign-in attempt limit, input validation, HTML escaping
@@ -543,6 +535,16 @@ CREATE TABLE applications (
 All Java code is under [`src/main/java/com/resumematch/`](src/main/java/com/resumematch). Every class starts with a
 short comment ending in "Demonstrates: ...", so you can also search for that word.
 
+> **Tip:** to follow one request from start to finish, open
+> [`ResumeUploadServlet`](src/main/java/com/resumematch/web/ResumeUploadServlet.java), then
+> [`FileService`](src/main/java/com/resumematch/service/FileService.java),
+> [`ResumeAnalyzer`](src/main/java/com/resumematch/service/ResumeAnalyzer.java),
+> [`ResumeScorer`](src/main/java/com/resumematch/service/ResumeScorer.java) and
+> [`ResumeDAO`](src/main/java/com/resumematch/dao/ResumeDAO.java).
+
+<details>
+<summary><b>Show the full code tour (12 topics)</b></summary>
+
 | Topic | Where to look | What to see there |
 |---|---|---|
 | **OOP: interfaces and polymorphism** | [`ResumeReader`](src/main/java/com/resumematch/service/ResumeReader.java) with [`TxtResumeReader`](src/main/java/com/resumematch/service/TxtResumeReader.java), [`PdfResumeReader`](src/main/java/com/resumematch/service/PdfResumeReader.java), [`DocxResumeReader`](src/main/java/com/resumematch/service/DocxResumeReader.java); [`JobMatcher`](src/main/java/com/resumematch/service/JobMatcher.java) with [`SkillBasedJobMatcher`](src/main/java/com/resumematch/service/SkillBasedJobMatcher.java) | One interface, several implementations; callers use the interface only |
@@ -559,14 +561,14 @@ short comment ending in "Demonstrates: ...", so you can also search for that wor
 | **Business rules** | [`ResumeAnalyzer`](src/main/java/com/resumematch/service/ResumeAnalyzer.java) (skills), [`ResumeScorer`](src/main/java/com/resumematch/service/ResumeScorer.java) (score), [`SkillBasedJobMatcher`](src/main/java/com/resumematch/service/SkillBasedJobMatcher.java) (match and gap) | The rules described in [How it works](#how-it-works), with no web or SQL code |
 | **Testing** | [`TestRunner`](test/com/resumematch/TestRunner.java), [`DocumentReaderTests`](test/com/resumematch/DocumentReaderTests.java), [`SecurityTests`](test/com/resumematch/SecurityTests.java); [`smoke-test.sh`](scripts/smoke-test.sh) / [`smoke-test.ps1`](scripts/smoke-test.ps1); [`ci.yml`](.github/workflows/ci.yml) | Plain-Java tests with no framework, an end-to-end script and the CI workflow (see [Testing](#testing)) |
 
-> **Tip:** to follow one request from start to finish, open
-> [`ResumeUploadServlet`](src/main/java/com/resumematch/web/ResumeUploadServlet.java), then
-> [`FileService`](src/main/java/com/resumematch/service/FileService.java),
-> [`ResumeAnalyzer`](src/main/java/com/resumematch/service/ResumeAnalyzer.java),
-> [`ResumeScorer`](src/main/java/com/resumematch/service/ResumeScorer.java) and
-> [`ResumeDAO`](src/main/java/com/resumematch/dao/ResumeDAO.java).
+</details>
 
 ## Security
+Salted PBKDF2 passwords, a CSRF token on every POST, a sign-in attempt limit, strict response headers and `PreparedStatement` everywhere. No stack trace ever reaches the browser.
+
+<details>
+<summary><b>Show the security details</b></summary>
+
 - **Passwords** are stored as salted PBKDF2 hashes (`PBKDF2WithHmacSHA256`, 600,000 iterations,
   16-byte random salt) in the form `pbkdf2$600000$<salt>$<hash>`. Accounts created by older versions
   (unsalted SHA-256, or fewer iterations) can still log in, and their hash is upgraded on that login.
@@ -621,6 +623,8 @@ These settings belong to Tomcat, not to the application, so the project does not
   before the check. Tomcat's access log therefore records the token. It is only useful together with the
   session cookie, but keep `logs/` readable by the administrator only.
 - Use a strong MySQL password and a database user that only owns the `resumematch` schema, not `root`.
+
+</details>
 
 ## Testing
 **Unit tests** (plain Java, no extra libraries, no database needed):
