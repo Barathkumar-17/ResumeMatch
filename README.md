@@ -1,15 +1,24 @@
 <div align="center">
 
-<img src="screenshots/hero.png" alt="ResumeMatch: know what your resume says. Read: a resume with seven skills highlighted. Score: 78 out of 100 with five rule-based parts. Match: jobs ranked 80%, 75% and 75%, with the formula 4 divided by 5 times 100 equals 80%." width="100%">
+<img src="screenshots/logo.png" alt="ResumeMatch logo" width="84">
 
-[![Java 17](https://img.shields.io/badge/Java-17-FFE45C?style=flat-square&labelColor=2B3452&logo=openjdk&logoColor=white)](https://adoptium.net/)
-[![Tomcat 9](https://img.shields.io/badge/Tomcat-9-FFE45C?style=flat-square&labelColor=2B3452&logo=apachetomcat&logoColor=white)](https://tomcat.apache.org/download-90.cgi)
-[![MySQL 8](https://img.shields.io/badge/MySQL-8-FFE45C?style=flat-square&labelColor=2B3452&logo=mysql&logoColor=white)](https://dev.mysql.com/downloads/mysql/)
-[![Dependencies](https://img.shields.io/badge/dependencies-2%20jars-FFE45C?style=flat-square&labelColor=2B3452)](lib/README.md)
-[![CI](https://img.shields.io/github/actions/workflow/status/Barathkumar-17/ResumeMatch/ci.yml?branch=main&label=CI&logo=githubactions&logoColor=white&style=flat-square&labelColor=2B3452)](https://github.com/Barathkumar-17/ResumeMatch/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/license-MIT-FFE45C?style=flat-square&labelColor=2B3452)](LICENSE)
+# ResumeMatch
 
-**[Run it in one command](#try-the-demo)** &nbsp;·&nbsp; [See one resume start to finish](#one-resume-start-to-finish) &nbsp;·&nbsp; [Read the rules](#how-it-works) &nbsp;·&nbsp; [Explore the code](#code-tour-where-to-look)
+**Know what your resume says.**<br>
+Upload a resume, see which skills it shows, get a score out of 100 and find the jobs it already fits. Every number comes with the rule behind it.
+
+[![Java 17](https://img.shields.io/badge/Java-17-orange?logo=openjdk&logoColor=white)](https://adoptium.net/)
+[![Tomcat 9](https://img.shields.io/badge/Tomcat-9-F8DC75?logo=apachetomcat&logoColor=black)](https://tomcat.apache.org/download-90.cgi)
+[![MySQL 8](https://img.shields.io/badge/MySQL-8-4479A1?logo=mysql&logoColor=white)](https://dev.mysql.com/downloads/mysql/)
+[![Dependencies](https://img.shields.io/badge/dependencies-2%20jars-2F4FD8)](lib/README.md)
+[![CI](https://github.com/Barathkumar-17/ResumeMatch/actions/workflows/ci.yml/badge.svg)](https://github.com/Barathkumar-17/ResumeMatch/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+[Run it in one command](#try-the-demo) &nbsp;·&nbsp; [One resume, start to finish](#one-resume-start-to-finish) &nbsp;·&nbsp; [How it works](#how-it-works) &nbsp;·&nbsp; [Code tour](#code-tour-where-to-look)
+
+<br>
+
+<img src="screenshots/hero.png" alt="ResumeMatch in three steps. Read: a resume with seven skills highlighted. Score: 78 out of 100 with five rule-based parts. Match: jobs ranked 80%, 75% and 75%, with the formula 4 divided by 5 times 100 equals 80%." width="100%">
 
 <sub>After the demo setup, log in with <code>demo@resumematch.in</code> / <code>demo1234</code>. Want to show it to others? See <a href="DEPLOY.md">Share a live demo</a>.</sub>
 
