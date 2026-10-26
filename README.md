@@ -2,17 +2,18 @@
 
 # ResumeMatch
 
-**Know what your resume says.** Upload it, see which skills it shows, get a score out of 100 and find the jobs it already fits.
+**Know what your resume says.** Skills found, score explained, jobs ranked, and the maths shown.
 
 [![Java 17](https://img.shields.io/badge/Java-17-ED8B00?logo=openjdk&logoColor=white)](https://adoptium.net/)
 [![Tomcat 9](https://img.shields.io/badge/Tomcat-9-F8DC75?logo=apachetomcat&logoColor=black)](https://tomcat.apache.org/download-90.cgi)
 [![MySQL 8](https://img.shields.io/badge/MySQL-8-4479A1?logo=mysql&logoColor=white)](https://dev.mysql.com/downloads/mysql/)
+[![Dependencies](https://img.shields.io/badge/dependencies-2%20jars-18223D)](lib/README.md)
 [![CI](https://github.com/Barathkumar-17/ResumeMatch/actions/workflows/ci.yml/badge.svg)](https://github.com/Barathkumar-17/ResumeMatch/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-<img src="screenshots/hero.png" alt="ResumeMatch in the dark theme: the resume score page on a desktop, and job search and the dashboard on two phones" width="100%">
+<img src="screenshots/hero.png" alt="ResumeMatch in three steps. Read: a resume with seven skills highlighted. Score: 78 out of 100 with five rule-based parts. Match: jobs ranked 80%, 75% and 75%, with the formula 4 divided by 5 times 100 equals 80%." width="100%">
 
-**[Take the guided tour](#take-the-tour)** &nbsp;·&nbsp; [Run it yourself](#quick-start) &nbsp;·&nbsp; [How it works](#how-it-works) &nbsp;·&nbsp; [Code tour](#code-tour-where-to-look)
+**[Run it in one command](#try-the-demo)** &nbsp;·&nbsp; [See one resume start to finish](#one-resume-start-to-finish) &nbsp;·&nbsp; [Read the rules](#how-it-works) &nbsp;·&nbsp; [Explore the code](#code-tour-where-to-look)
 
 <sub>After the demo setup, log in with <code>demo@resumematch.in</code> / <code>demo1234</code>. Want to show it to others? See <a href="DEPLOY.md">Share a live demo</a>.</sub>
 
@@ -28,26 +29,35 @@
 
 ## Contents
 
-- [Highlights](#highlights)
+**What you get**
+- [What it does](#what-it-does)
+- [One resume, start to finish](#one-resume-start-to-finish)
+- [Features](#features)
+- [Screens](#screens)
+
+**Run it**
 - [Try the demo](#try-the-demo)
+- [Quick start](#quick-start)
 - [Take the tour](#take-the-tour)
+- [Setup and configuration](#setup-and-configuration)
+- [Share a live demo](DEPLOY.md)
+- [Troubleshooting](#troubleshooting)
+- [Backup and restore](#backup-and-restore)
+
+**Under the hood**
+- [How it works](#how-it-works)
 - [Architecture](#architecture)
 - [Database schema](#database-schema)
 - [Code tour: where to look](#code-tour-where-to-look)
-- [How it works](#how-it-works)
 - [Security](#security)
 - [Testing](#testing)
-- [Quick start](#quick-start)
-- [Setup and configuration](#setup-and-configuration)
-- [Share a live demo](DEPLOY.md)
-- [Backup and restore](#backup-and-restore)
-- [Troubleshooting](#troubleshooting)
 - [Project layout](#project-layout)
-- [Screens](#screens)
+
+**About**
 - [Team](#team)
 - [License](#license)
 
-## Highlights
+## What it does
 You upload a resume. ResumeMatch then:
 
 1. finds the **skills** written in it (Java, SQL, Git and so on),
@@ -55,6 +65,18 @@ You upload a resume. ResumeMatch then:
 3. shows the **skills you are missing** for a job you pick,
 4. **ranks job openings** by how many of their required skills you already have.
 
+## One resume, start to finish
+The sample resume [`sample-data/arun_kumar_resume.txt`](sample-data/arun_kumar_resume.txt) goes in and this comes
+out. Every row follows a rule written down in [How it works](#how-it-works), so you can check the numbers by hand.
+
+| Step | What happens | Result for the sample |
+|---|---|---|
+| **1. Read** | The text is searched for each of the 18 skills in the dictionary | 7 skills: Java, C++, Python, SQL, JDBC, Git, DSA |
+| **2. Score** | Five fixed rules add up | 32 + 16 + 13 + 7 + 10 = **78/100** |
+| **3. Match** | Required skills the resume has ÷ required skills of the job | Java Backend Intern: 4 ÷ 5 = **80%** |
+| **4. Gap** | The same job, counting required and preferred skills | 4 of 6 = **67%**; missing Spring Boot and REST API |
+
+## Features
 | | |
 | --- | --- |
 | **Accounts** | Register and log in. Salted PBKDF2 password hashes, session-based access control and a sign-in attempt limit. |
@@ -66,6 +88,32 @@ You upload a resume. ResumeMatch then:
 | **Skill gap** | Gap analysis against a chosen job, with the skills most worth learning next. |
 | **Saved and applied** | Save jobs, mark them as applied (the job then shows "Applied") and track status: Applied, Interview, Rejected, Selected. |
 | **Look and feel** | Light and dark theme, phone-width layout, keyboard accessible. |
+
+## Screens
+<table>
+  <tr>
+    <td width="50%"><img src="screenshots/01-landing.png" alt="Landing page"><br><sub><b>Landing page.</b> Log in or create an account.</sub></td>
+    <td width="50%"><img src="screenshots/02-dashboard.png" alt="Dashboard"><br><sub><b>Dashboard.</b> Upload a resume and see the score, skill count and best-matching jobs.</sub></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="screenshots/03-analysis.png" alt="Resume analysis"><br><sub><b>Analysis.</b> 7 skills found, grouped by category and highlighted in the resume text.</sub></td>
+    <td width="50%"><img src="screenshots/04-score.png" alt="Resume score"><br><sub><b>Score.</b> 78/100 with the rule behind every point.</sub></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="screenshots/05-skill-gap.png" alt="Skill gap"><br><sub><b>Skill gap.</b> 67% match for one job, the missing skills and what to learn next.</sub></td>
+    <td width="50%"><img src="screenshots/06-job-search.png" alt="Job search"><br><sub><b>Job search.</b> Filters and a minimum-match slider; best match first (80%, 75%, 40%, 33%).</sub></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="screenshots/07-job-detail.png" alt="Job detail"><br><sub><b>Job detail.</b> Shows the maths: 4 of 5 required skills = 80%.</sub></td>
+    <td width="50%"><img src="screenshots/08-my-jobs.png" alt="My jobs"><br><sub><b>My jobs.</b> Saved and applied jobs, with a status for each.</sub></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="screenshots/09-score-dark.png" alt="Resume score in the dark theme"><br><sub><b>Dark theme.</b> One click in the sidebar.</sub></td>
+    <td width="50%"><img src="screenshots/10-score-phone.png" alt="Resume score on a phone" height="300"> <img src="screenshots/11-jobs-phone.png" alt="Job search on a phone" height="300"><br><sub><b>Phone layout.</b> Every page works on a narrow screen.</sub></td>
+  </tr>
+</table>
+
+More pictures, full size: [SCREENSHOTS.md](SCREENSHOTS.md).
 
 ## Try the demo
 One command sets everything up. It checks your tools, creates `db.properties`, runs the unit tests, builds
@@ -88,18 +136,221 @@ Run it without the flag to just rebuild and redeploy. Then log in with `demo@res
 > **Warning:** `--reset-db` / `-ResetDb` reloads the database and **deletes all accounts and resumes**,
 > so the script asks for confirmation first.
 
+## Quick start
+Never set up a Java web app before? Follow these steps in order. Each one says what it does and how to
+check that it worked. (Want it done for you? Use the [demo setup script](#try-the-demo).)
+
+1. **Install the tools.** You need four things:
+   - **Git** (to download the code). Get it from https://git-scm.com/downloads. On Windows it also gives
+     you *Git Bash*, a terminal that understands the `./build.sh` commands below.
+   - **JDK 17 or newer** (the Java Development Kit: compiler and runtime). Get it from
+     https://adoptium.net/ (Temurin 17 or 21).
+   - **MySQL Community Server 8.x** (the database). Get it from https://dev.mysql.com/downloads/mysql/.
+     Make sure the server is running and you know the password of its `root` user.
+   - **Apache Tomcat 9** (the web server that runs the app). Download the *Core* `zip` (Windows) or
+     `tar.gz` (Linux, macOS) from https://tomcat.apache.org/download-90.cgi and unpack it anywhere. Use
+     version 9, not 10: this project uses `javax.servlet`. This README calls that folder `<tomcat>`.
+
+   *Check:* `git --version` works, `java -version` and `javac -version` print 17 or higher (you need a
+   JDK, not only a JRE), and `mysql --version` prints 8.x.
+
+2. **Get the code.**
+   ```
+   git clone https://github.com/Barathkumar-17/ResumeMatch.git
+   cd ResumeMatch
+   ```
+3. **Get the two jars** and put both in the `lib/` folder (create it if it is missing). A jar is a
+   packaged Java library. The project needs only these two:
+   - `mysql-connector-j-<version>.jar` from https://dev.mysql.com/downloads/connector/j/
+     (choose *Platform Independent*). It lets Java talk to MySQL.
+   - `servlet-api.jar`, found in `<tomcat>/lib/`. It lets the code compile against Tomcat.
+
+   Also copy the MySQL jar into `<tomcat>/lib/` (Tomcat needs the driver at run time too). The jars are
+   not committed to the repository.
+
+   *Check:* `lib/` holds exactly two `.jar` files.
+
+4. **Load the database.** These two scripts create the `resumematch` database, 18 skills, 8 jobs and a
+   demo user. Run them from the project folder; MySQL asks for the `root` password each time:
+   ```
+   mysql -u root -p -e "source database/01_schema.sql"
+   mysql -u root -p -e "source database/02_seed_data.sql"
+   ```
+   (`mysql -u root -p < database/01_schema.sql` does the same in Bash and `cmd`, but not in PowerShell.)
+   If `mysql` is "not recognized" on Windows, add `C:\Program Files\MySQL\MySQL Server 8.0\bin` to your
+   `PATH` or call it with the full path.
+
+   *Check:* `mysql -u root -p -e "SELECT COUNT(*) FROM resumematch.jobs"` prints 8.
+
+5. **Tell the app how to reach the database.** Copy the example settings file, then open the copy and set
+   `db.user` and `db.password` to your MySQL login:
+   ```
+   cp src/main/resources/db.properties.example src/main/resources/db.properties
+   ```
+   (On Windows `cmd` or PowerShell use `copy src\main\resources\db.properties.example src\main\resources\db.properties`.)
+   This file stays on your machine and is not committed.
+
+6. **Build and deploy.** This compiles the code, packs `build/ResumeMatch.war` (a *war* is a web
+   application packed into one file) and copies it into Tomcat's `webapps` folder. First tell the script
+   where Tomcat is by setting `CATALINA_HOME`. On Windows the default is
+   `C:\Program Files\Apache Software Foundation\Tomcat 9.0`, so skip this if you installed it there:
+   ```
+   export CATALINA_HOME=$HOME/apache-tomcat-9.0.123      # Linux, macOS, Git Bash: your Tomcat folder
+   ./build.sh deploy
+   ```
+   ```
+   set CATALINA_HOME=C:\tools\apache-tomcat-9.0.123      & rem Windows cmd: your Tomcat folder
+   build.bat deploy
+   ```
+   (In PowerShell use `$env:CATALINA_HOME = "C:\tools\apache-tomcat-9.0.123"` and `.\build.bat deploy`.)
+
+   Then start Tomcat if it is not running yet: `<tomcat>/bin/startup.sh` (Linux, macOS) or
+   `<tomcat>\bin\startup.bat` (Windows). Tomcat notices a new war by itself, so later rebuilds need no
+   restart.
+
+   *Check:* the script ends without errors and `webapps/ResumeMatch/` appears in Tomcat after a few seconds.
+
+7. **Open the app.** Go to http://localhost:8080/ResumeMatch/ and log in with `demo@resumematch.in` /
+   `demo1234`, or register your own account. Upload `sample-data/arun_kumar_resume.txt`.
+
+   *Check:* the dashboard shows **78/100** and **7 skills**.
+
+> **Tip:** if something goes wrong, the [Troubleshooting](#troubleshooting) table lists the common
+> messages and their fixes. The app log is `<tomcat>/logs/resumematch.0.log`.
+
 ## Take the tour
 New here? [DEMO.md](DEMO.md) is a guided tour of about ten minutes. Every step has a screenshot and the
 exact numbers you should see: create an account, upload a resume (78/100), read the skill gap (67%),
 search jobs (80, 75, 40, 33), save and apply, then try dark mode and the phone layout.
 
-<table>
-  <tr>
-    <td width="33%"><img src="screenshots/demo/06-dashboard-after-upload.png" alt="Dashboard after the first upload"></td>
-    <td width="33%"><img src="screenshots/demo/08-score.png" alt="Resume score page"></td>
-    <td width="33%"><img src="screenshots/demo/10-job-search.png" alt="Job search results"></td>
-  </tr>
-</table>
+## Setup and configuration
+The [beginner steps](#quick-start) above are all you need to get running. This section
+adds the detail.
+
+### Prerequisites
+| Tool | Version | Needed for |
+|---|---|---|
+| JDK | 17 or newer | building and running |
+| MySQL | 8.x | the database |
+| Apache Tomcat | 9.x (`javax.servlet`) | running the web app |
+| MySQL Connector/J | `mysql-connector-j-<version>.jar` | the JDBC driver |
+| bash + curl, or PowerShell 5.1 | any | the smoke test (optional) |
+
+### Notes on the steps
+- **Database scripts can be run again.** The schema script drops and recreates the database, and the seed
+  script clears the seeded tables before inserting. **Running either again deletes all accounts and resumes.**
+- **Build.** `build.bat` on Windows, `./build.sh` elsewhere, produces `build/ResumeMatch.war`.
+- **Deploy.** `build.bat deploy` (or `./build.sh deploy`) builds the war and copies it into
+  `%CATALINA_HOME%\webapps` (`$CATALINA_HOME/webapps` in Bash). If `CATALINA_HOME` is not set the default is
+  `C:\Program Files\Apache Software Foundation\Tomcat 9.0`, so on Linux and macOS you must set it. The
+  script never stops or starts Tomcat or any other service.
+
+### Configuration
+| Setting | Where | Default |
+|---|---|---|
+| Database URL, user, password | `db.properties` keys `db.url`, `db.user`, `db.password`, or the environment variables `RESUMEMATCH_DB_URL`, `RESUMEMATCH_DB_USER`, `RESUMEMATCH_DB_PASSWORD` (these win) | `jdbc:mysql://localhost:3306/resumematch`, `root`, empty |
+| Database timeouts | added to the URL automatically unless it already sets them | connect 5 s, socket 30 s |
+| Resume folder | context parameter `resumeDir` in `WEB-INF/web.xml` | `<tomcat>/resumes/user_<id>/` |
+| Tomcat folder for `deploy` and the demo script | environment variable `CATALINA_HOME` | `C:\Program Files\Apache Software Foundation\Tomcat 9.0` |
+| Application log | `java.util.logging`, set up at startup | `<tomcat>/logs/resumematch.0.log` (1 MB × 5 files, rotated) |
+| Session timeout | `WEB-INF/web.xml` | 30 minutes |
+| Total storage for resumes | context parameter `maxResumeStorageMb` in `WEB-INF/web.xml`, or the environment variable `RESUMEMATCH_MAX_STORAGE_MB` (wins); when all stored resumes together would pass it, uploads are refused with a friendly message | 200 MB |
+| Resumes kept per user | fixed in `ResumeDAO.MAX_RESUMES_PER_USER`; saving a sixth resume deletes the oldest row and its file | 5 |
+| Live-demo mode (pauses new sign-ups) | environment variable `RESUMEMATCH_DEMO_MODE=true`, context parameter `demoMode`, or the flag file `<tomcat>/resumematch-demo-mode.flag` (checked every 10 s; the share scripts create and remove it) | off |
+
+To use another resume folder, add this to `WEB-INF/web.xml`:
+```xml
+<context-param>
+  <param-name>resumeDir</param-name>
+  <param-value>C:/resumematch-uploads</param-value>
+</context-param>
+```
+
+## Troubleshooting
+| Problem | Fix |
+|---|---|
+| `ClassNotFoundException: com.mysql.cj.jdbc.Driver` in the log | The MySQL jar is missing from `<tomcat>/lib/`. Copy it there and restart Tomcat. |
+| "Can't reach the database right now" | MySQL is not running, or `db.user` / `db.password` are wrong. Check `<tomcat>/logs/resumematch.0.log`, fix `db.properties` and rebuild. |
+| `Access denied for user 'root'` in the log | The password in `db.properties` does not match your MySQL password. |
+| "This form expired" (403) after submitting a form | The session timed out or the page was open in an old tab. Reload the page and submit again. |
+| "Too many failed sign-in attempts" | Wait for the time shown, or restart Tomcat to clear the in-memory counters. |
+| `Tomcat webapps folder not found` when deploying | `CATALINA_HOME` is not set (or points to the wrong folder). Set it to your Tomcat 9 folder, see step 6. |
+| Build says `servlet-api.jar is missing` | Copy `servlet-api.jar` from `<tomcat>/lib/` into `lib/`. |
+| `build.sh` fails with `$'\r': command not found` | The script was checked out with Windows line endings. Run `git add --renormalize . && git checkout -- build.sh`. |
+| PowerShell says running scripts is disabled | Run the script as `powershell -ExecutionPolicy Bypass -File scripts\demo-setup.ps1`. |
+| `mysql` or `mysqldump` is "not recognized" / "command not found" | Add MySQL's `bin` folder to your `PATH`, or call it with the full path. |
+| Port 8080 already in use | Stop the other program, or change the connector port in `<tomcat>/conf/server.xml`. |
+| `package javax.servlet does not exist` or `jakarta` errors | This project targets Tomcat 9 (`javax.servlet`). Tomcat 10 and later use `jakarta.servlet`. |
+| "password-protected" or "scanned image" message for a PDF | Text cannot be read from encrypted PDFs or scans. Export a text-based PDF, or upload a `.txt` or `.docx` copy. Old `.doc` files must be saved as `.docx` first. |
+| Upload fails or downloads return 404 | Make sure Tomcat can write to `<tomcat>/resumes/`, or set the `resumeDir` parameter shown above. |
+| Dates are a few hours off | Remove any `serverTimezone` setting from `db.url`; the driver detects the server time zone itself. |
+| Smoke test cannot clean up | Put the `mysql` client on the PATH (or set `MYSQL`) and set `MYSQL_PWD`. |
+
+## Backup and restore
+Back up the database and the resume folder together, because each resume row points to a file:
+```
+mysqldump -u root -p --single-transaction --result-file=resumematch-backup.sql resumematch
+```
+and copy `<tomcat>/resumes/`. To restore:
+```
+mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS resumematch CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
+mysql -u root -p resumematch -e "source resumematch-backup.sql"
+```
+then put the resume folder back in the same place.
+
+## How it works
+Everything is deterministic and rule-based: the same resume always gives the same result.
+
+**Sections.** The resume is read line by line. A line that holds only a heading such as `EDUCATION` (any letter case, optional colon), `SKILLS`,
+`PROJECTS`, `CERTIFICATIONS` or `EXPERIENCE` (a few alternatives such as `INTERNSHIPS` are accepted)
+starts a section. Lines starting with `-`, `•` or `*` are the items; a section without any such line uses its non-empty lines.
+
+**Skill detection.** Every skill in the dictionary (name plus aliases) is searched for in the whole
+text, ignoring case. A match must not sit inside a longer word, and `+` and `#` count as word
+characters, so `C++` is found and `Java` does not match `JavaScript`. A skill counts once however
+often it appears.
+
+**Resume score (100 points).** `s` is the number of skills, `p` the project bullets, `c` the
+certification bullets and `e` the experience bullets.
+
+| Rule | Points | Calculation |
+|---|---|---|
+| Skills | 40 | `min(40, round(s × 4.5))`, full marks at 9 skills |
+| Projects | 20 | `min(16, p × 8)`, plus 4 if the projects or experience mention measurable results (a number with `%`, users, records, requests, ms and similar) |
+| Education | 15 | 10 for a degree (B.E., B.Tech, M.Tech, B.Sc, BCA, MCA ...), plus 5 for a CGPA of 8.5 or more or 3 for a lower listed CGPA |
+| Certifications | 10 | `min(10, round(c × 3.5))` |
+| Experience | 15 | `min(15, e × 10)` |
+
+**Worked example.** The sample resume `sample-data/arun_kumar_resume.txt` earns
+32 (skills) + 16 (projects) + 13 (education) + 7 (certifications) + 10 (experience) = **78/100**.
+The score page also lists strengths and areas to improve.
+
+**Job match.** Only required skills count; preferred skills never change the score.
+```
+match % = round(required skills the resume has × 100 / required skills of the job)
+```
+Jobs are sorted by match, then by title. The sample resume against the Java Backend Intern job has
+4 of its 5 required skills, so 4 ÷ 5 × 100 = **80%**.
+
+**Skill gap.** The gap page counts required plus preferred skills, so the same job shows
+4 of 6 = **67%**. The job match counts required skills only (80%) and the page says so. The
+recommended skills are the required skills missing across all jobs, weighted by how close the
+resume already is to each job, top five shown.
+
+**Run the analysis without a server.** This prints the skills, the score breakdown and the ranked job
+list for the sample resume (it needs the database for the skill dictionary and jobs). Add a file path
+at the end to analyse another `.txt` resume, for example `sample-data/priya_sharma_resume.txt` (75/100).
+```
+javac --release 17 -cp "lib/*" -d build/classes $(find src/main/java -name '*.java')
+java -cp "build/classes:src/main/resources:lib/*" com.resumematch.console.ConsoleDemo
+```
+On Windows (`cmd`) use a source list file and `;` in the classpath:
+```
+mkdir build
+dir /s /b src\main\java\*.java > build\sources.txt
+javac --release 17 -cp "lib\*" -d build\classes @build\sources.txt
+java -cp "build\classes;src\main\resources;lib\*" com.resumematch.console.ConsoleDemo
+```
 
 ## Architecture
 ```
@@ -315,60 +566,6 @@ short comment ending in "Demonstrates: ...", so you can also search for that wor
 > [`ResumeScorer`](src/main/java/com/resumematch/service/ResumeScorer.java) and
 > [`ResumeDAO`](src/main/java/com/resumematch/dao/ResumeDAO.java).
 
-## How it works
-Everything is deterministic and rule-based: the same resume always gives the same result.
-
-**Sections.** The resume is read line by line. A line that holds only a heading such as `EDUCATION` (any letter case, optional colon), `SKILLS`,
-`PROJECTS`, `CERTIFICATIONS` or `EXPERIENCE` (a few alternatives such as `INTERNSHIPS` are accepted)
-starts a section. Lines starting with `-`, `•` or `*` are the items; a section without any such line uses its non-empty lines.
-
-**Skill detection.** Every skill in the dictionary (name plus aliases) is searched for in the whole
-text, ignoring case. A match must not sit inside a longer word, and `+` and `#` count as word
-characters, so `C++` is found and `Java` does not match `JavaScript`. A skill counts once however
-often it appears.
-
-**Resume score (100 points).** `s` is the number of skills, `p` the project bullets, `c` the
-certification bullets and `e` the experience bullets.
-
-| Rule | Points | Calculation |
-|---|---|---|
-| Skills | 40 | `min(40, round(s × 4.5))`, full marks at 9 skills |
-| Projects | 20 | `min(16, p × 8)`, plus 4 if the projects or experience mention measurable results (a number with `%`, users, records, requests, ms and similar) |
-| Education | 15 | 10 for a degree (B.E., B.Tech, M.Tech, B.Sc, BCA, MCA ...), plus 5 for a CGPA of 8.5 or more or 3 for a lower listed CGPA |
-| Certifications | 10 | `min(10, round(c × 3.5))` |
-| Experience | 15 | `min(15, e × 10)` |
-
-**Worked example.** The sample resume `sample-data/arun_kumar_resume.txt` earns
-32 (skills) + 16 (projects) + 13 (education) + 7 (certifications) + 10 (experience) = **78/100**.
-The score page also lists strengths and areas to improve.
-
-**Job match.** Only required skills count; preferred skills never change the score.
-```
-match % = round(required skills the resume has × 100 / required skills of the job)
-```
-Jobs are sorted by match, then by title. The sample resume against the Java Backend Intern job has
-4 of its 5 required skills, so 4 ÷ 5 × 100 = **80%**.
-
-**Skill gap.** The gap page counts required plus preferred skills, so the same job shows
-4 of 6 = **67%**. The job match counts required skills only (80%) and the page says so. The
-recommended skills are the required skills missing across all jobs, weighted by how close the
-resume already is to each job, top five shown.
-
-**Run the analysis without a server.** This prints the skills, the score breakdown and the ranked job
-list for the sample resume (it needs the database for the skill dictionary and jobs). Add a file path
-at the end to analyse another `.txt` resume, for example `sample-data/priya_sharma_resume.txt` (75/100).
-```
-javac --release 17 -cp "lib/*" -d build/classes $(find src/main/java -name '*.java')
-java -cp "build/classes:src/main/resources:lib/*" com.resumematch.console.ConsoleDemo
-```
-On Windows (`cmd`) use a source list file and `;` in the classpath:
-```
-mkdir build
-dir /s /b src\main\java\*.java > build\sources.txt
-javac --release 17 -cp "lib\*" -d build\classes @build\sources.txt
-java -cp "build\classes;src\main\resources;lib\*" com.resumematch.console.ConsoleDemo
-```
-
 ## Security
 - **Passwords** are stored as salted PBKDF2 hashes (`PBKDF2WithHmacSHA256`, 600,000 iterations,
   16-byte random salt) in the form `pbkdf2$600000$<salt>$<hash>`. Accounts created by older versions
@@ -453,163 +650,6 @@ database rows, even when a check fails. The clean-up uses the `mysql` client; `M
 for pushes to `main` and for pull requests. It downloads the two jars, runs the unit tests and builds the war on
 Linux and Windows, then deploys the war to a real Tomcat 9 with MySQL 8 and runs the smoke test.
 
-## Quick start
-Never set up a Java web app before? Follow these steps in order. Each one says what it does and how to
-check that it worked. (Want it done for you? Use the [demo setup script](#try-the-demo).)
-
-1. **Install the tools.** You need four things:
-   - **Git** (to download the code). Get it from https://git-scm.com/downloads. On Windows it also gives
-     you *Git Bash*, a terminal that understands the `./build.sh` commands below.
-   - **JDK 17 or newer** (the Java Development Kit: compiler and runtime). Get it from
-     https://adoptium.net/ (Temurin 17 or 21).
-   - **MySQL Community Server 8.x** (the database). Get it from https://dev.mysql.com/downloads/mysql/.
-     Make sure the server is running and you know the password of its `root` user.
-   - **Apache Tomcat 9** (the web server that runs the app). Download the *Core* `zip` (Windows) or
-     `tar.gz` (Linux, macOS) from https://tomcat.apache.org/download-90.cgi and unpack it anywhere. Use
-     version 9, not 10: this project uses `javax.servlet`. This README calls that folder `<tomcat>`.
-
-   *Check:* `git --version` works, `java -version` and `javac -version` print 17 or higher (you need a
-   JDK, not only a JRE), and `mysql --version` prints 8.x.
-
-2. **Get the code.**
-   ```
-   git clone https://github.com/Barathkumar-17/ResumeMatch.git
-   cd ResumeMatch
-   ```
-3. **Get the two jars** and put both in the `lib/` folder (create it if it is missing). A jar is a
-   packaged Java library. The project needs only these two:
-   - `mysql-connector-j-<version>.jar` from https://dev.mysql.com/downloads/connector/j/
-     (choose *Platform Independent*). It lets Java talk to MySQL.
-   - `servlet-api.jar`, found in `<tomcat>/lib/`. It lets the code compile against Tomcat.
-
-   Also copy the MySQL jar into `<tomcat>/lib/` (Tomcat needs the driver at run time too). The jars are
-   not committed to the repository.
-
-   *Check:* `lib/` holds exactly two `.jar` files.
-
-4. **Load the database.** These two scripts create the `resumematch` database, 18 skills, 8 jobs and a
-   demo user. Run them from the project folder; MySQL asks for the `root` password each time:
-   ```
-   mysql -u root -p -e "source database/01_schema.sql"
-   mysql -u root -p -e "source database/02_seed_data.sql"
-   ```
-   (`mysql -u root -p < database/01_schema.sql` does the same in Bash and `cmd`, but not in PowerShell.)
-   If `mysql` is "not recognized" on Windows, add `C:\Program Files\MySQL\MySQL Server 8.0\bin` to your
-   `PATH` or call it with the full path.
-
-   *Check:* `mysql -u root -p -e "SELECT COUNT(*) FROM resumematch.jobs"` prints 8.
-
-5. **Tell the app how to reach the database.** Copy the example settings file, then open the copy and set
-   `db.user` and `db.password` to your MySQL login:
-   ```
-   cp src/main/resources/db.properties.example src/main/resources/db.properties
-   ```
-   (On Windows `cmd` or PowerShell use `copy src\main\resources\db.properties.example src\main\resources\db.properties`.)
-   This file stays on your machine and is not committed.
-
-6. **Build and deploy.** This compiles the code, packs `build/ResumeMatch.war` (a *war* is a web
-   application packed into one file) and copies it into Tomcat's `webapps` folder. First tell the script
-   where Tomcat is by setting `CATALINA_HOME`. On Windows the default is
-   `C:\Program Files\Apache Software Foundation\Tomcat 9.0`, so skip this if you installed it there:
-   ```
-   export CATALINA_HOME=$HOME/apache-tomcat-9.0.123      # Linux, macOS, Git Bash: your Tomcat folder
-   ./build.sh deploy
-   ```
-   ```
-   set CATALINA_HOME=C:\tools\apache-tomcat-9.0.123      & rem Windows cmd: your Tomcat folder
-   build.bat deploy
-   ```
-   (In PowerShell use `$env:CATALINA_HOME = "C:\tools\apache-tomcat-9.0.123"` and `.\build.bat deploy`.)
-
-   Then start Tomcat if it is not running yet: `<tomcat>/bin/startup.sh` (Linux, macOS) or
-   `<tomcat>\bin\startup.bat` (Windows). Tomcat notices a new war by itself, so later rebuilds need no
-   restart.
-
-   *Check:* the script ends without errors and `webapps/ResumeMatch/` appears in Tomcat after a few seconds.
-
-7. **Open the app.** Go to http://localhost:8080/ResumeMatch/ and log in with `demo@resumematch.in` /
-   `demo1234`, or register your own account. Upload `sample-data/arun_kumar_resume.txt`.
-
-   *Check:* the dashboard shows **78/100** and **7 skills**.
-
-> **Tip:** if something goes wrong, the [Troubleshooting](#troubleshooting) table lists the common
-> messages and their fixes. The app log is `<tomcat>/logs/resumematch.0.log`.
-
-## Setup and configuration
-The [beginner steps](#quick-start) above are all you need to get running. This section
-adds the detail.
-
-### Prerequisites
-| Tool | Version | Needed for |
-|---|---|---|
-| JDK | 17 or newer | building and running |
-| MySQL | 8.x | the database |
-| Apache Tomcat | 9.x (`javax.servlet`) | running the web app |
-| MySQL Connector/J | `mysql-connector-j-<version>.jar` | the JDBC driver |
-| bash + curl, or PowerShell 5.1 | any | the smoke test (optional) |
-
-### Notes on the steps
-- **Database scripts can be run again.** The schema script drops and recreates the database, and the seed
-  script clears the seeded tables before inserting. **Running either again deletes all accounts and resumes.**
-- **Build.** `build.bat` on Windows, `./build.sh` elsewhere, produces `build/ResumeMatch.war`.
-- **Deploy.** `build.bat deploy` (or `./build.sh deploy`) builds the war and copies it into
-  `%CATALINA_HOME%\webapps` (`$CATALINA_HOME/webapps` in Bash). If `CATALINA_HOME` is not set the default is
-  `C:\Program Files\Apache Software Foundation\Tomcat 9.0`, so on Linux and macOS you must set it. The
-  script never stops or starts Tomcat or any other service.
-
-### Configuration
-| Setting | Where | Default |
-|---|---|---|
-| Database URL, user, password | `db.properties` keys `db.url`, `db.user`, `db.password`, or the environment variables `RESUMEMATCH_DB_URL`, `RESUMEMATCH_DB_USER`, `RESUMEMATCH_DB_PASSWORD` (these win) | `jdbc:mysql://localhost:3306/resumematch`, `root`, empty |
-| Database timeouts | added to the URL automatically unless it already sets them | connect 5 s, socket 30 s |
-| Resume folder | context parameter `resumeDir` in `WEB-INF/web.xml` | `<tomcat>/resumes/user_<id>/` |
-| Tomcat folder for `deploy` and the demo script | environment variable `CATALINA_HOME` | `C:\Program Files\Apache Software Foundation\Tomcat 9.0` |
-| Application log | `java.util.logging`, set up at startup | `<tomcat>/logs/resumematch.0.log` (1 MB × 5 files, rotated) |
-| Session timeout | `WEB-INF/web.xml` | 30 minutes |
-| Total storage for resumes | context parameter `maxResumeStorageMb` in `WEB-INF/web.xml`, or the environment variable `RESUMEMATCH_MAX_STORAGE_MB` (wins); when all stored resumes together would pass it, uploads are refused with a friendly message | 200 MB |
-| Resumes kept per user | fixed in `ResumeDAO.MAX_RESUMES_PER_USER`; saving a sixth resume deletes the oldest row and its file | 5 |
-| Live-demo mode (pauses new sign-ups) | environment variable `RESUMEMATCH_DEMO_MODE=true`, context parameter `demoMode`, or the flag file `<tomcat>/resumematch-demo-mode.flag` (checked every 10 s; the share scripts create and remove it) | off |
-
-To use another resume folder, add this to `WEB-INF/web.xml`:
-```xml
-<context-param>
-  <param-name>resumeDir</param-name>
-  <param-value>C:/resumematch-uploads</param-value>
-</context-param>
-```
-
-## Backup and restore
-Back up the database and the resume folder together, because each resume row points to a file:
-```
-mysqldump -u root -p --single-transaction --result-file=resumematch-backup.sql resumematch
-```
-and copy `<tomcat>/resumes/`. To restore:
-```
-mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS resumematch CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
-mysql -u root -p resumematch -e "source resumematch-backup.sql"
-```
-then put the resume folder back in the same place.
-
-## Troubleshooting
-| Problem | Fix |
-|---|---|
-| `ClassNotFoundException: com.mysql.cj.jdbc.Driver` in the log | The MySQL jar is missing from `<tomcat>/lib/`. Copy it there and restart Tomcat. |
-| "Can't reach the database right now" | MySQL is not running, or `db.user` / `db.password` are wrong. Check `<tomcat>/logs/resumematch.0.log`, fix `db.properties` and rebuild. |
-| `Access denied for user 'root'` in the log | The password in `db.properties` does not match your MySQL password. |
-| "This form expired" (403) after submitting a form | The session timed out or the page was open in an old tab. Reload the page and submit again. |
-| "Too many failed sign-in attempts" | Wait for the time shown, or restart Tomcat to clear the in-memory counters. |
-| `Tomcat webapps folder not found` when deploying | `CATALINA_HOME` is not set (or points to the wrong folder). Set it to your Tomcat 9 folder, see step 6. |
-| Build says `servlet-api.jar is missing` | Copy `servlet-api.jar` from `<tomcat>/lib/` into `lib/`. |
-| `build.sh` fails with `$'\r': command not found` | The script was checked out with Windows line endings. Run `git add --renormalize . && git checkout -- build.sh`. |
-| PowerShell says running scripts is disabled | Run the script as `powershell -ExecutionPolicy Bypass -File scripts\demo-setup.ps1`. |
-| `mysql` or `mysqldump` is "not recognized" / "command not found" | Add MySQL's `bin` folder to your `PATH`, or call it with the full path. |
-| Port 8080 already in use | Stop the other program, or change the connector port in `<tomcat>/conf/server.xml`. |
-| `package javax.servlet does not exist` or `jakarta` errors | This project targets Tomcat 9 (`javax.servlet`). Tomcat 10 and later use `jakarta.servlet`. |
-| "password-protected" or "scanned image" message for a PDF | Text cannot be read from encrypted PDFs or scans. Export a text-based PDF, or upload a `.txt` or `.docx` copy. Old `.doc` files must be saved as `.docx` first. |
-| Upload fails or downloads return 404 | Make sure Tomcat can write to `<tomcat>/resumes/`, or set the `resumeDir` parameter shown above. |
-| Dates are a few hours off | Remove any `serverTimezone` setting from `db.url`; the driver detects the server time zone itself. |
-| Smoke test cannot clean up | Put the `mysql` client on the PATH (or set `MYSQL`) and set `MYSQL_PWD`. |
-
 ## Project layout
 ```
 database/          01_schema.sql (all 8 tables, see Database schema), 02_seed_data.sql
@@ -624,32 +664,6 @@ DEMO.md            guided tour of the whole product
 build.sh           build, test and deploy script for Linux/macOS/Git Bash
 build.bat          the same for Windows
 ```
-
-## Screens
-<table>
-  <tr>
-    <td width="50%"><img src="screenshots/01-landing.png" alt="Landing page"><br><sub><b>Landing page.</b> Log in or create an account.</sub></td>
-    <td width="50%"><img src="screenshots/02-dashboard.png" alt="Dashboard"><br><sub><b>Dashboard.</b> Upload a resume and see the score, skill count and best-matching jobs.</sub></td>
-  </tr>
-  <tr>
-    <td width="50%"><img src="screenshots/03-analysis.png" alt="Resume analysis"><br><sub><b>Analysis.</b> 7 skills found, grouped by category and highlighted in the resume text.</sub></td>
-    <td width="50%"><img src="screenshots/04-score.png" alt="Resume score"><br><sub><b>Score.</b> 78/100 with the rule behind every point.</sub></td>
-  </tr>
-  <tr>
-    <td width="50%"><img src="screenshots/05-skill-gap.png" alt="Skill gap"><br><sub><b>Skill gap.</b> 67% match for one job, the missing skills and what to learn next.</sub></td>
-    <td width="50%"><img src="screenshots/06-job-search.png" alt="Job search"><br><sub><b>Job search.</b> Filters and a minimum-match slider; best match first (80%, 75%, 40%, 33%).</sub></td>
-  </tr>
-  <tr>
-    <td width="50%"><img src="screenshots/07-job-detail.png" alt="Job detail"><br><sub><b>Job detail.</b> Shows the maths: 4 of 5 required skills = 80%.</sub></td>
-    <td width="50%"><img src="screenshots/08-my-jobs.png" alt="My jobs"><br><sub><b>My jobs.</b> Saved and applied jobs, with a status for each.</sub></td>
-  </tr>
-  <tr>
-    <td width="50%"><img src="screenshots/09-score-dark.png" alt="Resume score in the dark theme"><br><sub><b>Dark theme.</b> One click in the sidebar.</sub></td>
-    <td width="50%"><img src="screenshots/10-score-phone.png" alt="Resume score on a phone" height="300"> <img src="screenshots/11-jobs-phone.png" alt="Job search on a phone" height="300"><br><sub><b>Phone layout.</b> Every page works on a narrow screen.</sub></td>
-  </tr>
-</table>
-
-More pictures, full size: [SCREENSHOTS.md](SCREENSHOTS.md).
 
 ## Team
 | Member | Area |
